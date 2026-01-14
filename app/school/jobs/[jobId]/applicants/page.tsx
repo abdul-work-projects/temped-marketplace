@@ -148,10 +148,10 @@ export default function JobApplicantsPage() {
 
                           <button
                             onClick={() => handleToggleShortlist(application.id, application.shortlisted || false)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors ${
+                            className={`flex items-center gap-2 px-4 py-2 font-bold transition-colors ${
                               application.shortlisted
-                                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
+                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             <Star size={18} fill={application.shortlisted ? 'currentColor' : 'none'} />
@@ -173,7 +173,7 @@ export default function JobApplicantsPage() {
                               {teacher.educationPhase.map(phase => (
                                 <span
                                   key={phase}
-                                  className="px-2 py-1 rounded text-xs bg-blue-100 text-blue-700"
+                                  className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
                                 >
                                   {phase}
                                 </span>
@@ -190,13 +190,13 @@ export default function JobApplicantsPage() {
                               {teacher.subjects.slice(0, 3).map(subject => (
                                 <span
                                   key={subject}
-                                  className="px-2 py-1 rounded text-xs bg-green-100 text-green-700"
+                                  className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
                                 >
                                   {subject}
                                 </span>
                               ))}
                               {teacher.subjects.length > 3 && (
-                                <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
+                                <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
                                   +{teacher.subjects.length - 3} more
                                 </span>
                               )}
@@ -217,7 +217,7 @@ export default function JobApplicantsPage() {
                         </div>
 
                         <div className="flex gap-3">
-                          <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                          <button className="flex items-center gap-2 px-4 py-2 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8]">
                             <Mail size={16} />
                             Contact
                           </button>
@@ -225,7 +225,7 @@ export default function JobApplicantsPage() {
                           <select
                             value={application.status}
                             onChange={(e) => handleUpdateStatus(application.id, e.target.value as any)}
-                            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="px-4 py-2 border border-gray-300 font-bold focus:outline-none focus:border-[#1c1d1f]"
                           >
                             <option value="Applied">Applied</option>
                             <option value="In Progress">In Progress</option>
@@ -235,7 +235,7 @@ export default function JobApplicantsPage() {
 
                           <Link
                             href={`/school/teachers/${teacher.id}`}
-                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                            className="px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50"
                           >
                             View Full Profile
                           </Link>
