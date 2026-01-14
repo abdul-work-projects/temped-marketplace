@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -48,9 +49,12 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar links={sidebarLinks} userEmail={user.email} />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-auto">
+        <main className="flex-1">
+          {children}
+        </main>
+        <Footer />
+      </div>
     </div>
   );
 }

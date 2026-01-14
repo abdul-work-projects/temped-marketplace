@@ -34,8 +34,9 @@ export default function JobCard({
   const deadline = format(new Date(job.applicationDeadline), 'MMM d, yyyy');
 
   return (
-    <div className="bg-white border border-gray-300 p-5 hover:shadow-lg transition-shadow">
-      <div>
+    <Link href={`/teacher/jobs/${job.id}`} className="block">
+      <div className="bg-white border border-gray-300 p-5 hover:shadow-lg transition-shadow cursor-pointer">
+        <div>
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
@@ -90,30 +91,11 @@ export default function JobCard({
           </span>
         </div>
 
-        {/* Apply Button */}
-        {onApply && (
-          <button
-            onClick={() => onApply(job.id)}
-            disabled={applied}
-            className={`w-full py-2.5 px-4 font-bold transition-colors ${
-              applied
-                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                : 'bg-[#a435f0] text-white hover:bg-[#8710d8]'
-            }`}
-          >
-            {applied ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
-                Applied
-              </span>
-            ) : (
-              'Apply Now'
-            )}
-          </button>
-        )}
+        {/* View Details Button */}
+        <div className="w-full py-2.5 px-4 font-bold transition-colors bg-[#a435f0] text-white hover:bg-[#8710d8] text-center">
+          {applied ? 'View Application' : 'View Details'}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

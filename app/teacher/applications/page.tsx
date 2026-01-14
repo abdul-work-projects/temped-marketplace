@@ -77,12 +77,14 @@ export default function TeacherApplicationsPage() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {job.title}
-                        </h3>
+                        <Link href={`/teacher/jobs/${job.id}`} className="hover:text-[#a435f0]">
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            {job.title}
+                          </h3>
+                        </Link>
                         <Link
                           href={`/teacher/schools/${school.id}`}
-                          className="text-gray-600 hover:text-[#a435f0] font-medium"
+                          className="text-gray-600 hover:text-[#a435f0] font-medium text-sm"
                         >
                           {school.name}
                         </Link>
@@ -114,6 +116,16 @@ export default function TeacherApplicationsPage() {
                         </p>
                       </div>
                     )}
+
+                    {/* Action Button */}
+                    <div className="mt-4">
+                      <Link
+                        href={`/teacher/jobs/${job.id}`}
+                        className="inline-block px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50"
+                      >
+                        View Job Details
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
