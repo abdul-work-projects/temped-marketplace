@@ -95,6 +95,7 @@ export default function JobCard({
         <div className="w-full py-2.5 px-4 font-bold transition-colors bg-[#a435f0] text-white hover:bg-[#8710d8] text-center">
           {applied ? 'View Application' : 'View Details'}
         </div>
+        </div>
       </div>
     </Link>
   );
