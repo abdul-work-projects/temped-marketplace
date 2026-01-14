@@ -42,7 +42,7 @@ export default function SchoolSetupPage() {
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">School Profile Setup</h1>
+            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">School Profile Setup</h1>
             <p className="text-gray-600">
               Complete your school profile to start posting jobs
             </p>
@@ -54,9 +54,9 @@ export default function SchoolSetupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white border border-gray-300 p-6 space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 School Name *
               </label>
               <input
@@ -64,45 +64,45 @@ export default function SchoolSetupPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 School Description
               </label>
               <textarea
                 rows={4}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="Tell teachers about your school, its values, and environment..."
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   EMIS Number
                 </label>
                 <input
                   type="text"
                   value={formData.emisNumber}
                   onChange={(e) => setFormData({ ...formData, emisNumber: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   District
                 </label>
                 <input
                   type="text"
                   value={formData.district}
                   onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                   placeholder="e.g., Cape Winelands"
                 />
               </div>
@@ -110,14 +110,14 @@ export default function SchoolSetupPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   School Type *
                 </label>
                 <select
                   required
                   value={formData.schoolType}
                   onChange={(e) => setFormData({ ...formData, schoolType: e.target.value as SchoolType })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 >
                   <option value="Primary">Primary</option>
                   <option value="Secondary">Secondary</option>
@@ -127,14 +127,14 @@ export default function SchoolSetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Ownership Type *
                 </label>
                 <select
                   required
                   value={formData.ownershipType}
                   onChange={(e) => setFormData({ ...formData, ownershipType: e.target.value as OwnershipType })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 >
                   <option value="Public">Public</option>
                   <option value="Private">Private</option>
@@ -144,27 +144,27 @@ export default function SchoolSetupPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Education District
                 </label>
                 <input
                   type="text"
                   value={formData.educationDistrict}
                   onChange={(e) => setFormData({ ...formData, educationDistrict: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                   placeholder="e.g., Metro East"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Curriculum *
                 </label>
                 <select
                   required
                   value={formData.curriculum}
                   onChange={(e) => setFormData({ ...formData, curriculum: e.target.value as Curriculum })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 >
                   <option value="CAPS">CAPS</option>
                   <option value="Cambridge">Cambridge</option>
@@ -175,7 +175,7 @@ export default function SchoolSetupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Address *
               </label>
               <input
@@ -183,15 +183,15 @@ export default function SchoolSetupPage() {
                 required
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="Street, City, Postal Code"
               />
             </div>
 
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-gray-300">
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+                className="w-full py-3 px-4 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8] transition-colors"
               >
                 Save Profile
               </button>

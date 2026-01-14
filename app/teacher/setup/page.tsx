@@ -71,21 +71,21 @@ export default function TeacherSetupPage() {
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Setup</h1>
+            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Profile Setup</h1>
             <p className="text-gray-600">
               Complete your profile to start applying for jobs
             </p>
           </div>
 
           {/* Progress Bar */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <div className="bg-white border border-gray-300 p-6 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Profile Completeness</span>
-              <span className="text-sm font-bold text-blue-600">{completeness}%</span>
+              <span className="text-sm font-bold text-gray-700">Profile Completeness</span>
+              <span className="text-sm font-bold text-[#a435f0]">{completeness}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
+            <div className="w-full bg-gray-200 h-3">
               <div
-                className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                className="bg-[#a435f0] h-3 transition-all duration-300"
                 style={{ width: `${completeness}%` }}
               />
             </div>
@@ -97,10 +97,10 @@ export default function TeacherSetupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="bg-white border border-gray-300 p-6 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   First Name *
                 </label>
                 <input
@@ -108,12 +108,12 @@ export default function TeacherSetupPage() {
                   required
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Surname *
                 </label>
                 <input
@@ -121,13 +121,13 @@ export default function TeacherSetupPage() {
                   required
                   value={formData.surname}
                   onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Short Description (up to 500 words)
               </label>
               <textarea
@@ -135,7 +135,7 @@ export default function TeacherSetupPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 maxLength={500}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="Tell schools about yourself, your teaching philosophy, and experience..."
               />
               <p className="mt-1 text-xs text-gray-500">
@@ -144,7 +144,7 @@ export default function TeacherSetupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Education Phase *
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -153,9 +153,9 @@ export default function TeacherSetupPage() {
                     key={phase}
                     type="button"
                     onClick={() => handlePhaseToggle(phase)}
-                    className={`py-2 px-4 border-2 rounded-lg font-medium transition-colors ${
+                    className={`py-2 px-4 border-2 font-bold transition-colors ${
                       formData.educationPhase.includes(phase)
-                        ? 'border-blue-600 bg-blue-50 text-blue-700'
+                        ? 'border-[#1c1d1f] bg-gray-50 text-[#1c1d1f]'
                         : 'border-gray-300 text-gray-700 hover:border-gray-400'
                     }`}
                   >
@@ -166,7 +166,7 @@ export default function TeacherSetupPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Subjects (comma-separated) *
               </label>
               <input
@@ -174,13 +174,13 @@ export default function TeacherSetupPage() {
                 required
                 value={formData.subjects}
                 onChange={(e) => setFormData({ ...formData, subjects: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="e.g., Mathematics, Physical Science, English"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Address *
               </label>
               <input
@@ -188,13 +188,13 @@ export default function TeacherSetupPage() {
                 required
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="Street, City, Postal Code"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 ID Number *
               </label>
               <input
@@ -202,24 +202,24 @@ export default function TeacherSetupPage() {
                 required
                 value={formData.idNumber}
                 onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 placeholder="South African ID number"
               />
             </div>
 
-            <div className="pt-4 border-t border-gray-200">
+            <div className="pt-4 border-t border-gray-300">
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 transition-colors"
+                className="w-full py-3 px-4 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8] transition-colors"
               >
                 Save Profile
               </button>
             </div>
           </form>
 
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-medium text-blue-900 mb-2">Note for Demo</h3>
-            <p className="text-sm text-blue-700">
+          <div className="mt-6 bg-gray-50 border border-gray-300 p-4">
+            <h3 className="font-bold text-[#1c1d1f] mb-2">Note for Demo</h3>
+            <p className="text-sm text-gray-600">
               In the full version, you'll be able to upload documents (CV, qualifications, ID, criminal record) and complete face verification. For this demo, these features are indicated but not fully implemented.
             </p>
           </div>
