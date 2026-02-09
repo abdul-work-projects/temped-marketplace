@@ -7,6 +7,7 @@ import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useCreateJob } from '@/lib/hooks/useSchool';
 import { EducationPhase, JobType } from '@/types';
+import { subjectsByPhase } from '@/lib/data/subjects';
 import { Loader2 } from 'lucide-react';
 
 export default function PostJobPage() {
@@ -111,32 +112,48 @@ export default function PostJobPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  Subject *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                  placeholder="e.g., Mathematics"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Education Phase *
                 </label>
                 <select
                   required
                   value={formData.educationPhase}
-                  onChange={(e) => setFormData({ ...formData, educationPhase: e.target.value as EducationPhase })}
+                  onChange={(e) => {
+                    const newPhase = e.target.value as EducationPhase;
+                    const categories = subjectsByPhase[newPhase] || [];
+                    const allSubjects = categories.flatMap(c => c.subjects);
+                    setFormData({
+                      ...formData,
+                      educationPhase: newPhase,
+                      subject: allSubjects.includes(formData.subject) ? formData.subject : '',
+                    });
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
                 >
                   <option value="Foundation Phase">Foundation Phase</option>
                   <option value="Primary">Primary</option>
                   <option value="Secondary">Secondary</option>
                   <option value="Tertiary">Tertiary</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  Subject *
+                </label>
+                <select
+                  required
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                >
+                  <option value="">Select a subject</option>
+                  {(subjectsByPhase[formData.educationPhase] || []).map(cat => (
+                    <optgroup key={cat.category} label={cat.category}>
+                      {cat.subjects.map(s => (
+                        <option key={`${cat.category}-${s}`} value={s}>{s}</option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
               </div>
             </div>
