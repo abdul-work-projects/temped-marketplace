@@ -3,9 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #1c1d1f;
-  --primary: #a435f0;
-  --primary-dark: #8710d8;
-  --secondary: #5624d0;
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #1e40af;
   --accent: #e34444;
 }
 
@@ -87,7 +87,7 @@ body {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -11,11 +11,13 @@ export default function HomePage() {
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        router.push('/auth/login');
+        router.push('/teacher-home');
       } else if (user.type === 'teacher') {
         router.push('/teacher/dashboard');
       } else if (user.type === 'school') {
         router.push('/school/dashboard');
+      } else if (user.type === 'admin') {
+        router.push('/admin/dashboard');
       }
     }
   }, [user, isLoading, router]);
