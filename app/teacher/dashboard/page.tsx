@@ -9,7 +9,7 @@ import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeache
 import { useOpenJobs } from '@/lib/hooks/useJobs';
 import { calculateDistance } from '@/lib/utils/distance';
 import { EducationPhase, JobType } from '@/types';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 const EDUCATION_PHASES: EducationPhase[] = [
@@ -192,10 +192,7 @@ export default function TeacherDashboard() {
             {/* Jobs List */}
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <div className="text-center">
-                  <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading jobs...</p>
-                </div>
+                <Loader2 size={32} className="animate-spin text-gray-400" />
               </div>
             ) : filteredJobs.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">

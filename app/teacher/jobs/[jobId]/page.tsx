@@ -69,13 +69,8 @@ export default function JobDetailPage() {
   if (loading || checkLoading) {
     return (
       <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
-        <div className="p-8 bg-gray-50 min-h-screen">
-          <div className="max-w-4xl mx-auto flex items-center justify-center py-16">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading job details...</p>
-            </div>
-          </div>
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
         </div>
       </DashboardLayout>
     );
