@@ -4,51 +4,82 @@ import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
-import { MapPin, Calendar, Clock, ArrowLeft, AlertCircle, Briefcase, GraduationCap } from 'lucide-react';
-import { format } from 'date-fns';
+import { useTeacherProfile } from '@/lib/hooks/useTeacher';
+import { useJobDetail, useCheckApplication, useApplyToJob, useWithdrawApplication } from '@/lib/hooks/useJobs';
 import { calculateDistance, formatDistance } from '@/lib/utils/distance';
+import { MapPin, Calendar, Clock, ArrowLeft, AlertCircle, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
+import { format } from 'date-fns';
 import Link from 'next/link';
+
+function getJobTypeBadge(jobType: string) {
+  switch (jobType) {
+    case 'Permanent':
+      return 'bg-green-100 text-green-700 border-green-300';
+    case 'Temporary':
+      return 'bg-blue-100 text-blue-700 border-blue-300';
+    case 'Invigilator':
+      return 'bg-orange-100 text-orange-700 border-orange-300';
+    case 'Coach':
+      return 'bg-teal-100 text-teal-700 border-teal-300';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-300';
+  }
+}
 
 export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
   const jobId = params.jobId as string;
   const { user } = useAuth();
-  const {
-    getJobById,
-    getSchoolById,
-    getTeacherByUserId,
-    getApplicationsByTeacherId,
-    addApplication
-  } = useData();
 
-  const job = getJobById(jobId);
-  const school = job ? getSchoolById(job.schoolId) : null;
-  const teacher = user ? getTeacherByUserId(user.id) : null;
-  const teacherApplications = teacher ? getApplicationsByTeacherId(teacher.id) : [];
-  const hasApplied = teacherApplications.some(app => app.jobId === jobId);
+  const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
+  const { job, school, loading: jobLoading } = useJobDetail(jobId);
+  const { applied, loading: checkLoading, refetch: refetchCheck } = useCheckApplication(jobId, teacher?.id);
+  const { apply, applying } = useApplyToJob();
+  const { withdraw, withdrawing } = useWithdrawApplication();
 
-  const distance = teacher?.location && school?.location
-    ? calculateDistance(
-        teacher.location.lat,
-        teacher.location.lng,
-        school.location.lat,
-        school.location.lng
-      )
-    : null;
+  const loading = jobLoading || teacherLoading;
 
-  const handleApply = () => {
+  const distance =
+    teacher?.location && school?.location
+      ? calculateDistance(
+          teacher.location.lat,
+          teacher.location.lng,
+          school.location.lat,
+          school.location.lng
+        )
+      : null;
+
+  const handleApply = async () => {
     if (!teacher) return;
-
-    addApplication({
-      jobId,
-      teacherId: teacher.id,
-      status: 'Applied',
-      appliedAt: new Date().toISOString().split('T')[0],
-      shortlisted: false
-    });
+    const result = await apply(jobId, teacher.id);
+    if (result.success) {
+      refetchCheck();
+    }
   };
+
+  const handleWithdraw = async () => {
+    if (!teacher) return;
+    const result = await withdraw(jobId, teacher.id);
+    if (result.success) {
+      refetchCheck();
+    }
+  };
+
+  if (loading || checkLoading) {
+    return (
+      <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
+        <div className="p-8 bg-gray-50 min-h-screen">
+          <div className="max-w-4xl mx-auto flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading job details...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!job || !school) {
     return (
@@ -56,8 +87,8 @@ export default function JobDetailPage() {
         <div className="p-8">
           <div className="max-w-4xl mx-auto text-center">
             <p className="text-gray-600 mb-4">Job not found</p>
-            <Link href="/teacher/dashboard" className="text-[#a435f0] hover:text-[#8710d8] font-bold">
-              ← Back to Available Jobs
+            <Link href="/teacher/dashboard" className="text-[#2563eb] hover:text-[#1d4ed8] font-bold">
+              &larr; Back to Available Jobs
             </Link>
           </div>
         </div>
@@ -76,7 +107,7 @@ export default function JobDetailPage() {
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#a435f0] mb-6 font-bold"
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#2563eb] mb-6 font-bold"
           >
             <ArrowLeft size={20} />
             Back
@@ -92,18 +123,26 @@ export default function JobDetailPage() {
                   </h1>
                   <Link
                     href={`/teacher/schools/${school.id}`}
-                    className="text-lg text-gray-600 hover:text-[#a435f0] font-medium inline-flex items-center gap-2"
+                    className="text-lg text-gray-600 hover:text-[#2563eb] font-medium inline-flex items-center gap-2"
                   >
                     {school.name}
-                    <span className="text-sm">→</span>
+                    <span className="text-sm">&rarr;</span>
                   </Link>
                 </div>
-                {isUrgent && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 text-sm font-bold">
-                    <AlertCircle size={16} />
-                    URGENT
+                <div className="flex items-center gap-2">
+                  {/* Job Type Badge */}
+                  <span
+                    className={`inline-flex items-center px-3 py-1.5 text-sm font-bold border ${getJobTypeBadge(job.jobType)}`}
+                  >
+                    {job.jobType}
                   </span>
-                )}
+                  {isUrgent && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 text-sm font-bold">
+                      <AlertCircle size={16} />
+                      URGENT
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Key Info */}
@@ -125,13 +164,21 @@ export default function JobDetailPage() {
               </div>
 
               {/* Tags */}
-              <div className="flex items-center gap-2 mt-4">
+              <div className="flex flex-wrap items-center gap-2 mt-4">
                 <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
                   {job.educationPhase}
                 </span>
                 <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
                   {job.subject}
                 </span>
+                {job.tags.filter(t => t !== 'Urgent').map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -163,14 +210,18 @@ export default function JobDetailPage() {
                 </div>
               )}
               <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-3">
-                <div className="flex items-center gap-1.5">
-                  <Briefcase size={16} />
-                  <span>{school.schoolType} School</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <GraduationCap size={16} />
-                  <span>{school.curriculum} Curriculum</span>
-                </div>
+                {school.schoolType && (
+                  <div className="flex items-center gap-1.5">
+                    <Briefcase size={16} />
+                    <span>{school.schoolType} School</span>
+                  </div>
+                )}
+                {school.curriculum && (
+                  <div className="flex items-center gap-1.5">
+                    <GraduationCap size={16} />
+                    <span>{school.curriculum} Curriculum</span>
+                  </div>
+                )}
               </div>
               {school.description && (
                 <p className="text-gray-700 mt-4 line-clamp-3">
@@ -179,34 +230,45 @@ export default function JobDetailPage() {
               )}
               <Link
                 href={`/teacher/schools/${school.id}`}
-                className="text-[#a435f0] hover:text-[#8710d8] font-bold text-sm mt-2 inline-block"
+                className="text-[#2563eb] hover:text-[#1d4ed8] font-bold text-sm mt-2 inline-block"
               >
-                View Full School Profile →
+                View Full School Profile &rarr;
               </Link>
             </div>
 
-            {/* Apply Button */}
+            {/* Apply / Withdraw Button */}
             <div className="flex gap-4">
-              <button
-                onClick={handleApply}
-                disabled={hasApplied}
-                className={`flex-1 py-3 px-6 font-bold transition-colors ${
-                  hasApplied
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-[#a435f0] text-white hover:bg-[#8710d8]'
-                }`}
-              >
-                {hasApplied ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Applied
-                  </span>
-                ) : (
-                  'Apply for this Position'
-                )}
-              </button>
+              {applied ? (
+                <button
+                  onClick={handleWithdraw}
+                  disabled={withdrawing}
+                  className="flex-1 py-3 px-6 font-bold transition-colors border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {withdrawing ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      Withdrawing...
+                    </>
+                  ) : (
+                    'Withdraw Application'
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleApply}
+                  disabled={applying}
+                  className="flex-1 py-3 px-6 font-bold transition-colors bg-[#2563eb] text-white hover:bg-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {applying ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      Applying...
+                    </>
+                  ) : (
+                    'Apply for this Position'
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,29 +1,62 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
-import { useData } from '@/lib/context/DataContext';
-import { Building2, MapPin, ArrowLeft } from 'lucide-react';
+import { useSchoolById } from '@/lib/hooks/useJobs';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
+import { Building2, MapPin, ArrowLeft, GraduationCap, Briefcase, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+
+function getJobTypeBadge(jobType: string) {
+  switch (jobType) {
+    case 'Permanent':
+      return 'bg-green-100 text-green-700 border-green-300';
+    case 'Temporary':
+      return 'bg-blue-100 text-blue-700 border-blue-300';
+    case 'Invigilator':
+      return 'bg-orange-100 text-orange-700 border-orange-300';
+    case 'Coach':
+      return 'bg-teal-100 text-teal-700 border-teal-300';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-300';
+  }
+}
 
 export default function SchoolProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const schoolId = params.schoolId as string;
-  const { getSchoolById, jobs } = useData();
+  const { school, schoolJobs, loading } = useSchoolById(schoolId);
+  const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
 
-  const school = getSchoolById(schoolId);
-  const schoolJobs = school ? jobs.filter(job => job.schoolId === school.id && job.status === 'Open') : [];
+  if (loading) {
+    return (
+      <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
+        <div className="p-8">
+          <div className="max-w-3xl mx-auto flex items-center justify-center py-16">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading school profile...</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!school) {
     return (
       <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-gray-600">School not found</p>
-            <Link href="/teacher/applications" className="mt-4 inline-block text-[#a435f0] hover:text-[#8710d8]">
-              ← Back to Applications
-            </Link>
+            <p className="text-gray-600 mb-4">School not found</p>
+            <button
+              onClick={() => router.back()}
+              className="text-[#2563eb] hover:text-[#1d4ed8] font-bold"
+            >
+              &larr; Go Back
+            </button>
           </div>
         </div>
       </DashboardLayout>
@@ -34,25 +67,25 @@ export default function SchoolProfilePage() {
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
-          <Link
-            href="/teacher/applications"
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#a435f0] mb-6 font-bold"
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#2563eb] mb-6 font-bold"
           >
             <ArrowLeft size={20} />
-            Back to Applications
-          </Link>
+            Back
+          </button>
 
           <div className="bg-white border border-gray-300 overflow-hidden">
             {/* Header Section */}
-            <div className="bg-[#a435f0] h-32"></div>
+            <div className="bg-[#2563eb] h-32"></div>
 
             <div className="px-8 pb-8">
               {/* Profile Picture */}
               <div className="relative -mt-16 mb-4">
                 <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
-                  {school.profilePicture ? (
+                  {profilePicUrl ? (
                     <img
-                      src={school.profilePicture}
+                      src={profilePicUrl}
                       alt={school.name}
                       className="w-full h-full rounded-full object-cover"
                     />
@@ -86,24 +119,32 @@ export default function SchoolProfilePage() {
 
               {/* School Details */}
               <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">School Type</h3>
-                  <p className="text-[#1c1d1f]">{school.schoolType}</p>
-                </div>
+                {school.schoolType && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-600 mb-1">School Type</h3>
+                    <p className="text-[#1c1d1f]">{school.schoolType}</p>
+                  </div>
+                )}
 
-                <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">Ownership</h3>
-                  <p className="text-[#1c1d1f]">{school.ownershipType}</p>
-                </div>
+                {school.ownershipType && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-600 mb-1">Ownership</h3>
+                    <p className="text-[#1c1d1f]">{school.ownershipType}</p>
+                  </div>
+                )}
 
-                <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">Curriculum</h3>
-                  <p className="text-[#1c1d1f]">{school.curriculum}</p>
-                </div>
+                {school.curriculum && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-600 mb-1">Curriculum</h3>
+                    <p className="text-[#1c1d1f]">{school.curriculum}</p>
+                  </div>
+                )}
 
                 <div>
                   <h3 className="text-sm font-bold text-gray-600 mb-1">District</h3>
-                  <p className="text-[#1c1d1f]">{school.district || school.educationDistrict || 'Not specified'}</p>
+                  <p className="text-[#1c1d1f]">
+                    {school.district || school.educationDistrict || 'Not specified'}
+                  </p>
                 </div>
 
                 {school.emisNumber && (
@@ -121,25 +162,44 @@ export default function SchoolProfilePage() {
                     Active Job Postings ({schoolJobs.length})
                   </h2>
                   <div className="space-y-3">
-                    {schoolJobs.map(job => (
-                      <div key={job.id} className="border border-gray-300 p-4">
-                        <h3 className="font-bold text-[#1c1d1f] mb-1">{job.title}</h3>
+                    {schoolJobs.map((job) => (
+                      <Link
+                        key={job.id}
+                        href={`/teacher/jobs/${job.id}`}
+                        className="block border border-gray-300 p-4 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between mb-1">
+                          <h3 className="font-bold text-[#1c1d1f]">{job.title}</h3>
+                          {job.tags.includes('Urgent') && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100">
+                              <AlertCircle size={12} />
+                              URGENT
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">{job.description}</p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`px-2 py-1 text-xs font-bold border ${getJobTypeBadge(job.jobType)}`}>
+                            {job.jobType}
+                          </span>
                           <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
                             {job.educationPhase}
                           </span>
                           <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
                             {job.subject}
                           </span>
-                          {job.tags.includes('Urgent') && (
-                            <span className="px-2 py-1 text-xs font-bold text-red-700 bg-red-100">
-                              URGENT
-                            </span>
-                          )}
                         </div>
-                      </div>
+                      </Link>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {schoolJobs.length === 0 && (
+                <div className="border-t border-gray-300 pt-6">
+                  <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Job Postings</h2>
+                  <div className="bg-gray-50 border border-gray-300 p-6 text-center">
+                    <p className="text-sm text-gray-500">No active job postings at the moment</p>
                   </div>
                 </div>
               )}

@@ -4,34 +4,49 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
+import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeacher';
 import { format } from 'date-fns';
-import { Briefcase, MapPin } from 'lucide-react';
+import { Briefcase, MapPin, Star, CheckCircle } from 'lucide-react';
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'Hired':
+      return 'bg-green-100 text-green-700';
+    case 'In Progress':
+      return 'bg-blue-100 text-blue-700';
+    case 'Closed':
+      return 'bg-gray-100 text-gray-700';
+    case 'Applied':
+      return 'bg-yellow-100 text-yellow-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
+}
+
+function getJobTypeBadgeColor(jobType: string) {
+  switch (jobType) {
+    case 'Permanent':
+      return 'bg-green-50 text-green-700 border-green-200';
+    case 'Temporary':
+      return 'bg-blue-50 text-blue-700 border-blue-200';
+    case 'Invigilator':
+      return 'bg-orange-50 text-orange-700 border-orange-200';
+    case 'Coach':
+      return 'bg-teal-50 text-teal-700 border-teal-200';
+    default:
+      return 'bg-gray-50 text-gray-700 border-gray-200';
+  }
+}
 
 export default function TeacherApplicationsPage() {
   const { user } = useAuth();
-  const { getTeacherByUserId, getApplicationsByTeacherId, getJobById, getSchoolById } = useData();
+  const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
+  const { applications, loading: appsLoading } = useTeacherApplications(teacher?.id);
 
-  const teacher = user ? getTeacherByUserId(user.id) : null;
-  const applications = teacher ? getApplicationsByTeacherId(teacher.id) : [];
+  const loading = teacherLoading || appsLoading;
 
-  // Sort applications by date (most recent first)
-  const sortedApplications = [...applications].sort((a, b) =>
-    new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
-  );
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Hired':
-        return 'bg-green-100 text-green-700';
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-700';
-      case 'Closed':
-        return 'bg-gray-100 text-gray-700';
-      default:
-        return 'bg-yellow-100 text-yellow-700';
-    }
-  };
+  // Count shortlisted
+  const shortlistedCount = applications.filter((a) => a.shortlisted).length;
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
@@ -44,7 +59,42 @@ export default function TeacherApplicationsPage() {
             </p>
           </div>
 
-          {applications.length === 0 ? (
+          {/* Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-white border border-gray-300 p-5">
+              <p className="text-gray-600 text-sm font-bold mb-2">Total Applications</p>
+              <p className="text-3xl font-bold text-[#1c1d1f]">
+                {loading ? '...' : applications.length}
+              </p>
+            </div>
+            <div className="bg-white border border-gray-300 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <Star size={16} className="text-yellow-500" />
+                <p className="text-gray-600 text-sm font-bold">Shortlisted</p>
+              </div>
+              <p className="text-3xl font-bold text-[#1c1d1f]">
+                {loading ? '...' : shortlistedCount}
+              </p>
+            </div>
+            <div className="bg-white border border-gray-300 p-5">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle size={16} className="text-green-500" />
+                <p className="text-gray-600 text-sm font-bold">Hired</p>
+              </div>
+              <p className="text-3xl font-bold text-[#1c1d1f]">
+                {loading ? '...' : applications.filter((a) => a.status === 'Hired').length}
+              </p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading applications...</p>
+              </div>
+            </div>
+          ) : applications.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
               <div className="text-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -57,16 +107,16 @@ export default function TeacherApplicationsPage() {
               </p>
               <Link
                 href="/teacher/dashboard"
-                className="mt-4 inline-block px-4 py-2 bg-[#a435f0] text-white rounded-md hover:bg-[#8710d8]"
+                className="mt-4 inline-block px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors"
               >
                 Browse Jobs
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
-              {sortedApplications.map(application => {
-                const job = getJobById(application.jobId);
-                const school = job ? getSchoolById(job.schoolId) : null;
+              {applications.map((application) => {
+                const job = application.job;
+                const school = application.school;
 
                 if (!job || !school) return null;
 
@@ -77,14 +127,14 @@ export default function TeacherApplicationsPage() {
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <Link href={`/teacher/jobs/${job.id}`} className="hover:text-[#a435f0]">
+                        <Link href={`/teacher/jobs/${job.id}`} className="hover:text-[#2563eb]">
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
                             {job.title}
                           </h3>
                         </Link>
                         <Link
                           href={`/teacher/schools/${school.id}`}
-                          className="text-gray-600 hover:text-[#a435f0] font-medium text-sm"
+                          className="text-gray-600 hover:text-[#2563eb] font-medium text-sm"
                         >
                           {school.name}
                         </Link>
@@ -95,24 +145,48 @@ export default function TeacherApplicationsPage() {
                           </div>
                         )}
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                        {application.status}
+                      <div className="flex items-center gap-2">
+                        {application.shortlisted && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+                            <Star size={12} />
+                            Shortlisted
+                          </span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
+                          {application.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Job Type & Phase */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className={`px-2 py-0.5 text-xs font-bold border ${getJobTypeBadgeColor(job.jobType)}`}>
+                        {job.jobType}
+                      </span>
+                      <span className="px-2 py-0.5 text-xs font-bold text-gray-700 border border-gray-300">
+                        {job.educationPhase}
+                      </span>
+                      <span className="px-2 py-0.5 text-xs font-bold text-gray-700 border border-gray-300">
+                        {job.subject}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                       <div>
-                        <span className="font-medium">Applied:</span> {format(new Date(application.appliedAt), 'MMM d, yyyy')}
+                        <span className="font-medium">Applied:</span>{' '}
+                        {format(new Date(application.appliedAt), 'MMM d, yyyy')}
                       </div>
                       <div>
-                        <span className="font-medium">Start Date:</span> {format(new Date(job.startDate), 'MMM d, yyyy')}
+                        <span className="font-medium">Start Date:</span>{' '}
+                        {format(new Date(job.startDate), 'MMM d, yyyy')}
                       </div>
                     </div>
 
                     {application.shortlisted && (
                       <div className="mt-4 bg-green-50 border border-green-200 rounded-md p-3">
-                        <p className="text-sm text-green-700 font-medium">
-                          ✓ You've been shortlisted for this position!
+                        <p className="text-sm text-green-700 font-medium flex items-center gap-2">
+                          <CheckCircle size={16} />
+                          You have been shortlisted for this position!
                         </p>
                       </div>
                     )}

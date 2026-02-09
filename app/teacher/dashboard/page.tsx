@@ -1,40 +1,74 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import JobCard from '@/components/shared/JobCard';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
+import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeacher';
+import { useOpenJobs } from '@/lib/hooks/useJobs';
+import { calculateDistance } from '@/lib/utils/distance';
+import { EducationPhase, JobType } from '@/types';
+import { Filter, X } from 'lucide-react';
+import Link from 'next/link';
+
+const EDUCATION_PHASES: EducationPhase[] = [
+  'Foundation Phase',
+  'Primary',
+  'Secondary',
+  'Tertiary',
+];
+
+const JOB_TYPES: JobType[] = ['Permanent', 'Temporary', 'Invigilator', 'Coach'];
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
-  const {
-    jobs,
-    getSchoolById,
-    getTeacherByUserId,
-    getApplicationsByTeacherId,
-    addApplication
-  } = useData();
+  const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
+  const { applications, loading: appsLoading } = useTeacherApplications(teacher?.id);
 
-  const teacher = user ? getTeacherByUserId(user.id) : null;
-  const teacherApplications = teacher ? getApplicationsByTeacherId(teacher.id) : [];
-  const appliedJobIds = new Set(teacherApplications.map(app => app.jobId));
+  const [phaseFilter, setPhaseFilter] = useState<string>('');
+  const [jobTypeFilter, setJobTypeFilter] = useState<string>('');
 
-  // Filter only open jobs
-  const openJobs = jobs.filter(job => job.status === 'Open');
+  const filters = useMemo(() => {
+    const f: { educationPhase?: string; jobType?: string } = {};
+    if (phaseFilter) f.educationPhase = phaseFilter;
+    if (jobTypeFilter) f.jobType = jobTypeFilter;
+    return f;
+  }, [phaseFilter, jobTypeFilter]);
 
-  const handleApply = (jobId: string) => {
-    if (!teacher) return;
+  const { jobs: openJobsWithSchool, loading: jobsLoading } = useOpenJobs(
+    Object.keys(filters).length > 0 ? filters : undefined
+  );
 
-    addApplication({
-      jobId,
-      teacherId: teacher.id,
-      status: 'Applied',
-      appliedAt: new Date().toISOString().split('T')[0],
-      shortlisted: false
+  const appliedJobIds = useMemo(
+    () => new Set(applications.map((app) => app.jobId)),
+    [applications]
+  );
+
+  // Filter by teacher's distance radius if both teacher and school have locations
+  const filteredJobs = useMemo(() => {
+    if (!teacher?.location || !teacher.distanceRadius) return openJobsWithSchool;
+
+    return openJobsWithSchool.filter(({ school }) => {
+      if (!school.location) return true; // Show jobs where school has no location
+      const dist = calculateDistance(
+        teacher.location!.lat,
+        teacher.location!.lng,
+        school.location.lat,
+        school.location.lng
+      );
+      return dist <= teacher.distanceRadius;
     });
+  }, [openJobsWithSchool, teacher?.location, teacher?.distanceRadius]);
+
+  const hasActiveFilters = phaseFilter || jobTypeFilter;
+
+  const clearFilters = () => {
+    setPhaseFilter('');
+    setJobTypeFilter('');
   };
+
+  const loading = teacherLoading || jobsLoading;
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
@@ -48,29 +82,36 @@ export default function TeacherDashboard() {
                   Available Jobs
                 </h1>
                 <p className="text-gray-600">
-                  Browse and apply to temporary teaching positions
+                  Browse and apply to teaching positions
                 </p>
               </div>
 
               {/* Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white border border-gray-300 p-5">
-                  <p className="text-gray-600 text-sm font-bold mb-2">Total Jobs</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">{openJobs.length}</p>
+                  <p className="text-gray-600 text-sm font-bold mb-2">Available Jobs</p>
+                  <p className="text-3xl font-bold text-[#1c1d1f]">
+                    {loading ? '...' : filteredJobs.length}
+                  </p>
                 </div>
 
                 <div className="bg-white border border-gray-300 p-5">
-                  <p className="text-gray-600 text-sm font-bold mb-2">Applied</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">{teacherApplications.length}</p>
+                  <p className="text-gray-600 text-sm font-bold mb-2">Applications</p>
+                  <p className="text-3xl font-bold text-[#1c1d1f]">
+                    {appsLoading ? '...' : applications.length}
+                  </p>
                 </div>
 
                 <div className="bg-white border border-gray-300 p-5">
                   <p className="text-gray-600 text-sm font-bold mb-2">Profile Completeness</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">{teacher?.profileCompleteness || 0}%</p>
+                  <p className="text-3xl font-bold text-[#1c1d1f]">
+                    {teacher?.profileCompleteness || 0}%
+                  </p>
                 </div>
               </div>
             </div>
 
+            {/* Profile Completion Warning */}
             {teacher && teacher.profileCompleteness < 100 && (
               <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
@@ -84,15 +125,79 @@ export default function TeacherDashboard() {
                     <p className="mt-1 text-sm text-yellow-700">
                       Your profile is {teacher.profileCompleteness}% complete. Complete it to increase your chances of getting hired.
                     </p>
-                    <a href="/teacher/setup" className="mt-2 inline-block text-sm font-medium text-yellow-800 hover:text-yellow-900">
-                      Complete now →
-                    </a>
+                    <Link
+                      href="/teacher/setup"
+                      className="mt-2 inline-block text-sm font-medium text-yellow-800 hover:text-yellow-900"
+                    >
+                      Complete now &rarr;
+                    </Link>
                   </div>
                 </div>
               </div>
             )}
 
-            {openJobs.length === 0 ? (
+            {/* Filter Controls */}
+            <div className="mb-6 bg-white border border-gray-300 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Filter size={18} className="text-gray-600" />
+                <h3 className="text-sm font-bold text-[#1c1d1f]">Filters</h3>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-[#2563eb]"
+                  >
+                    <X size={14} />
+                    Clear filters
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">
+                    Education Phase
+                  </label>
+                  <select
+                    value={phaseFilter}
+                    onChange={(e) => setPhaseFilter(e.target.value)}
+                    className="w-full border border-gray-300 px-3 py-2 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+                  >
+                    <option value="">All Phases</option>
+                    {EDUCATION_PHASES.map((phase) => (
+                      <option key={phase} value={phase}>
+                        {phase}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">
+                    Job Type
+                  </label>
+                  <select
+                    value={jobTypeFilter}
+                    onChange={(e) => setJobTypeFilter(e.target.value)}
+                    className="w-full border border-gray-300 px-3 py-2 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+                  >
+                    <option value="">All Types</option>
+                    {JOB_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Jobs List */}
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="text-center">
+                  <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading jobs...</p>
+                </div>
+              </div>
+            ) : filteredJobs.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                 <div className="text-gray-400 mb-4">
                   <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,25 +205,31 @@ export default function TeacherDashboard() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs available</h3>
-                <p className="text-gray-600">Check back later for new opportunities</p>
+                <p className="text-gray-600">
+                  {hasActiveFilters
+                    ? 'No jobs match your current filters. Try adjusting them.'
+                    : 'Check back later for new opportunities'}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="mt-4 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {openJobs.map(job => {
-                  const school = getSchoolById(job.schoolId);
-                  if (!school) return null;
-
-                  return (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      school={school}
-                      teacherLocation={teacher?.location}
-                      onApply={handleApply}
-                      applied={appliedJobIds.has(job.id)}
-                    />
-                  );
-                })}
+                {filteredJobs.map(({ job, school }) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    school={school}
+                    teacherLocation={teacher?.location}
+                    applied={appliedJobIds.has(job.id)}
+                  />
+                ))}
               </div>
             )}
           </div>
