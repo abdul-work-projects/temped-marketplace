@@ -75,38 +75,24 @@ export default function TeacherDashboard() {
       <div className="min-h-screen bg-gray-50">
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="mb-10">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-[#1c1d1f] mb-1">
                   Available Jobs
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-gray-600 text-sm">
                   Browse and apply to teaching positions
                 </p>
               </div>
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white border border-gray-300 p-5">
-                  <p className="text-gray-600 text-sm font-bold mb-2">Available Jobs</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">
-                    {loading ? '...' : filteredJobs.length}
-                  </p>
+              <div className="flex items-center gap-6">
+                <div className="text-right">
+                  <p className="text-xs font-bold text-gray-500">Available Jobs</p>
+                  <p className="text-2xl font-bold text-[#1c1d1f]">{loading ? '...' : filteredJobs.length}</p>
                 </div>
-
-                <div className="bg-white border border-gray-300 p-5">
-                  <p className="text-gray-600 text-sm font-bold mb-2">Applications</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">
-                    {appsLoading ? '...' : applications.length}
-                  </p>
-                </div>
-
-                <div className="bg-white border border-gray-300 p-5">
-                  <p className="text-gray-600 text-sm font-bold mb-2">Profile Completeness</p>
-                  <p className="text-3xl font-bold text-[#1c1d1f]">
-                    {teacher?.profileCompleteness || 0}%
-                  </p>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-gray-500">My Applications</p>
+                  <p className="text-2xl font-bold text-[#1c1d1f]">{appsLoading ? '...' : applications.length}</p>
                 </div>
               </div>
             </div>
@@ -136,57 +122,38 @@ export default function TeacherDashboard() {
               </div>
             )}
 
-            {/* Filter Controls */}
-            <div className="mb-6 bg-white border border-gray-300 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Filter size={18} className="text-gray-600" />
-                <h3 className="text-sm font-bold text-[#1c1d1f]">Filters</h3>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="ml-auto flex items-center gap-1 text-xs text-gray-500 hover:text-[#2563eb]"
-                  >
-                    <X size={14} />
-                    Clear filters
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">
-                    Education Phase
-                  </label>
-                  <select
-                    value={phaseFilter}
-                    onChange={(e) => setPhaseFilter(e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
-                  >
-                    <option value="">All Phases</option>
-                    {EDUCATION_PHASES.map((phase) => (
-                      <option key={phase} value={phase}>
-                        {phase}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">
-                    Job Type
-                  </label>
-                  <select
-                    value={jobTypeFilter}
-                    onChange={(e) => setJobTypeFilter(e.target.value)}
-                    className="w-full border border-gray-300 px-3 py-2 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
-                  >
-                    <option value="">All Types</option>
-                    {JOB_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+            {/* Filters */}
+            <div className="mb-6 flex items-center gap-3 flex-wrap">
+              <Filter size={16} className="text-gray-400" />
+              <select
+                value={phaseFilter}
+                onChange={(e) => setPhaseFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1.5 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+              >
+                <option value="">All Phases</option>
+                {EDUCATION_PHASES.map((phase) => (
+                  <option key={phase} value={phase}>{phase}</option>
+                ))}
+              </select>
+              <select
+                value={jobTypeFilter}
+                onChange={(e) => setJobTypeFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1.5 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+              >
+                <option value="">All Types</option>
+                {JOB_TYPES.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#2563eb]"
+                >
+                  <X size={14} />
+                  Clear
+                </button>
+              )}
             </div>
 
             {/* Jobs List */}

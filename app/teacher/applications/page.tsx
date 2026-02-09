@@ -64,38 +64,26 @@ export default function TeacherApplicationsPage() {
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">My Applications</h1>
-            <p className="text-gray-600">
-              Track your job applications and their status
-            </p>
-          </div>
-
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white border border-gray-300 p-5">
-              <p className="text-gray-600 text-sm font-bold mb-2">Total Applications</p>
-              <p className="text-3xl font-bold text-[#1c1d1f]">
-                {loading ? '...' : applications.length}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-[#1c1d1f] mb-1">My Applications</h1>
+              <p className="text-gray-600 text-sm">
+                Track your job applications and their status
               </p>
             </div>
-            <div className="bg-white border border-gray-300 p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <Star size={16} className="text-yellow-500" />
-                <p className="text-gray-600 text-sm font-bold">Shortlisted</p>
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-xs font-bold text-gray-500">Total</p>
+                <p className="text-2xl font-bold text-[#1c1d1f]">{loading ? '...' : applications.length}</p>
               </div>
-              <p className="text-3xl font-bold text-[#1c1d1f]">
-                {loading ? '...' : shortlistedCount}
-              </p>
-            </div>
-            <div className="bg-white border border-gray-300 p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle size={16} className="text-green-500" />
-                <p className="text-gray-600 text-sm font-bold">Hired</p>
+              <div className="text-right">
+                <p className="text-xs font-bold text-gray-500 flex items-center justify-end gap-1"><Star size={12} className="text-yellow-500" />Shortlisted</p>
+                <p className="text-2xl font-bold text-[#1c1d1f]">{loading ? '...' : shortlistedCount}</p>
               </div>
-              <p className="text-3xl font-bold text-[#1c1d1f]">
-                {loading ? '...' : applications.filter((a) => a.status === 'Hired').length}
-              </p>
+              <div className="text-right">
+                <p className="text-xs font-bold text-gray-500 flex items-center justify-end gap-1"><CheckCircle size={12} className="text-green-500" />Hired</p>
+                <p className="text-2xl font-bold text-[#1c1d1f]">{loading ? '...' : applications.filter((a) => a.status === 'Hired').length}</p>
+              </div>
             </div>
           </div>
 
