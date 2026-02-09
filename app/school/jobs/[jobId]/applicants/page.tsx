@@ -7,9 +7,9 @@ import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import ContactModal from '@/components/shared/ContactModal';
 import { useJobDetail } from '@/lib/hooks/useJobs';
-import { useJobApplicants, useUpdateApplication, useUpdateJob } from '@/lib/hooks/useSchool';
+import { useJobApplicants, useUpdateJob } from '@/lib/hooks/useSchool';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { Star, MapPin, GraduationCap, Briefcase, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Star, MapPin, GraduationCap, Briefcase, Mail, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 function TeacherAvatar({ profilePicture, firstName, surname }: { profilePicture?: string; firstName: string; surname: string }) {
@@ -28,12 +28,13 @@ function TeacherAvatar({ profilePicture, firstName, surname }: { profilePicture?
 export default function JobApplicantsPage() {
   const params = useParams();
   const jobId = params.jobId as string;
-  const { job, loading: jobLoading } = useJobDetail(jobId);
+  const { job, loading: jobLoading, refetch: refetchJob } = useJobDetail(jobId);
   const { applicants, loading: applicantsLoading, refetch } = useJobApplicants(jobId);
-  const { updateApplication } = useUpdateApplication();
   const { updateJob } = useUpdateJob();
   const [contactTeacher, setContactTeacher] = useState<{ name: string; email: string } | null>(null);
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
+  const [hireConfirm, setHireConfirm] = useState<{ applicationId: string; teacherName: string } | null>(null);
+  const [hiring, setHiring] = useState(false);
 
   const loading = jobLoading || applicantsLoading;
 
@@ -50,33 +51,43 @@ export default function JobApplicantsPage() {
     : sortedApplicants;
 
   const handleToggleShortlist = async (applicationId: string, currentStatus: boolean) => {
-    await updateApplication(applicationId, { shortlisted: !currentStatus });
+    const supabase = (await import('@/lib/supabase/client')).createClient();
+    await supabase.from('applications').update({ shortlisted: !currentStatus }).eq('id', applicationId);
     refetch();
   };
 
-  const handleUpdateStatus = async (applicationId: string, newStatus: string) => {
-    await updateApplication(applicationId, { status: newStatus });
+  const confirmHire = async () => {
+    if (!hireConfirm) return;
+    setHiring(true);
+    const supabase = (await import('@/lib/supabase/client')).createClient();
+    await supabase.from('applications').update({ status: 'Hired' }).eq('id', hireConfirm.applicationId);
+    await updateJob(job!.id, { progress: 'Hired' });
+    setHireConfirm(null);
+    setHiring(false);
     refetch();
+    refetchJob();
   };
 
-  const handleUpdateProgress = async (progress: string) => {
-    if (!job) return;
-    await updateJob(job.id, { progress });
+  const handleUnhire = async (applicationId: string) => {
+    const supabase = (await import('@/lib/supabase/client')).createClient();
+    // Reset application status back to Applied
+    await supabase.from('applications').update({ status: 'Applied' }).eq('id', applicationId);
+    // Revert job progress to Interviewing
+    await updateJob(job!.id, { progress: 'Interviewing' });
+    refetch();
+    refetchJob();
   };
 
   // Get all subjects as flat array from the Record<string, string[]> structure
   const getSubjectsFlat = (subjects: Record<string, string[]>): string[] => {
-    return Object.values(subjects).flat();
+    return [...new Set(Object.values(subjects).flat())];
   };
 
   if (loading) {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
-        <div className="p-8">
-          <div className="max-w-6xl mx-auto text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading applicants...</p>
-          </div>
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
         </div>
       </DashboardLayout>
     );
@@ -122,12 +133,21 @@ export default function JobApplicantsPage() {
               </div>
               <select
                 value={job.progress}
-                onChange={(e) => handleUpdateProgress(e.target.value)}
-                className="px-4 py-2 border border-gray-300 font-bold text-sm focus:outline-none focus:border-[#1c1d1f]"
+                onChange={async (e) => {
+                  const { success } = await updateJob(job.id, { progress: e.target.value });
+                  if (success) refetchJob();
+                }}
+                className={`px-3 py-1.5 text-sm font-bold border cursor-pointer focus:outline-none ${
+                  job.progress === 'Open' ? 'bg-green-100 text-green-700 border-green-200' :
+                  job.progress === 'Interviewing' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                  job.progress === 'Hired' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                  'bg-gray-100 text-gray-700 border-gray-200'
+                }`}
               >
                 <option value="Open">Open</option>
                 <option value="Interviewing">Interviewing</option>
-                <option value="Hired">Hired</option>
+                <option value="Closed">Closed</option>
+                {job.progress === 'Hired' && <option value="Hired">Hired</option>}
               </select>
             </div>
           </div>
@@ -179,9 +199,11 @@ export default function JobApplicantsPage() {
                   <div
                     key={application.id}
                     className={`bg-white rounded-lg border-2 p-6 transition-all ${
-                      application.shortlisted
-                        ? 'border-yellow-300 bg-yellow-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                      application.status === 'Hired'
+                        ? 'border-green-300 bg-green-50'
+                        : application.shortlisted
+                          ? 'border-yellow-300 bg-yellow-50'
+                          : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex gap-6">
@@ -196,8 +218,11 @@ export default function JobApplicantsPage() {
                           <div>
                             <h3 className="text-xl font-semibold text-gray-900 mb-1">
                               {teacher.firstName} {teacher.surname}
-                              {teacher.profileCompleteness >= 80 && (
-                                <CheckCircle size={18} className="inline ml-2 text-green-600" />
+                              {application.status === 'Hired' && (
+                                <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full align-middle">
+                                  <CheckCircle size={12} />
+                                  Hired
+                                </span>
                               )}
                             </h3>
                             {teacher.address && (
@@ -268,17 +293,26 @@ export default function JobApplicantsPage() {
 
                         <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
                           <span>Applied: {format(new Date(application.appliedAt), 'MMM d, yyyy')}</span>
-                          <span>•</span>
-                          <span>Profile: {teacher.profileCompleteness}% complete</span>
-                          {teacher.profileCompleteness >= 80 && (
-                            <>
-                              <span>•</span>
-                              <span className="text-green-600 font-medium">Profile Complete</span>
-                            </>
-                          )}
                         </div>
 
                         <div className="flex gap-3">
+                          {application.status === 'Hired' ? (
+                            <button
+                              onClick={() => handleUnhire(application.id)}
+                              className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-bold hover:bg-red-50"
+                            >
+                              Unhire
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setHireConfirm({ applicationId: application.id, teacherName: `${teacher.firstName} ${teacher.surname}` })}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700"
+                            >
+                              <CheckCircle size={16} />
+                              Hire
+                            </button>
+                          )}
+
                           <button
                             onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email })}
                             className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8]"
@@ -286,18 +320,6 @@ export default function JobApplicantsPage() {
                             <Mail size={16} />
                             Contact
                           </button>
-
-                          <select
-                            value={application.status}
-                            onChange={(e) => handleUpdateStatus(application.id, e.target.value)}
-                            className="px-4 py-2 border border-gray-300 font-bold focus:outline-none focus:border-[#1c1d1f]"
-                          >
-                            <option value="Applied">Applied</option>
-                            <option value="In Review">In Review</option>
-                            <option value="Shortlisted">Shortlisted</option>
-                            <option value="Hired">Hired</option>
-                            <option value="Rejected">Rejected</option>
-                          </select>
 
                           <Link
                             href={`/school/teachers/${teacher.id}`}
@@ -323,6 +345,35 @@ export default function JobApplicantsPage() {
           name={contactTeacher.name}
           email={contactTeacher.email}
         />
+      )}
+
+      {hireConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50" onClick={() => !hiring && setHireConfirm(null)} />
+          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <h3 className="text-lg font-bold text-[#1c1d1f] mb-2">Confirm Hire</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to hire <span className="font-bold text-[#1c1d1f]">{hireConfirm.teacherName}</span> for this position?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setHireConfirm(null)}
+                disabled={hiring}
+                className="px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmHire}
+                disabled={hiring}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 disabled:opacity-50"
+              >
+                {hiring ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                {hiring ? 'Hiring...' : 'Confirm Hire'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </DashboardLayout>
   );

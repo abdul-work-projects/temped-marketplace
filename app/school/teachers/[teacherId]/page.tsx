@@ -6,7 +6,7 @@ import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useTeacherById, useTeacherDocuments } from '@/lib/hooks/useTeacher';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { isTeacherVerified } from '@/lib/utils/verification';
-import { User, MapPin, GraduationCap, Briefcase, ArrowLeft, CheckCircle, Shield } from 'lucide-react';
+import { User, MapPin, GraduationCap, Briefcase, ArrowLeft, CheckCircle, Shield, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function TeacherProfilePage() {
@@ -19,17 +19,14 @@ export default function TeacherProfilePage() {
 
   // Get all subjects as flat array
   const getSubjectsFlat = (subjects: Record<string, string[]>): string[] => {
-    return Object.values(subjects).flat();
+    return [...new Set(Object.values(subjects).flat())];
   };
 
   if (loading) {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
-        <div className="p-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading profile...</p>
-          </div>
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
         </div>
       </DashboardLayout>
     );
@@ -238,7 +235,7 @@ export default function TeacherProfilePage() {
                   <Shield size={20} />
                   Verification Status
                 </h2>
-                <div className="flex items-center gap-3 mb-4">
+                <div className="flex items-center gap-3">
                   {verified ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 text-sm font-bold rounded-full">
                       <CheckCircle size={16} />
@@ -253,19 +250,6 @@ export default function TeacherProfilePage() {
                       Not Yet Verified
                     </span>
                   )}
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-gray-300">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-700">Profile Completeness</span>
-                    <span className="text-sm font-bold text-[#2563eb]">{teacher.profileCompleteness}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 h-3 mt-2">
-                    <div
-                      className="bg-[#2563eb] h-3 transition-all duration-300"
-                      style={{ width: `${teacher.profileCompleteness}%` }}
-                    />
-                  </div>
                 </div>
               </div>
             </div>
