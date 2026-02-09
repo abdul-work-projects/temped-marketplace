@@ -50,6 +50,18 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Authenticated user without user_type in JWT (Google OAuth, hasn't chosen type yet).
+  // Force them to /auth/select-type — don't let them into the app.
+  if (claims && !claims.user_metadata?.user_type) {
+    if (!isPublicRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/auth/select-type';
+      return NextResponse.redirect(url);
+    }
+    // Allow /auth/* pages (select-type, callback, etc.) to load normally
+    return supabaseResponse;
+  }
+
   // If authenticated and trying to access auth pages, redirect to dashboard.
   if (claims && (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/signup'))) {
     const userType = claims.user_metadata?.user_type;

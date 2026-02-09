@@ -63,6 +63,8 @@ export function useSignedUrl(bucket: string, pathOrUrl: string | undefined): str
 
   const initCached = (): string | null => {
     if (!pathOrUrl) return null;
+    // External URLs don't need signing
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
     return getCached(`${bucket}:${pathOrUrl}`);
   };
 
@@ -71,6 +73,12 @@ export function useSignedUrl(bucket: string, pathOrUrl: string | undefined): str
   useEffect(() => {
     if (!pathOrUrl) {
       setUrl(null);
+      return;
+    }
+
+    // External URLs (e.g. Google avatar) — use directly, no signing needed
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+      setUrl(pathOrUrl);
       return;
     }
 

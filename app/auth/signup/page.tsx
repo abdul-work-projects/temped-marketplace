@@ -56,7 +56,7 @@ export default function SignupPage() {
     setError('');
     setIsLoading(true);
 
-    const result = await loginWithGoogle();
+    const result = await loginWithGoogle(accountType);
 
     if (!result.success) {
       setError(result.error || 'Google signup failed');
