@@ -129,7 +129,7 @@ export default function Sidebar({ links, userEmail }: SidebarProps) {
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-[#1c1d1f] flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
                 {profilePicUrl ? (
-                  <img src={profilePicUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={profilePicUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   userEmail[0].toUpperCase()
                 )}

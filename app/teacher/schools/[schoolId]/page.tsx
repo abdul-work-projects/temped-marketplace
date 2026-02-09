@@ -91,6 +91,7 @@ export default function SchoolProfilePage() {
                       src={profilePicUrl}
                       alt={school.name}
                       className="w-full h-full rounded-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <Building2 size={48} className="text-gray-400" />

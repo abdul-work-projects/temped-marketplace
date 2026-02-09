@@ -32,7 +32,7 @@ function getStatusColor(status: string) {
     case 'Closed':
       return 'bg-gray-100 text-gray-700';
     case 'Applied':
-      return 'bg-yellow-100 text-yellow-700';
+      return 'bg-purple-100 text-purple-700';
     default:
       return 'bg-gray-100 text-gray-700';
   }
@@ -208,12 +208,12 @@ export default function TeacherApplicationsPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         {application.shortlisted && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold">
                             <Star size={12} />
                             Shortlisted
                           </span>
                         )}
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(displayStatus)}`}>
+                        <span className={`px-2 py-1 text-xs font-bold ${getStatusColor(displayStatus)}`}>
                           {displayStatus}
                         </span>
                       </div>

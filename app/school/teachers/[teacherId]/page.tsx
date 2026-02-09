@@ -77,6 +77,7 @@ export default function TeacherProfilePage() {
                       src={profilePicUrl}
                       alt={`${teacher.firstName} ${teacher.surname}`}
                       className="w-full h-full rounded-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <User size={48} className="text-gray-400" />

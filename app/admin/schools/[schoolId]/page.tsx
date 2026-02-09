@@ -136,6 +136,7 @@ export default function AdminSchoolDetail() {
                       src={profilePicUrl}
                       alt={school.name}
                       className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
                     />
                   ) : (
                     <School className="w-8 h-8 text-gray-400" />

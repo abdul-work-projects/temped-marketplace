@@ -125,6 +125,11 @@ export default function JobDetailPage() {
                   </Link>
                 </div>
                 <div className="flex items-center gap-2">
+                  {applied && (
+                    <span className="inline-flex items-center px-3 py-1.5 text-sm font-bold bg-purple-100 text-purple-700">
+                      Applied
+                    </span>
+                  )}
                   {/* Job Type Badge */}
                   <span
                     className={`inline-flex items-center px-3 py-1.5 text-sm font-bold border ${getJobTypeBadge(job.jobType)}`}

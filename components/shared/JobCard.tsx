@@ -61,6 +61,11 @@ export default function JobCard({
               </Link>
             </div>
             <div className="flex items-center gap-2">
+              {applied && (
+                <span className="px-2 py-1 text-xs font-bold bg-purple-100 text-purple-700">
+                  Applied
+                </span>
+              )}
               {job.jobType && (
                 <span className={`px-2 py-1 text-xs font-bold ${JOB_TYPE_COLORS[job.jobType] || 'bg-gray-100 text-gray-700'}`}>
                   {job.jobType}

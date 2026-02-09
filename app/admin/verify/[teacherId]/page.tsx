@@ -285,6 +285,7 @@ export default function AdminVerifyTeacherDetail() {
                     src={profilePicUrl}
                     alt={`${teacher.firstName} ${teacher.surname}`}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <User className="w-8 h-8 text-gray-400" />
