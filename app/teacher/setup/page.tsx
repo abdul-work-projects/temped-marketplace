@@ -13,8 +13,8 @@ import { subjectsByPhase } from '@/lib/data/subjects';
 const SPORT_OPTIONS: SportType[] = ['Tennis', 'Rugby', 'Netball', 'Cricket', 'Table tennis', 'Soccer', 'Hockey', 'Athletics', 'Cross country', 'Other'];
 const ARTS_CULTURE_OPTIONS: ArtsCultureType[] = ['Drama', 'Debate', 'Choir', 'Other'];
 import { createClient } from '@/lib/supabase/client';
-import { geocodeAddress } from '@/lib/utils/geocode';
-import { Plus, Trash2, MapPin, Loader2, ChevronDown, User, Camera, X, FileText, ShieldCheck, Info } from 'lucide-react';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
+import { Plus, Trash2, Loader2, ChevronDown, User, Camera, X, FileText, ShieldCheck, Info } from 'lucide-react';
 import SelfieCapture from '@/components/shared/SelfieCapture';
 
 function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fileName?: string; onExpand?: (url: string) => void }) {
@@ -84,7 +84,6 @@ export default function TeacherSetupPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [hasChanges, setHasChanges] = useState(false);
-  const [geocoding, setGeocoding] = useState(false);
   const [openPhases, setOpenPhases] = useState<Record<string, boolean>>({});
 
   const profilePicInputRef = useRef<HTMLInputElement>(null);
@@ -268,16 +267,6 @@ export default function TeacherSetupPage() {
       }
       return { ...prev, [phase]: [...phaseArts, item] };
     });
-  };
-
-  const handleGeocode = async () => {
-    if (!address) return;
-    setGeocoding(true);
-    const result = await geocodeAddress(address);
-    if (result) {
-      setLocation(result);
-    }
-    setGeocoding(false);
   };
 
   const addExperience = () => {
@@ -607,35 +596,15 @@ export default function TeacherSetupPage() {
 
               <div>
                 <label className="block text-sm font-bold text-[#1c1d1f] mb-2">Address</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                    placeholder="Street, City, Province, Postal Code"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleGeocode}
-                    disabled={geocoding || !address}
-                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {geocoding ? <Loader2 size={16} className="animate-spin" /> : <MapPin size={16} />}
-                    Geocode
-                    <span className="relative group">
-                      <Info size={14} className="text-gray-400 cursor-help" />
-                      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#1c1d1f] text-white text-xs rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
-                        Converts your address into map coordinates for distance matching
-                      </span>
-                    </span>
-                  </button>
-                </div>
-                {location && (
-                  <p className="mt-1 text-xs text-green-600">
-                    Location set: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                  </p>
-                )}
+                <AddressAutocomplete
+                  value={address}
+                  onChange={setAddress}
+                  onSelect={({ address: addr, lat, lng }) => {
+                    setAddress(addr);
+                    setLocation({ lat, lng });
+                  }}
+                  placeholder="Start typing your address..."
+                />
               </div>
 
               <div>

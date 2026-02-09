@@ -7,9 +7,9 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useUpdateSchool } from '@/lib/hooks/useSchool';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { createClient } from '@/lib/supabase/client';
-import { geocodeAddress } from '@/lib/utils/geocode';
+import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { SchoolType, OwnershipType, Curriculum } from '@/types';
-import { Loader2, MapPin, Building2, Camera, X } from 'lucide-react';
+import { Loader2, Building2, Camera, X } from 'lucide-react';
 
 export default function SchoolSetupPage() {
   const { user } = useAuth();
@@ -33,8 +33,6 @@ export default function SchoolSetupPage() {
   const [registrationCertificate, setRegistrationCertificate] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [geocoding, setGeocoding] = useState(false);
-  const [geocodeResult, setGeocodeResult] = useState<string | null>(null);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Deferred profile picture upload
@@ -137,21 +135,6 @@ export default function SchoolSetupPage() {
       removedCert;
     setHasChanges(changed);
   }, [school, formData, pendingPicFile, removedPic, pendingCertFile, removedCert]);
-
-  const handleGeocode = async () => {
-    if (!formData.address.trim()) return;
-    setGeocoding(true);
-    setGeocodeResult(null);
-
-    const result = await geocodeAddress(formData.address);
-    if (result) {
-      setLocation(result);
-      setGeocodeResult(`Location found: ${result.lat.toFixed(4)}, ${result.lng.toFixed(4)}`);
-    } else {
-      setGeocodeResult('Could not find location for this address');
-    }
-    setGeocoding(false);
-  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -501,34 +484,16 @@ export default function SchoolSetupPage() {
                 <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                   Address *
                 </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                    placeholder="Street, City, Postal Code"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleGeocode}
-                    disabled={geocoding || !formData.address.trim()}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
-                  >
-                    {geocoding ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <MapPin size={16} />
-                    )}
-                    Geocode
-                  </button>
-                </div>
-                {geocodeResult && (
-                  <p className={`mt-1 text-sm ${location ? 'text-green-600' : 'text-red-600'}`}>
-                    {geocodeResult}
-                  </p>
-                )}
+                <AddressAutocomplete
+                  value={formData.address}
+                  onChange={(addr) => setFormData({ ...formData, address: addr })}
+                  onSelect={({ address: addr, lat, lng }) => {
+                    setFormData(prev => ({ ...prev, address: addr }));
+                    setLocation({ lat, lng });
+                  }}
+                  required
+                  placeholder="Start typing your school address..."
+                />
               </div>
             </div>
 
