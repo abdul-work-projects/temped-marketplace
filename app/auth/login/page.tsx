@@ -28,7 +28,12 @@ export default function LoginPage() {
     if (result.success) {
       router.push('/');
     } else {
-      setError(result.error || 'Login failed');
+      const msg = result.error || 'Login failed';
+      if (msg.toLowerCase().includes('email not confirmed')) {
+        setError('Your email address has not been verified yet. Please check your inbox (and spam folder) for the confirmation link we sent when you signed up.');
+      } else {
+        setError(msg);
+      }
     }
 
     setIsLoading(false);

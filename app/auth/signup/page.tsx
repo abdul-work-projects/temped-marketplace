@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
@@ -43,7 +44,7 @@ export default function SignupPage() {
     });
 
     if (result.success) {
-      router.push('/');
+      setEmailSent(true);
     } else {
       setError(result.error || 'Signup failed');
     }
@@ -81,6 +82,26 @@ export default function SignupPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        {emailSent ? (
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-[#1c1d1f] mb-2">Check your email</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              We&apos;ve sent a confirmation link to <span className="font-bold">{email}</span>. Please click the link in that email to verify your account before signing in.
+            </p>
+            <Link
+              href="/auth/login"
+              className="inline-block w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors text-center"
+            >
+              Go to Sign In
+            </Link>
+          </div>
+        ) : (
+        <>
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
@@ -275,6 +296,8 @@ export default function SignupPage() {
             </Link>
           </p>
         </div>
+        </>
+        )}
       </div>
     </div>
   );
