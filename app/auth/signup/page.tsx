@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { UserType } from '@/types';
 
@@ -10,8 +11,13 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [accountType, setAccountType] = useState<UserType>('teacher');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [schoolName, setSchoolName] = useState('');
+  const [emisNumber, setEmisNumber] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { signup, loginWithGoogle } = useAuth();
   const router = useRouter();
 
@@ -26,7 +32,15 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
-    const result = await signup(email, password, accountType);
+    const result = await signup({
+      email,
+      password,
+      type: accountType,
+      firstName: accountType === 'teacher' ? firstName : undefined,
+      lastName: accountType === 'teacher' ? lastName : undefined,
+      schoolName: accountType === 'school' ? schoolName : undefined,
+      emisNumber: accountType === 'school' ? emisNumber : undefined,
+    });
 
     if (result.success) {
       router.push('/');
@@ -43,20 +57,18 @@ export default function SignupPage() {
 
     const result = await loginWithGoogle();
 
-    if (result.success) {
-      router.push('/');
-    } else {
+    if (!result.success) {
       setError(result.error || 'Google signup failed');
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
+    // On success, the page will redirect via OAuth flow
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="inline-flex items-center justify-center gap-2 mb-6 w-full">
-          <div className="w-12 h-12 bg-[#a435f0] flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#2563eb] flex items-center justify-center">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
@@ -64,7 +76,7 @@ export default function SignupPage() {
           <span className="text-3xl font-bold text-[#1c1d1f]">TempEd</span>
         </Link>
         <h2 className="text-center text-2xl font-bold text-[#1c1d1f] mb-2">
-          Sign Up and Start Learning
+          Create Your TempEd Account
         </h2>
       </div>
 
@@ -107,6 +119,70 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {accountType === 'teacher' ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                    First Name
+                  </label>
+                  <input
+                    id="firstName"
+                    type="text"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                    placeholder="First name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                    placeholder="Last name"
+                  />
+                </div>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label htmlFor="schoolName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                    School Name
+                  </label>
+                  <input
+                    id="schoolName"
+                    type="text"
+                    required
+                    value={schoolName}
+                    onChange={(e) => setSchoolName(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                    placeholder="School name"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="emisNumber" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                    EMIS Number
+                  </label>
+                  <input
+                    id="emisNumber"
+                    type="text"
+                    required
+                    value={emisNumber}
+                    onChange={(e) => setEmisNumber(e.target.value)}
+                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                    placeholder="EMIS number"
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-bold text-[#1c1d1f] mb-1">
                 Email
@@ -128,24 +204,33 @@ export default function SignupPage() {
               <label htmlFor="password" className="block text-sm font-bold text-[#1c1d1f] mb-1">
                 Password
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
-                placeholder="Password"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="appearance-none block w-full px-3 py-2.5 pr-10 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                  placeholder="Password (min 6 characters)"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? 'Creating account...' : 'Sign up'}
               </button>
@@ -185,7 +270,7 @@ export default function SignupPage() {
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-[#a435f0] font-bold hover:text-[#8710d8]">
+            <Link href="/auth/login" className="text-[#2563eb] font-bold hover:text-[#1d4ed8]">
               Log in
             </Link>
           </p>
