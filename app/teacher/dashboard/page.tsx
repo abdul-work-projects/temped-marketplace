@@ -9,7 +9,7 @@ import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeache
 import { useOpenJobs } from '@/lib/hooks/useJobs';
 import { calculateDistance } from '@/lib/utils/distance';
 import { EducationPhase, JobType } from '@/types';
-import { Filter, X, Loader2 } from 'lucide-react';
+import { Filter, X, Loader2, LayoutGrid, List } from 'lucide-react';
 import Link from 'next/link';
 
 const EDUCATION_PHASES: EducationPhase[] = [
@@ -28,6 +28,7 @@ export default function TeacherDashboard() {
 
   const [phaseFilter, setPhaseFilter] = useState<string>('');
   const [jobTypeFilter, setJobTypeFilter] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'expanded' | 'list'>('expanded');
 
   const filters = useMemo(() => {
     const f: { educationPhase?: string; jobType?: string } = {};
@@ -180,6 +181,22 @@ export default function TeacherDashboard() {
                   Clear
                 </button>
               )}
+              <div className="ml-auto flex items-center border border-gray-300">
+                <button
+                  onClick={() => setViewMode('expanded')}
+                  className={`p-1.5 ${viewMode === 'expanded' ? 'bg-[#2563eb] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  title="Grid view"
+                >
+                  <LayoutGrid size={16} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1.5 ${viewMode === 'list' ? 'bg-[#2563eb] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  title="List view"
+                >
+                  <List size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Jobs List */}
@@ -210,17 +227,32 @@ export default function TeacherDashboard() {
                 )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredJobs.map(({ job, school }) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    school={school}
-                    teacherLocation={teacher?.location}
-                    applied={appliedJobIds.has(job.id)}
-                  />
-                ))}
-              </div>
+              viewMode === 'expanded' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredJobs.map(({ job, school }) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      school={school}
+                      teacherLocation={teacher?.location}
+                      applied={appliedJobIds.has(job.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white border border-gray-300 divide-y divide-gray-200">
+                  {filteredJobs.map(({ job, school }) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      school={school}
+                      teacherLocation={teacher?.location}
+                      applied={appliedJobIds.has(job.id)}
+                      variant="list"
+                    />
+                  ))}
+                </div>
+              )
             )}
           </div>
         </div>
