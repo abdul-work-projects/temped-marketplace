@@ -4,38 +4,108 @@ import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
+import { useSchoolProfile, useUpdateSchool } from '@/lib/hooks/useSchool';
+import FileUpload from '@/components/shared/FileUpload';
+import { geocodeAddress } from '@/lib/utils/geocode';
 import { SchoolType, OwnershipType, Curriculum } from '@/types';
+import { Loader2, MapPin } from 'lucide-react';
 
 export default function SchoolSetupPage() {
   const { user } = useAuth();
-  const { getSchoolByUserId, updateSchool } = useData();
-
-  const school = user ? getSchoolByUserId(user.id) : null;
+  const { school, loading } = useSchoolProfile(user?.id);
+  const { updateSchool, saving, error: saveError } = useUpdateSchool();
 
   const [formData, setFormData] = useState({
-    name: school?.name || '',
-    description: school?.description || '',
-    emisNumber: school?.emisNumber || '',
-    district: school?.district || '',
-    schoolType: school?.schoolType || 'Secondary' as SchoolType,
-    ownershipType: school?.ownershipType || 'Public' as OwnershipType,
-    educationDistrict: school?.educationDistrict || '',
-    curriculum: school?.curriculum || 'CAPS' as Curriculum,
-    address: school?.address || ''
+    name: '',
+    description: '',
+    emisNumber: '',
+    district: '',
+    schoolType: 'Secondary' as SchoolType,
+    ownershipType: 'Public' as OwnershipType,
+    educationDistrict: '',
+    curriculum: 'CAPS' as Curriculum,
+    address: '',
   });
 
+  const [profilePicture, setProfilePicture] = useState<string[]>([]);
+  const [registrationCertificate, setRegistrationCertificate] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeResult, setGeocodeResult] = useState<string | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (school) {
+      setFormData({
+        name: school.name || '',
+        description: school.description || '',
+        emisNumber: school.emisNumber || '',
+        district: school.district || '',
+        schoolType: school.schoolType || 'Secondary',
+        ownershipType: school.ownershipType || 'Public',
+        educationDistrict: school.educationDistrict || '',
+        curriculum: school.curriculum || 'CAPS',
+        address: school.address || '',
+      });
+      if (school.profilePicture) setProfilePicture([school.profilePicture]);
+      if (school.registrationCertificate) setRegistrationCertificate([school.registrationCertificate]);
+      if (school.location) setLocation(school.location);
+    }
+  }, [school]);
+
+  const handleGeocode = async () => {
+    if (!formData.address.trim()) return;
+    setGeocoding(true);
+    setGeocodeResult(null);
+
+    const result = await geocodeAddress(formData.address);
+    if (result) {
+      setLocation(result);
+      setGeocodeResult(`Location found: ${result.lat.toFixed(4)}, ${result.lng.toFixed(4)}`);
+    } else {
+      setGeocodeResult('Could not find location for this address');
+    }
+    setGeocoding(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!school) return;
 
-    updateSchool(school.id, formData);
+    const updates: Record<string, unknown> = {
+      name: formData.name,
+      description: formData.description,
+      emis_number: formData.emisNumber,
+      district: formData.district,
+      school_type: formData.schoolType,
+      ownership_type: formData.ownershipType,
+      education_district: formData.educationDistrict,
+      curriculum: formData.curriculum,
+      address: formData.address,
+      profile_picture: profilePicture[0] || null,
+      registration_certificate: registrationCertificate[0] || null,
+    };
 
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    if (location) {
+      updates.location = location;
+    }
+
+    const success = await updateSchool(school.id, updates);
+    if (success) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
@@ -50,11 +120,28 @@ export default function SchoolSetupPage() {
 
           {saved && (
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-green-700 font-medium">✓ Profile saved successfully!</p>
+              <p className="text-green-700 font-medium">Profile saved successfully!</p>
+            </div>
+          )}
+
+          {saveError && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700 font-medium">Error: {saveError}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="bg-white border border-gray-300 p-6 space-y-6">
+            <FileUpload
+              bucket="profile-pictures"
+              folder={school?.id || 'unknown'}
+              accept="image/*"
+              maxFiles={1}
+              label="Profile Picture"
+              existingFiles={profilePicture}
+              onUploadComplete={(urls) => setProfilePicture(urls)}
+              onRemove={() => setProfilePicture([])}
+            />
+
             <div>
               <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 School Name *
@@ -178,22 +265,55 @@ export default function SchoolSetupPage() {
               <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Address *
               </label>
-              <input
-                type="text"
-                required
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                placeholder="Street, City, Postal Code"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                  placeholder="Street, City, Postal Code"
+                />
+                <button
+                  type="button"
+                  onClick={handleGeocode}
+                  disabled={geocoding || !formData.address.trim()}
+                  className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  {geocoding ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <MapPin size={16} />
+                  )}
+                  Geocode
+                </button>
+              </div>
+              {geocodeResult && (
+                <p className={`mt-1 text-sm ${location ? 'text-green-600' : 'text-red-600'}`}>
+                  {geocodeResult}
+                </p>
+              )}
             </div>
+
+            <FileUpload
+              bucket="registration-certificates"
+              folder={school?.id || 'unknown'}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxFiles={1}
+              label="Registration Certificate"
+              existingFiles={registrationCertificate}
+              onUploadComplete={(urls) => setRegistrationCertificate(urls)}
+              onRemove={() => setRegistrationCertificate([])}
+            />
 
             <div className="pt-4 border-t border-gray-300">
               <button
                 type="submit"
-                className="w-full py-3 px-4 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8] transition-colors"
+                disabled={saving}
+                className="w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                Save Profile
+                {saving && <Loader2 size={20} className="animate-spin" />}
+                {saving ? 'Saving...' : 'Save Profile'}
               </button>
             </div>
           </form>

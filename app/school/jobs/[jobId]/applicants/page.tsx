@@ -5,40 +5,82 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
-import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
-import { Star, MapPin, GraduationCap, Briefcase, Mail, ArrowLeft } from 'lucide-react';
+import ContactModal from '@/components/shared/ContactModal';
+import { useJobDetail } from '@/lib/hooks/useJobs';
+import { useJobApplicants, useUpdateApplication, useUpdateJob } from '@/lib/hooks/useSchool';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
+import { Star, MapPin, GraduationCap, Briefcase, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+
+function TeacherAvatar({ profilePicture, firstName, surname }: { profilePicture?: string; firstName: string; surname: string }) {
+  const url = useSignedUrl('profile-pictures', profilePicture);
+  return (
+    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+      {url ? (
+        <img src={url} alt={`${firstName} ${surname}`} className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-3xl text-gray-400">{firstName[0]}{surname[0]}</span>
+      )}
+    </div>
+  );
+}
 
 export default function JobApplicantsPage() {
   const params = useParams();
   const jobId = params.jobId as string;
-  const { user } = useAuth();
-  const {
-    getJobById,
-    getApplicationsByJobId,
-    getTeacherById,
-    updateApplication
-  } = useData();
+  const { job, loading: jobLoading } = useJobDetail(jobId);
+  const { applicants, loading: applicantsLoading, refetch } = useJobApplicants(jobId);
+  const { updateApplication } = useUpdateApplication();
+  const { updateJob } = useUpdateJob();
+  const [contactTeacher, setContactTeacher] = useState<{ name: string; email: string } | null>(null);
+  const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
 
-  const job = getJobById(jobId);
-  const applications = job ? getApplicationsByJobId(job.id) : [];
+  const loading = jobLoading || applicantsLoading;
 
   // Sort applications: shortlisted first, then by application date
-  const sortedApplications = [...applications].sort((a, b) => {
-    if (a.shortlisted === b.shortlisted) {
-      return new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime();
+  const sortedApplicants = [...applicants].sort((a, b) => {
+    if (a.application.shortlisted === b.application.shortlisted) {
+      return new Date(b.application.appliedAt).getTime() - new Date(a.application.appliedAt).getTime();
     }
-    return a.shortlisted ? -1 : 1;
+    return a.application.shortlisted ? -1 : 1;
   });
 
-  const handleToggleShortlist = (applicationId: string, currentStatus: boolean) => {
-    updateApplication(applicationId, { shortlisted: !currentStatus });
+  const displayedApplicants = showShortlistedOnly
+    ? sortedApplicants.filter(a => a.application.shortlisted)
+    : sortedApplicants;
+
+  const handleToggleShortlist = async (applicationId: string, currentStatus: boolean) => {
+    await updateApplication(applicationId, { shortlisted: !currentStatus });
+    refetch();
   };
 
-  const handleUpdateStatus = (applicationId: string, newStatus: 'In Progress' | 'Hired' | 'Closed') => {
-    updateApplication(applicationId, { status: newStatus });
+  const handleUpdateStatus = async (applicationId: string, newStatus: string) => {
+    await updateApplication(applicationId, { status: newStatus });
+    refetch();
   };
+
+  const handleUpdateProgress = async (progress: string) => {
+    if (!job) return;
+    await updateJob(job.id, { progress });
+  };
+
+  // Get all subjects as flat array from the Record<string, string[]> structure
+  const getSubjectsFlat = (subjects: Record<string, string[]>): string[] => {
+    return Object.values(subjects).flat();
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading applicants...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!job) {
     return (
@@ -65,44 +107,73 @@ export default function JobApplicantsPage() {
           </Link>
 
           <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <span>{job.subject}</span>
-              <span>•</span>
-              <span>{job.educationPhase}</span>
-              <span>•</span>
-              <span>
-                {format(new Date(job.startDate), 'MMM d')} - {format(new Date(job.endDate), 'MMM d, yyyy')}
-              </span>
+            <div className="flex items-start justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                  <span>{job.subject}</span>
+                  <span>•</span>
+                  <span>{job.educationPhase}</span>
+                  <span>•</span>
+                  <span>
+                    {format(new Date(job.startDate), 'MMM d')} - {format(new Date(job.endDate), 'MMM d, yyyy')}
+                  </span>
+                </div>
+              </div>
+              <select
+                value={job.progress}
+                onChange={(e) => handleUpdateProgress(e.target.value)}
+                className="px-4 py-2 border border-gray-300 font-bold text-sm focus:outline-none focus:border-[#1c1d1f]"
+              >
+                <option value="Open">Open</option>
+                <option value="Interviewing">Interviewing</option>
+                <option value="Hired">Hired</option>
+              </select>
             </div>
           </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Applicants ({applications.length})
-            </h2>
-            <p className="text-gray-600">
-              Review applications and shortlist candidates for interview
-            </p>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Applicants ({applicants.length})
+              </h2>
+              <p className="text-gray-600">
+                Review applications and shortlist candidates for interview
+              </p>
+            </div>
+            <button
+              onClick={() => setShowShortlistedOnly(!showShortlistedOnly)}
+              className={`px-4 py-2 text-sm font-bold transition-colors ${
+                showShortlistedOnly
+                  ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
+                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Star size={16} className="inline mr-1" fill={showShortlistedOnly ? 'currentColor' : 'none'} />
+              {showShortlistedOnly ? 'Show All' : 'Shortlisted Only'}
+            </button>
           </div>
 
-          {applications.length === 0 ? (
+          {displayedApplicants.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
               <div className="text-gray-400 mb-4">
                 <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No applicants yet</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {showShortlistedOnly ? 'No shortlisted applicants' : 'No applicants yet'}
+              </h3>
               <p className="text-gray-600">
-                Teachers will see your job posting and can apply. Check back soon!
+                {showShortlistedOnly
+                  ? 'Shortlist candidates to see them here.'
+                  : 'Teachers will see your job posting and can apply. Check back soon!'}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {sortedApplications.map(application => {
-                const teacher = getTeacherById(application.teacherId);
-                if (!teacher) return null;
+              {displayedApplicants.map(({ application, teacher }) => {
+                const allSubjects = getSubjectsFlat(teacher.subjects);
 
                 return (
                   <div
@@ -116,19 +187,7 @@ export default function JobApplicantsPage() {
                     <div className="flex gap-6">
                       {/* Profile Picture */}
                       <div className="flex-shrink-0">
-                        <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                          {teacher.profilePicture ? (
-                            <img
-                              src={teacher.profilePicture}
-                              alt={`${teacher.firstName} ${teacher.surname}`}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-3xl text-gray-400">
-                              {teacher.firstName[0]}{teacher.surname[0]}
-                            </span>
-                          )}
-                        </div>
+                        <TeacherAvatar profilePicture={teacher.profilePicture} firstName={teacher.firstName} surname={teacher.surname} />
                       </div>
 
                       {/* Details */}
@@ -137,6 +196,9 @@ export default function JobApplicantsPage() {
                           <div>
                             <h3 className="text-xl font-semibold text-gray-900 mb-1">
                               {teacher.firstName} {teacher.surname}
+                              {teacher.profileCompleteness >= 80 && (
+                                <CheckCircle size={18} className="inline ml-2 text-green-600" />
+                              )}
                             </h3>
                             {teacher.address && (
                               <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -147,7 +209,7 @@ export default function JobApplicantsPage() {
                           </div>
 
                           <button
-                            onClick={() => handleToggleShortlist(application.id, application.shortlisted || false)}
+                            onClick={() => handleToggleShortlist(application.id, application.shortlisted)}
                             className={`flex items-center gap-2 px-4 py-2 font-bold transition-colors ${
                               application.shortlisted
                                 ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
@@ -170,7 +232,7 @@ export default function JobApplicantsPage() {
                               <span className="font-medium">Education Phase:</span>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {teacher.educationPhase.map(phase => (
+                              {teacher.educationPhases.map(phase => (
                                 <span
                                   key={phase}
                                   className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
@@ -187,7 +249,7 @@ export default function JobApplicantsPage() {
                               <span className="font-medium">Subjects:</span>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                              {teacher.subjects.slice(0, 3).map(subject => (
+                              {allSubjects.slice(0, 3).map(subject => (
                                 <span
                                   key={subject}
                                   className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
@@ -195,9 +257,9 @@ export default function JobApplicantsPage() {
                                   {subject}
                                 </span>
                               ))}
-                              {teacher.subjects.length > 3 && (
+                              {allSubjects.length > 3 && (
                                 <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                                  +{teacher.subjects.length - 3} more
+                                  +{allSubjects.length - 3} more
                                 </span>
                               )}
                             </div>
@@ -208,29 +270,33 @@ export default function JobApplicantsPage() {
                           <span>Applied: {format(new Date(application.appliedAt), 'MMM d, yyyy')}</span>
                           <span>•</span>
                           <span>Profile: {teacher.profileCompleteness}% complete</span>
-                          {teacher.faceVerified && (
+                          {teacher.profileCompleteness >= 80 && (
                             <>
                               <span>•</span>
-                              <span className="text-green-600 font-medium">✓ Verified</span>
+                              <span className="text-green-600 font-medium">Profile Complete</span>
                             </>
                           )}
                         </div>
 
                         <div className="flex gap-3">
-                          <button className="flex items-center gap-2 px-4 py-2 bg-[#a435f0] text-white font-bold hover:bg-[#8710d8]">
+                          <button
+                            onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email })}
+                            className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8]"
+                          >
                             <Mail size={16} />
                             Contact
                           </button>
 
                           <select
                             value={application.status}
-                            onChange={(e) => handleUpdateStatus(application.id, e.target.value as any)}
+                            onChange={(e) => handleUpdateStatus(application.id, e.target.value)}
                             className="px-4 py-2 border border-gray-300 font-bold focus:outline-none focus:border-[#1c1d1f]"
                           >
                             <option value="Applied">Applied</option>
-                            <option value="In Progress">In Progress</option>
+                            <option value="In Review">In Review</option>
+                            <option value="Shortlisted">Shortlisted</option>
                             <option value="Hired">Hired</option>
-                            <option value="Closed">Closed</option>
+                            <option value="Rejected">Rejected</option>
                           </select>
 
                           <Link
@@ -249,6 +315,15 @@ export default function JobApplicantsPage() {
           )}
         </div>
       </div>
+
+      {contactTeacher && (
+        <ContactModal
+          isOpen={!!contactTeacher}
+          onClose={() => setContactTeacher(null)}
+          name={contactTeacher.name}
+          email={contactTeacher.email}
+        />
+      )}
     </DashboardLayout>
   );
 }

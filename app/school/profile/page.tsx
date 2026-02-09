@@ -3,28 +3,44 @@
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useData } from '@/lib/context/DataContext';
-import { Building2, MapPin, GraduationCap } from 'lucide-react';
+import { useSchoolProfile, useSchoolJobs } from '@/lib/hooks/useSchool';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
+import { Building2, MapPin, FileText, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function SchoolProfilePage() {
   const { user } = useAuth();
-  const { getSchoolByUserId, jobs } = useData();
+  const { school, loading } = useSchoolProfile(user?.id);
+  const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
+  const { jobs, loading: jobsLoading } = useSchoolJobs(school?.id);
 
-  const school = user ? getSchoolByUserId(user.id) : null;
-  const schoolJobs = school ? jobs.filter(job => job.schoolId === school.id) : [];
+  if (loading) {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!school) {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-gray-600">Loading profile...</p>
+            <p className="text-gray-600">School profile not found. Please complete your setup.</p>
+            <Link href="/school/setup" className="mt-4 inline-block text-[#2563eb] hover:text-[#1d4ed8] font-bold">
+              Go to Setup
+            </Link>
           </div>
         </div>
       </DashboardLayout>
     );
   }
+
+  const openJobs = jobs.filter(job => job.progress === 'Open');
+  const hiredJobs = jobs.filter(job => job.progress === 'Hired');
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
@@ -32,15 +48,15 @@ export default function SchoolProfilePage() {
         <div className="max-w-3xl mx-auto">
           <div className="bg-white border border-gray-300 overflow-hidden">
             {/* Header Section */}
-            <div className="bg-[#a435f0] h-32"></div>
+            <div className="bg-[#2563eb] h-32"></div>
 
             <div className="px-8 pb-8">
               {/* Profile Picture */}
               <div className="relative -mt-16 mb-4">
-                <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
-                  {school.profilePicture ? (
+                <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
+                  {profilePicUrl ? (
                     <img
-                      src={school.profilePicture}
+                      src={profilePicUrl}
                       alt={school.name}
                       className="w-full h-full rounded-full object-cover"
                     />
@@ -77,17 +93,17 @@ export default function SchoolProfilePage() {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
                   <h3 className="text-sm font-bold text-gray-600 mb-1">School Type</h3>
-                  <p className="text-[#1c1d1f]">{school.schoolType}</p>
+                  <p className="text-[#1c1d1f]">{school.schoolType || 'Not specified'}</p>
                 </div>
 
                 <div>
                   <h3 className="text-sm font-bold text-gray-600 mb-1">Ownership</h3>
-                  <p className="text-[#1c1d1f]">{school.ownershipType}</p>
+                  <p className="text-[#1c1d1f]">{school.ownershipType || 'Not specified'}</p>
                 </div>
 
                 <div>
                   <h3 className="text-sm font-bold text-gray-600 mb-1">Curriculum</h3>
-                  <p className="text-[#1c1d1f]">{school.curriculum}</p>
+                  <p className="text-[#1c1d1f]">{school.curriculum || 'Not specified'}</p>
                 </div>
 
                 <div>
@@ -101,36 +117,62 @@ export default function SchoolProfilePage() {
                     <p className="text-[#1c1d1f]">{school.emisNumber}</p>
                   </div>
                 )}
+
+                {school.educationDistrict && school.district && (
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-600 mb-1">Education District</h3>
+                    <p className="text-[#1c1d1f]">{school.educationDistrict}</p>
+                  </div>
+                )}
               </div>
+
+              {/* Registration Certificate */}
+              {school.registrationCertificate && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Registration Certificate</h2>
+                  <a
+                    href={school.registrationCertificate}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-[#1c1d1f] hover:bg-gray-50 transition-colors"
+                  >
+                    <FileText size={18} />
+                    View Certificate
+                  </a>
+                </div>
+              )}
 
               {/* Job Postings Stats */}
               <div className="border-t border-gray-300 pt-6 mb-6">
                 <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Job Postings</h2>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="border border-gray-300 p-4">
-                    <p className="text-2xl font-bold text-[#1c1d1f]">{schoolJobs.length}</p>
-                    <p className="text-sm text-gray-600 font-bold">Total Posted</p>
+                {jobsLoading ? (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Loader2 size={16} className="animate-spin" />
+                    Loading stats...
                   </div>
-                  <div className="border border-gray-300 p-4">
-                    <p className="text-2xl font-bold text-[#1c1d1f]">
-                      {schoolJobs.filter(job => job.status === 'Open').length}
-                    </p>
-                    <p className="text-sm text-gray-600 font-bold">Active</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="border border-gray-300 p-4">
+                      <p className="text-2xl font-bold text-[#1c1d1f]">{jobs.length}</p>
+                      <p className="text-sm text-gray-600 font-bold">Total Posted</p>
+                    </div>
+                    <div className="border border-gray-300 p-4">
+                      <p className="text-2xl font-bold text-[#1c1d1f]">{openJobs.length}</p>
+                      <p className="text-sm text-gray-600 font-bold">Active</p>
+                    </div>
+                    <div className="border border-gray-300 p-4">
+                      <p className="text-2xl font-bold text-[#1c1d1f]">{hiredJobs.length}</p>
+                      <p className="text-sm text-gray-600 font-bold">Hired</p>
+                    </div>
                   </div>
-                  <div className="border border-gray-300 p-4">
-                    <p className="text-2xl font-bold text-[#1c1d1f]">
-                      {schoolJobs.filter(job => job.status === 'Closed').length}
-                    </p>
-                    <p className="text-sm text-gray-600 font-bold">Closed</p>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Edit Button */}
               <div>
                 <Link
                   href="/school/setup"
-                  className="inline-block w-full py-3 px-4 bg-[#a435f0] text-white text-center font-bold hover:bg-[#8710d8] transition-colors"
+                  className="inline-block w-full py-3 px-4 bg-[#2563eb] text-white text-center font-bold hover:bg-[#1d4ed8] transition-colors"
                 >
                   Edit Profile
                 </Link>

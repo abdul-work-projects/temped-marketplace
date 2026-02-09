@@ -1,19 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
-import { useAuth } from '@/lib/context/AuthContext';
-import { useSchoolProfile, useCreateJob } from '@/lib/hooks/useSchool';
+import { useJobDetail } from '@/lib/hooks/useJobs';
+import { useUpdateJob } from '@/lib/hooks/useSchool';
 import { EducationPhase, JobType } from '@/types';
 import { Loader2 } from 'lucide-react';
 
-export default function PostJobPage() {
+export default function EditJobPage() {
+  const params = useParams();
+  const jobId = params.jobId as string;
   const router = useRouter();
-  const { user } = useAuth();
-  const { school } = useSchoolProfile(user?.id);
-  const { createJob, creating } = useCreateJob();
+  const { job, loading } = useJobDetail(jobId);
+  const { updateJob, updating } = useUpdateJob();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -30,9 +31,26 @@ export default function PostJobPage() {
 
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (job) {
+      setFormData({
+        title: job.title,
+        description: job.description,
+        subject: job.subject,
+        educationPhase: job.educationPhase,
+        jobType: job.jobType,
+        startDate: job.startDate,
+        endDate: job.endDate,
+        applicationDeadline: job.applicationDeadline,
+        requiredQualifications: job.requiredQualifications,
+        tagsInput: job.tags.join(', '),
+      });
+    }
+  }, [job]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!school) return;
+    if (!job) return;
 
     setError(null);
 
@@ -41,8 +59,7 @@ export default function PostJobPage() {
       .map(t => t.trim())
       .filter(t => t.length > 0);
 
-    const { error: createError } = await createJob({
-      school_id: school.id,
+    const { success, error: updateError } = await updateJob(job.id, {
       title: formData.title,
       description: formData.description,
       subject: formData.subject,
@@ -55,21 +72,43 @@ export default function PostJobPage() {
       tags,
     });
 
-    if (createError) {
-      setError(createError);
-    } else {
+    if (success) {
       router.push('/school/dashboard');
+    } else if (updateError) {
+      setError(updateError);
     }
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-gray-400" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!job) {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-gray-600">Job not found</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Post a New Job</h1>
+            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Edit Job</h1>
             <p className="text-gray-600">
-              Fill in the details for your teaching position
+              Update the details for this position
             </p>
           </div>
 
@@ -237,11 +276,11 @@ export default function PostJobPage() {
               </button>
               <button
                 type="submit"
-                disabled={creating}
+                disabled={updating}
                 className="flex-1 py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {creating && <Loader2 size={20} className="animate-spin" />}
-                {creating ? 'Posting...' : 'Post Job'}
+                {updating && <Loader2 size={20} className="animate-spin" />}
+                {updating ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </form>
