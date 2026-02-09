@@ -12,6 +12,7 @@ export default function SchoolProfilePage() {
   const { user } = useAuth();
   const { school, loading } = useSchoolProfile(user?.id);
   const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
+  const certUrl = useSignedUrl('registration-certificates', school?.registrationCertificate);
   const { jobs, loading: jobsLoading } = useSchoolJobs(school?.id);
 
   if (loading) {
@@ -130,15 +131,22 @@ export default function SchoolProfilePage() {
               {school.registrationCertificate && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Registration Certificate</h2>
-                  <a
-                    href={school.registrationCertificate}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-[#1c1d1f] hover:bg-gray-50 transition-colors"
-                  >
-                    <FileText size={18} />
-                    View Certificate
-                  </a>
+                  {certUrl ? (
+                    <a
+                      href={certUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-[#1c1d1f] hover:bg-gray-50 transition-colors"
+                    >
+                      <FileText size={18} />
+                      View Certificate
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md text-gray-400">
+                      <Loader2 size={18} className="animate-spin" />
+                      Loading...
+                    </span>
+                  )}
                 </div>
               )}
 
