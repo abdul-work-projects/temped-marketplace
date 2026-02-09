@@ -8,7 +8,7 @@ export default function Footer() {
             <span>Support:</span>
             <a
               href="mailto:support@temped.co.za"
-              className="text-[#a435f0] hover:text-[#8710d8] font-bold"
+              className="text-[#2563eb] hover:text-[#1d4ed8] font-bold"
             >
               support@temped.co.za
             </a>

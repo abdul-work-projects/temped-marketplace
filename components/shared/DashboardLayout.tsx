@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
     href: string;
     icon: React.ReactNode;
   }>;
-  requiredUserType: 'teacher' | 'school';
+  requiredUserType: 'teacher' | 'school' | 'admin';
 }
 
 export default function DashboardLayout({
@@ -30,7 +30,9 @@ export default function DashboardLayout({
         router.push('/auth/login');
       } else if (user.type !== requiredUserType) {
         // Redirect to correct dashboard if user type doesn't match
-        router.push(user.type === 'teacher' ? '/teacher/dashboard' : '/school/dashboard');
+        if (user.type === 'teacher') router.push('/teacher/dashboard');
+        else if (user.type === 'school') router.push('/school/dashboard');
+        else if (user.type === 'admin') router.push('/admin/dashboard');
       }
     }
   }, [user, isLoading, requiredUserType, router]);
