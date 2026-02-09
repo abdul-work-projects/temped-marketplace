@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useCreateJob } from '@/lib/hooks/useSchool';
 import { EducationPhase, JobType } from '@/types';
 import { subjectsByPhase } from '@/lib/data/subjects';
+import TagInput from '@/components/shared/TagInput';
 import { Loader2 } from 'lucide-react';
 
 export default function PostJobPage() {
@@ -26,7 +27,7 @@ export default function PostJobPage() {
     endDate: '',
     applicationDeadline: '',
     requiredQualifications: '',
-    tagsInput: '',
+    tags: [] as string[],
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +38,7 @@ export default function PostJobPage() {
 
     setError(null);
 
-    const tags = formData.tagsInput
-      .split(',')
-      .map(t => t.trim())
-      .filter(t => t.length > 0);
+    const tags = formData.tags;
 
     const { error: createError } = await createJob({
       school_id: school.id,
@@ -234,14 +232,11 @@ export default function PostJobPage() {
               <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
                 Tags
               </label>
-              <input
-                type="text"
-                value={formData.tagsInput}
-                onChange={(e) => setFormData({ ...formData, tagsInput: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                placeholder="Comma-separated, e.g., Urgent, CAPS, Grade 10"
+              <TagInput
+                value={formData.tags}
+                onChange={(tags) => setFormData({ ...formData, tags })}
+                placeholder="e.g., Urgent, CAPS, Grade 10"
               />
-              <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
             </div>
 
             <div className="pt-4 border-t border-gray-300 flex gap-3">

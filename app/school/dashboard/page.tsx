@@ -18,6 +18,7 @@ export default function SchoolDashboard() {
   const { updateJob } = useUpdateJob();
   const loading = schoolLoading || jobsLoading;
   const [applicantCounts, setApplicantCounts] = useState<Record<string, number>>({});
+  const [jobsWithHires, setJobsWithHires] = useState<Set<string>>(new Set());
   const supabaseRef = useRef(createClient());
 
   const fetchApplicantCounts = useCallback(async () => {
@@ -26,15 +27,18 @@ export default function SchoolDashboard() {
     const jobIds = jobs.map(j => j.id);
     const { data } = await supabaseRef.current
       .from('applications')
-      .select('job_id')
+      .select('job_id, status')
       .in('job_id', jobIds);
 
     if (data) {
       const counts: Record<string, number> = {};
-      data.forEach((row: { job_id: string }) => {
+      const hires = new Set<string>();
+      data.forEach((row: { job_id: string; status: string }) => {
         counts[row.job_id] = (counts[row.job_id] || 0) + 1;
+        if (row.status === 'Hired') hires.add(row.job_id);
       });
       setApplicantCounts(counts);
+      setJobsWithHires(hires);
     }
   }, [jobs]);
 
@@ -134,7 +138,7 @@ export default function SchoolDashboard() {
                             <option value="Open">Open</option>
                             <option value="Interviewing">Interviewing</option>
                             <option value="Closed">Closed</option>
-                            {job.progress === 'Hired' && <option value="Hired">Hired</option>}
+                            {jobsWithHires.has(job.id) && <option value="Hired">Hired</option>}
                           </select>
                           <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                             {job.jobType}

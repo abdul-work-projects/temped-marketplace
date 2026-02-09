@@ -147,7 +147,7 @@ export default function JobApplicantsPage() {
                 <option value="Open">Open</option>
                 <option value="Interviewing">Interviewing</option>
                 <option value="Closed">Closed</option>
-                {job.progress === 'Hired' && <option value="Hired">Hired</option>}
+                {applicants.some(a => a.application.status === 'Hired') && <option value="Hired">Hired</option>}
               </select>
             </div>
           </div>

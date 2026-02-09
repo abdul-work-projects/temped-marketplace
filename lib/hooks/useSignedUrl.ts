@@ -3,29 +3,70 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
-// In-memory cache: "bucket:path" -> { url, expiresAt }
-const cache = new Map<string, { url: string; expiresAt: number }>();
+// L1: In-memory cache (fastest, cleared on page refresh)
+const memCache = new Map<string, { url: string; expiresAt: number }>();
+
+// L2: sessionStorage helpers (persists across page navigations/refreshes)
+const SS_PREFIX = 'signed-url:';
+
+function ssGet(key: string): { url: string; expiresAt: number } | null {
+  try {
+    const raw = sessionStorage.getItem(SS_PREFIX + key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function ssSet(key: string, entry: { url: string; expiresAt: number }) {
+  try {
+    sessionStorage.setItem(SS_PREFIX + key, JSON.stringify(entry));
+  } catch {
+    // sessionStorage full or unavailable — ignore
+  }
+}
+
+/** Check both cache layers, return URL if still valid (>5 min remaining) */
+function getCached(key: string): string | null {
+  const minExpiry = Date.now() + 5 * 60 * 1000;
+
+  // L1: in-memory
+  const mem = memCache.get(key);
+  if (mem && mem.expiresAt > minExpiry) return mem.url;
+
+  // L2: sessionStorage
+  const ss = ssGet(key);
+  if (ss && ss.expiresAt > minExpiry) {
+    // Promote to L1
+    memCache.set(key, ss);
+    return ss.url;
+  }
+
+  return null;
+}
+
+/** Write to both cache layers */
+function setCache(key: string, url: string, expiresAt: number) {
+  const entry = { url, expiresAt };
+  memCache.set(key, entry);
+  ssSet(key, entry);
+}
 
 /**
  * Generates a signed URL for a file in Supabase storage.
  * Handles both full public URLs (legacy) and plain storage paths.
- * Caches results in memory so revisiting a page doesn't flash a blank image.
+ * Caches results in memory + sessionStorage so page refreshes serve from browser disk cache.
  */
 export function useSignedUrl(bucket: string, pathOrUrl: string | undefined): string | null {
   const supabaseRef = useRef(createClient());
 
-  const getCached = (): string | null => {
+  const initCached = (): string | null => {
     if (!pathOrUrl) return null;
-    const key = `${bucket}:${pathOrUrl}`;
-    const entry = cache.get(key);
-    // Use cache if it has > 5 min left before expiry
-    if (entry && entry.expiresAt > Date.now() + 5 * 60 * 1000) {
-      return entry.url;
-    }
-    return null;
+    return getCached(`${bucket}:${pathOrUrl}`);
   };
 
-  const [url, setUrl] = useState<string | null>(getCached);
+  const [url, setUrl] = useState<string | null>(initCached);
 
   useEffect(() => {
     if (!pathOrUrl) {
@@ -34,9 +75,9 @@ export function useSignedUrl(bucket: string, pathOrUrl: string | undefined): str
     }
 
     const key = `${bucket}:${pathOrUrl}`;
-    const cached = cache.get(key);
-    if (cached && cached.expiresAt > Date.now() + 5 * 60 * 1000) {
-      setUrl(cached.url);
+    const cached = getCached(key);
+    if (cached) {
+      setUrl(cached);
       return;
     }
 
@@ -49,7 +90,7 @@ export function useSignedUrl(bucket: string, pathOrUrl: string | undefined): str
       .createSignedUrl(storagePath, 3600)
       .then(({ data }: { data: { signedUrl: string } | null }) => {
         if (data?.signedUrl) {
-          cache.set(key, { url: data.signedUrl, expiresAt: Date.now() + 3600 * 1000 });
+          setCache(key, data.signedUrl, Date.now() + 3600 * 1000);
           setUrl(data.signedUrl);
         }
       });
