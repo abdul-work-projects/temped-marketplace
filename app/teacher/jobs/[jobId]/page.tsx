@@ -248,6 +248,18 @@ export default function JobDetailPage() {
                     'Withdraw Application'
                   )}
                 </button>
+              ) : teacher && teacher.profileCompleteness < 100 ? (
+                <div className="flex-1 text-center">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Your profile must be 100% complete to apply. Currently at <span className="font-bold text-[#1c1d1f]">{teacher.profileCompleteness}%</span>.
+                  </p>
+                  <Link
+                    href="/teacher/setup"
+                    className="inline-block w-full py-3 px-6 font-bold transition-colors bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-center"
+                  >
+                    Complete Your Profile
+                  </Link>
+                </div>
               ) : (
                 <button
                   onClick={handleApply}

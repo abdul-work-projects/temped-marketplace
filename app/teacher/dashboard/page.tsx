@@ -45,21 +45,47 @@ export default function TeacherDashboard() {
     [applications]
   );
 
-  // Filter by teacher's distance radius if both teacher and school have locations
-  const filteredJobs = useMemo(() => {
-    if (!teacher?.location || !teacher.distanceRadius) return openJobsWithSchool;
+  // Build flat set of all subjects/sports/arts the teacher offers
+  const teacherSubjectSet = useMemo(() => {
+    if (!teacher) return null;
+    const all = new Set<string>();
+    for (const list of Object.values(teacher.subjects || {})) {
+      list.forEach(s => all.add(s));
+    }
+    for (const list of Object.values(teacher.sports || {})) {
+      list.forEach(s => all.add(s));
+    }
+    for (const list of Object.values(teacher.artsCulture || {})) {
+      list.forEach(s => all.add(s));
+    }
+    return all.size > 0 ? all : null;
+  }, [teacher]);
 
-    return openJobsWithSchool.filter(({ school }) => {
-      if (!school.location) return true; // Show jobs where school has no location
-      const dist = calculateDistance(
-        teacher.location!.lat,
-        teacher.location!.lng,
-        school.location.lat,
-        school.location.lng
-      );
-      return dist <= teacher.distanceRadius;
-    });
-  }, [openJobsWithSchool, teacher?.location, teacher?.distanceRadius]);
+  // Filter by teacher's subjects and distance radius
+  const filteredJobs = useMemo(() => {
+    let result = openJobsWithSchool;
+
+    // Only show jobs matching teacher's listed subjects/sports/arts
+    if (teacherSubjectSet) {
+      result = result.filter(({ job }) => teacherSubjectSet.has(job.subject));
+    }
+
+    // Filter by distance radius if both teacher and school have locations
+    if (teacher?.location && teacher.distanceRadius) {
+      result = result.filter(({ school }) => {
+        if (!school.location) return true;
+        const dist = calculateDistance(
+          teacher.location!.lat,
+          teacher.location!.lng,
+          school.location.lat,
+          school.location.lng
+        );
+        return dist <= teacher.distanceRadius;
+      });
+    }
+
+    return result;
+  }, [openJobsWithSchool, teacherSubjectSet, teacher?.location, teacher?.distanceRadius]);
 
   const hasActiveFilters = phaseFilter || jobTypeFilter;
 

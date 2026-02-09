@@ -59,7 +59,8 @@ const EDUCATION_PHASES: EducationPhase[] = [
 export default function TeacherSetupPage() {
   const { user } = useAuth();
   const { teacher, experiences: existingExperiences, loading, refetch: refetchTeacher } = useTeacherProfile(user?.id);
-  const { updateTeacher, saving } = useUpdateTeacher();
+  const { updateTeacher } = useUpdateTeacher();
+  const [saving, setSaving] = useState(false);
   const { documents, refetch: refetchDocs } = useTeacherDocuments(teacher?.id);
   const { uploadDocument, uploading: uploadingDoc } = useUploadDocument();
   const { deleteDocument } = useDeleteDocument();
@@ -80,6 +81,8 @@ export default function TeacherSetupPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
   const [saved, setSaved] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, boolean>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
   const [openPhases, setOpenPhases] = useState<Record<string, boolean>>({});
@@ -304,10 +307,46 @@ export default function TeacherSetupPage() {
     ));
   };
 
+  const clearFieldError = (key: string) => {
+    if (!fieldErrors[key]) return;
+    setFieldErrors(prev => {
+      const next = { ...prev };
+      delete next[key];
+      if (Object.keys(next).length === 0) setFormError(null);
+      return next;
+    });
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!teacher) return;
+    setFormError(null);
+    setFieldErrors({});
 
+    // Validate required fields
+    const errors: Record<string, boolean> = {};
+    if (!firstName.trim()) errors['firstName'] = true;
+    if (!surname.trim()) errors['surname'] = true;
+
+    // For experiences: if any field is filled, title + company + startDate are required
+    experiences.forEach((exp, i) => {
+      const hasAnyField = exp.title || exp.company || exp.startDate || exp.endDate || exp.description;
+      if (hasAnyField) {
+        if (!exp.title) errors[`exp-${i}-title`] = true;
+        if (!exp.company) errors[`exp-${i}-company`] = true;
+        if (!exp.startDate) errors[`exp-${i}-startDate`] = true;
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setFormError('Please fix the errors in the form before saving.');
+      return;
+    }
+
+    setSaving(true);
+
+    try {
     let picPath = profilePicture[0] || null;
 
     // Handle profile picture removal
@@ -353,8 +392,8 @@ export default function TeacherSetupPage() {
       profile_completeness: completeness,
     };
 
-    const success = await updateTeacher(teacher.id, updates, experiences.filter(e => e.title));
-    if (!success) return;
+    const success = await updateTeacher(teacher.id, updates, experiences.filter(e => e.title && e.company && e.startDate));
+    if (!success) { setSaving(false); return; }
 
     // Upload pending documents to storage + insert rows
     for (const [docType, pending] of Object.entries(pendingDocs)) {
@@ -369,6 +408,9 @@ export default function TeacherSetupPage() {
       }
     }
 
+    // Drop empty experience rows so local state matches what was saved
+    setExperiences(prev => prev.filter(e => e.title || e.company || e.startDate));
+
     // Clean up pending state
     if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
     Object.values(pendingDocs).forEach(p => URL.revokeObjectURL(p.preview));
@@ -381,6 +423,9 @@ export default function TeacherSetupPage() {
     refetchTeacher();
     refetchDocs();
     setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -415,12 +460,6 @@ export default function TeacherSetupPage() {
               />
             </div>
           </div>
-
-          {saved && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-green-700 font-medium">Profile saved successfully!</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Section 1: Profile Picture */}
@@ -500,23 +539,29 @@ export default function TeacherSetupPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">First Name *</label>
+                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['firstName'] ? 'text-red-600' : 'text-[#1c1d1f]'}`}>
+                    First Name * {fieldErrors['firstName'] && <span className="font-normal">— required</span>}
+                  </label>
                   <input
                     type="text"
-                    required
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    onChange={(e) => { setFirstName(e.target.value); clearFieldError('firstName'); }}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
+                      fieldErrors['firstName'] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                    }`}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">Last Name *</label>
+                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['surname'] ? 'text-red-600' : 'text-[#1c1d1f]'}`}>
+                    Last Name * {fieldErrors['surname'] && <span className="font-normal">— required</span>}
+                  </label>
                   <input
                     type="text"
-                    required
                     value={surname}
-                    onChange={(e) => setSurname(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    onChange={(e) => { setSurname(e.target.value); clearFieldError('surname'); }}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
+                      fieldErrors['surname'] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                    }`}
                   />
                 </div>
               </div>
@@ -808,33 +853,47 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Title</label>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-title`] ? 'text-red-600' : 'text-gray-600'}`}>
+                        Title {fieldErrors[`exp-${index}-title`] && <span className="font-normal">— required</span>}
+                      </label>
                       <input
                         type="text"
                         value={exp.title}
-                        onChange={(e) => updateExperience(index, 'title', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        onChange={(e) => { updateExperience(index, 'title', e.target.value); clearFieldError(`exp-${index}-title`); }}
+                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                          fieldErrors[`exp-${index}-title`] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                        }`}
                         placeholder="e.g., Mathematics Teacher"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">School/Company</label>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-company`] ? 'text-red-600' : 'text-gray-600'}`}>
+                        School/Company {fieldErrors[`exp-${index}-company`] && <span className="font-normal">— required</span>}
+                      </label>
                       <input
                         type="text"
                         value={exp.company}
-                        onChange={(e) => updateExperience(index, 'company', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        onChange={(e) => { updateExperience(index, 'company', e.target.value); clearFieldError(`exp-${index}-company`); }}
+                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                          fieldErrors[`exp-${index}-company`] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                        }`}
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Start Date</label>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-startDate`] ? 'text-red-600' : 'text-gray-600'}`}>
+                        Start Date {fieldErrors[`exp-${index}-startDate`] && <span className="font-normal">— required</span>}
+                      </label>
                       <input
                         type="date"
                         value={exp.startDate}
-                        onChange={(e) => updateExperience(index, 'startDate', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        onChange={(e) => { updateExperience(index, 'startDate', e.target.value); clearFieldError(`exp-${index}-startDate`); }}
+                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                          fieldErrors[`exp-${index}-startDate`]
+                            ? 'border-red-400 bg-red-50 focus:border-red-500'
+                            : 'border-gray-300 focus:border-[#1c1d1f]'
+                        }`}
                       />
                     </div>
                     <div>
@@ -1195,16 +1254,24 @@ export default function TeacherSetupPage() {
       {/* Discord-style floating save bar */}
       <div
         className={`fixed bottom-0 left-64 right-0 z-50 transition-all duration-300 ${
-          hasChanges ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          hasChanges || saved ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
         <div className="flex justify-center px-4 pb-4">
           <div className="w-full max-w-3xl">
-          <div className="bg-[#1c1d1f] text-white rounded-lg shadow-2xl px-6 py-3 flex items-center justify-between">
-            <p className="text-sm font-medium">
-              Careful — you have unsaved changes!
-            </p>
-            <div className="flex items-center gap-3">
+          <div className={`rounded-lg shadow-2xl px-6 py-3 flex items-center justify-between ${saved ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-[#1c1d1f] text-white'}`}>
+            <div className="flex-1 min-w-0">
+              {saved ? (
+                <p className="text-sm font-medium">Profile saved successfully!</p>
+              ) : saving ? (
+                <p className="text-sm font-medium flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Saving your profile...</p>
+              ) : formError ? (
+                <p className="text-sm font-medium text-red-400">{formError}</p>
+              ) : (
+                <p className="text-sm font-medium">Careful — you have unsaved changes!</p>
+              )}
+            </div>
+            {!saved && <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -1236,6 +1303,8 @@ export default function TeacherSetupPage() {
                   Object.values(pendingDocs).forEach(p => URL.revokeObjectURL(p.preview));
                   setPendingDocs({});
                   setHasChanges(false);
+                  setFormError(null);
+                  setFieldErrors({});
                 }}
                 className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
               >
@@ -1245,11 +1314,12 @@ export default function TeacherSetupPage() {
                 type="button"
                 onClick={() => handleSubmit()}
                 disabled={saving}
-                className="px-4 py-1.5 bg-[#2563eb] text-white text-sm font-bold rounded hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
+                className="px-4 py-1.5 bg-[#2563eb] text-white text-sm font-bold rounded hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-2"
               >
+                {saving && <Loader2 size={14} className="animate-spin" />}
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
-            </div>
+            </div>}
           </div>
         </div>
         </div>
