@@ -5,8 +5,10 @@ import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useSchoolJobs } from '@/lib/hooks/useSchool';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { Building2, MapPin, FileText, Loader2 } from 'lucide-react';
+import { useTestimonials } from '@/lib/hooks/useTestimonials';
+import { Building2, MapPin, FileText, Loader2, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 export default function SchoolProfilePage() {
   const { user } = useAuth();
@@ -14,6 +16,7 @@ export default function SchoolProfilePage() {
   const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
   const certUrl = useSignedUrl('registration-certificates', school?.registrationCertificate);
   const { jobs, loading: jobsLoading } = useSchoolJobs(school?.id);
+  const { testimonials } = useTestimonials(user?.id);
 
   if (loading) {
     return (
@@ -149,6 +152,32 @@ export default function SchoolProfilePage() {
                   )}
                 </div>
               )}
+
+              {/* Reviews from Teachers */}
+              <div className="border-t border-gray-300 pt-6 mb-6">
+                <h2 className="text-lg font-bold text-[#1c1d1f] mb-3 flex items-center gap-2">
+                  <MessageSquare size={20} />
+                  Reviews from Teachers
+                </h2>
+                {testimonials.length > 0 ? (
+                  <div className="space-y-4">
+                    {testimonials.map((t) => (
+                      <div key={t.id} className="border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="font-bold text-[#1c1d1f]">{t.senderName}</p>
+                          <p className="text-xs text-gray-500">{format(new Date(t.createdAt), 'MMM d, yyyy')}</p>
+                        </div>
+                        <p className="text-gray-700 text-sm">{t.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 border border-gray-300 p-6 text-center">
+                    <p className="text-sm text-gray-500">No reviews yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Reviews will appear here after teachers complete jobs</p>
+                  </div>
+                )}
+              </div>
 
               {/* Job Postings Stats */}
               <div className="border-t border-gray-300 pt-6 mb-6">

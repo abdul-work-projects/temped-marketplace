@@ -1,12 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
+import TestimonialModal from '@/components/shared/TestimonialModal';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeacher';
+import { useCreateTestimonial, useMyTestimonials } from '@/lib/hooks/useTestimonials';
 import { format } from 'date-fns';
-import { Briefcase, MapPin, Star, CheckCircle, Loader2 } from 'lucide-react';
+import { Briefcase, MapPin, Star, CheckCircle, Loader2, MessageSquare, Pencil, Trash2, Clock, Check, XCircle } from 'lucide-react';
 
 // Derive display status: application.status trumps job.progress for "Hired"
 function getDisplayStatus(applicationStatus: string, jobProgress: string): string {
@@ -50,12 +53,70 @@ function getJobTypeBadgeColor(jobType: string) {
   }
 }
 
+function ReviewStatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case 'pending':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">
+          <Clock size={12} />
+          Pending Review
+        </span>
+      );
+    case 'approved':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+          <Check size={12} />
+          Live
+        </span>
+      );
+    case 'rejected':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
+          <XCircle size={12} />
+          Rejected
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
 export default function TeacherApplicationsPage() {
   const { user } = useAuth();
   const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
   const { applications, loading: appsLoading } = useTeacherApplications(teacher?.id);
+  const { createTestimonial, updateTestimonial, deleteTestimonial, submitting } = useCreateTestimonial();
+  const { testimonials: myReviews, refetch: refetchMyReviews } = useMyTestimonials(user?.id);
+  const [reviewTarget, setReviewTarget] = useState<{ schoolUserId: string; schoolName: string; existingId?: string; existingComment?: string } | null>(null);
 
   const loading = teacherLoading || appsLoading;
+
+  const handleSubmitReview = async (comment: string) => {
+    if (!teacher || !reviewTarget) return;
+
+    let success: boolean;
+    if (reviewTarget.existingId) {
+      const result = await updateTestimonial(reviewTarget.existingId, comment);
+      success = result.success;
+    } else {
+      const result = await createTestimonial({
+        fromUserId: teacher.userId,
+        toUserId: reviewTarget.schoolUserId,
+        fromType: 'teacher',
+        comment,
+      });
+      success = result.success;
+    }
+    if (success) {
+      setReviewTarget(null);
+      refetchMyReviews();
+    }
+  };
+
+  const handleDeleteReview = async (id: string) => {
+    const { success } = await deleteTestimonial(id);
+    if (success) refetchMyReviews();
+  };
 
   // Count shortlisted
   const shortlistedCount = applications.filter((a) => a.shortlisted).length;
@@ -118,6 +179,7 @@ export default function TeacherApplicationsPage() {
                 if (!job || !school) return null;
 
                 const displayStatus = getDisplayStatus(application.status, job.progress);
+                const existingReview = myReviews.find(r => r.toUserId === school.userId);
 
                 return (
                   <div
@@ -181,14 +243,54 @@ export default function TeacherApplicationsPage() {
                       </div>
                     </div>
 
-                    {/* Action Button */}
-                    <div className="mt-4">
+                    {/* Existing Review */}
+                    {displayStatus === 'Hired' && existingReview && (
+                      <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare size={14} className="text-gray-500" />
+                            <span className="text-sm font-bold text-[#1c1d1f]">Your Review</span>
+                            <ReviewStatusBadge status={existingReview.status} />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => setReviewTarget({ schoolUserId: school.userId, schoolName: school.name, existingId: existingReview.id, existingComment: existingReview.comment })}
+                              className="p-1.5 text-gray-500 hover:text-[#2563eb] hover:bg-blue-50 rounded"
+                              title="Edit review"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(existingReview.id)}
+                              disabled={submitting}
+                              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                              title="Delete review"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700 line-clamp-3">{existingReview.comment}</p>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="mt-4 flex gap-3">
                       <Link
                         href={`/teacher/jobs/${job.id}`}
                         className="inline-block px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50"
                       >
                         View Job Details
                       </Link>
+                      {displayStatus === 'Hired' && !existingReview && school && (
+                        <button
+                          onClick={() => setReviewTarget({ schoolUserId: school.userId, schoolName: school.name })}
+                          className="flex items-center gap-2 px-4 py-2 border border-[#2563eb] text-[#2563eb] font-bold hover:bg-blue-50"
+                        >
+                          <MessageSquare size={16} />
+                          Write Review
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -197,6 +299,17 @@ export default function TeacherApplicationsPage() {
           )}
         </div>
       </div>
+
+      {reviewTarget && (
+        <TestimonialModal
+          isOpen={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          onSubmit={handleSubmitReview}
+          recipientName={reviewTarget.schoolName}
+          submitting={submitting}
+          initialComment={reviewTarget.existingComment}
+        />
+      )}
     </DashboardLayout>
   );
 }

@@ -61,8 +61,73 @@ export function useAdminStats() {
   return { stats, loading };
 }
 
+export interface TestimonialProfileInfo {
+  name: string;
+  profileUrl: string;
+  type: 'teacher' | 'school';
+  address?: string;
+  email?: string;
+  educationPhases?: string[];
+  subjects?: string[];
+  schoolType?: string;
+  curriculum?: string;
+}
+
+async function resolveUserProfile(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  userType: 'teacher' | 'school'
+): Promise<TestimonialProfileInfo> {
+  if (userType === 'teacher') {
+    const { data } = await supabase
+      .from('teachers')
+      .select('id, first_name, surname, email, address, education_phases, subjects')
+      .eq('user_id', userId)
+      .single();
+    if (data) {
+      const subjects = data.subjects as Record<string, string[]> | null;
+      return {
+        name: `${data.first_name} ${data.surname}`,
+        profileUrl: `/admin/teachers/${data.id}`,
+        type: 'teacher',
+        address: data.address as string | undefined,
+        email: data.email as string | undefined,
+        educationPhases: data.education_phases as string[] | undefined,
+        subjects: subjects ? [...new Set(Object.values(subjects).flat())].slice(0, 4) : undefined,
+      };
+    }
+  } else {
+    const { data } = await supabase
+      .from('schools')
+      .select('id, name, email, address, school_type, curriculum')
+      .eq('user_id', userId)
+      .single();
+    if (data) {
+      return {
+        name: data.name as string,
+        profileUrl: `/admin/schools/${data.id}`,
+        type: 'school',
+        address: data.address as string | undefined,
+        email: data.email as string | undefined,
+        schoolType: data.school_type as string | undefined,
+        curriculum: data.curriculum as string | undefined,
+      };
+    }
+  }
+  return { name: userId, profileUrl: '', type: userType };
+}
+
+export interface AdminTestimonial extends Testimonial {
+  fromName: string;
+  fromProfileUrl: string;
+  fromProfile: TestimonialProfileInfo;
+  toName: string;
+  toProfileUrl: string;
+  toProfile: TestimonialProfileInfo;
+}
+
 export function useAdminTestimonials(statusFilter: string) {
-  const [testimonials, setTestimonials] = useState<Array<Testimonial & { fromEmail?: string; toEmail?: string }>>([]);
+  const [testimonials, setTestimonials] = useState<AdminTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
@@ -71,7 +136,7 @@ export function useAdminTestimonials(statusFilter: string) {
     try {
       let query = supabaseRef.current
         .from('testimonials')
-        .select('*, from_profile:profiles!from_user_id(email), to_profile:profiles!to_user_id(email)')
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (statusFilter !== 'all') {
@@ -81,17 +146,31 @@ export function useAdminTestimonials(statusFilter: string) {
       const { data } = await query;
 
       if (data) {
-        setTestimonials(data.map((row: Record<string, unknown>) => ({
-          id: row.id as string,
-          fromUserId: row.from_user_id as string,
-          toUserId: row.to_user_id as string,
-          fromType: row.from_type as 'teacher' | 'school',
-          comment: row.comment as string,
-          status: row.status as Testimonial['status'],
-          createdAt: row.created_at as string,
-          fromEmail: (row.from_profile as Record<string, unknown>)?.email as string,
-          toEmail: (row.to_profile as Record<string, unknown>)?.email as string,
-        })));
+        const resolved: AdminTestimonial[] = [];
+        for (const row of data) {
+          const fromType = row.from_type as 'teacher' | 'school';
+          const toType = fromType === 'teacher' ? 'school' : 'teacher';
+          const [fromProfile, toProfile] = await Promise.all([
+            resolveUserProfile(supabaseRef.current, row.from_user_id as string, fromType),
+            resolveUserProfile(supabaseRef.current, row.to_user_id as string, toType),
+          ]);
+          resolved.push({
+            id: row.id as string,
+            fromUserId: row.from_user_id as string,
+            toUserId: row.to_user_id as string,
+            fromType,
+            comment: row.comment as string,
+            status: row.status as Testimonial['status'],
+            createdAt: row.created_at as string,
+            fromName: fromProfile.name,
+            fromProfileUrl: fromProfile.profileUrl,
+            fromProfile,
+            toName: toProfile.name,
+            toProfileUrl: toProfile.profileUrl,
+            toProfile,
+          });
+        }
+        setTestimonials(resolved);
       }
     } catch {
       // prevent loading stuck

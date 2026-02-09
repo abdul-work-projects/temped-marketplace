@@ -332,6 +332,10 @@ CREATE POLICY "Users can view approved testimonials" ON testimonials
   FOR SELECT USING (status = 'approved' OR from_user_id = auth.uid() OR to_user_id = auth.uid() OR is_admin());
 CREATE POLICY "Users can create testimonials" ON testimonials
   FOR INSERT WITH CHECK (from_user_id = auth.uid());
+CREATE POLICY "Users can update own testimonials" ON testimonials
+  FOR UPDATE USING (from_user_id = auth.uid());
+CREATE POLICY "Users can delete own testimonials" ON testimonials
+  FOR DELETE USING (from_user_id = auth.uid());
 CREATE POLICY "Admins can update testimonials" ON testimonials
   FOR UPDATE USING (is_admin());
 

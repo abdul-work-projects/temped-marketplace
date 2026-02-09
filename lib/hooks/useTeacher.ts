@@ -218,6 +218,7 @@ export function useTeacherApplications(teacherId: string | undefined) {
     };
     school?: {
       id: string;
+      userId: string;
       name: string;
       address?: string;
       location?: { lat: number; lng: number };
@@ -238,7 +239,7 @@ export function useTeacherApplications(teacherId: string | undefined) {
             *,
             jobs (
               id, title, subject, start_date, end_date, education_phase, job_type, progress, school_id,
-              schools (id, name, address, location)
+              schools (id, user_id, name, address, location)
             )
           `)
           .eq('teacher_id', teacherId)
@@ -268,6 +269,7 @@ export function useTeacherApplications(teacherId: string | undefined) {
               } : undefined,
               school: school ? {
                 id: school.id as string,
+                userId: school.user_id as string,
                 name: school.name as string,
                 address: school.address as string | undefined,
                 location: school.location as { lat: number; lng: number } | undefined,
