@@ -112,35 +112,34 @@ export function useJobDetail(jobId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
-  useEffect(() => {
+  const fetchJob = useCallback(async () => {
     if (!jobId) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const { data } = await supabaseRef.current
+        .from('jobs')
+        .select('*, schools(*)')
+        .eq('id', jobId)
+        .single();
 
-    const fetch = async () => {
-      setLoading(true);
-      try {
-        const { data } = await supabaseRef.current
-          .from('jobs')
-          .select('*, schools(*)')
-          .eq('id', jobId)
-          .single();
-
-        if (data) {
-          setJob(mapJobRow(data));
-          if (data.schools) {
-            setSchool(mapSchoolRow(data.schools as Record<string, unknown>));
-          }
+      if (data) {
+        setJob(mapJobRow(data));
+        if (data.schools) {
+          setSchool(mapSchoolRow(data.schools as Record<string, unknown>));
         }
-      } catch {
-        // prevent loading stuck
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetch();
+    } catch {
+      // prevent loading stuck
+    } finally {
+      setLoading(false);
+    }
   }, [jobId]);
 
-  return { job, school, loading };
+  useEffect(() => {
+    fetchJob();
+  }, [fetchJob]);
+
+  return { job, school, loading, refetch: fetchJob };
 }
 
 export function useApplyToJob() {

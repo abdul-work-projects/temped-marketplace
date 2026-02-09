@@ -5,16 +5,18 @@ import Link from 'next/link';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useSchoolProfile, useSchoolJobs, useDeleteJob } from '@/lib/hooks/useSchool';
+import { useSchoolProfile, useSchoolJobs, useDeleteJob, useUpdateJob } from '@/lib/hooks/useSchool';
 import { createClient } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { Plus, Users, Calendar, Clock, Trash2, Loader2, Briefcase, Pencil } from 'lucide-react';
 
 export default function SchoolDashboard() {
   const { user } = useAuth();
-  const { school } = useSchoolProfile(user?.id);
-  const { jobs, loading, refetch } = useSchoolJobs(school?.id);
+  const { school, loading: schoolLoading } = useSchoolProfile(user?.id);
+  const { jobs, loading: jobsLoading, refetch } = useSchoolJobs(school?.id);
   const { deleteJob, deleting } = useDeleteJob();
+  const { updateJob } = useUpdateJob();
+  const loading = schoolLoading || jobsLoading;
   const [applicantCounts, setApplicantCounts] = useState<Record<string, number>>({});
   const supabaseRef = useRef(createClient());
 
@@ -54,13 +56,15 @@ export default function SchoolDashboard() {
   const getProgressColor = (progress: string) => {
     switch (progress) {
       case 'Open':
-        return 'bg-green-100 text-green-700';
+        return 'bg-green-100 text-green-700 border-green-200';
       case 'Interviewing':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'Hired':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      case 'Closed':
+        return 'bg-gray-100 text-gray-700 border-gray-200';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
@@ -119,11 +123,19 @@ export default function SchoolDashboard() {
                           <h3 className="text-lg font-semibold text-[#1c1d1f]">
                             {job.title}
                           </h3>
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${getProgressColor(job.progress)}`}
+                          <select
+                            value={job.progress}
+                            onChange={async (e) => {
+                              const { success } = await updateJob(job.id, { progress: e.target.value });
+                              if (success) refetch();
+                            }}
+                            className={`px-3 py-1 text-xs font-bold border cursor-pointer focus:outline-none ${getProgressColor(job.progress)}`}
                           >
-                            {job.progress}
-                          </span>
+                            <option value="Open">Open</option>
+                            <option value="Interviewing">Interviewing</option>
+                            <option value="Closed">Closed</option>
+                            {job.progress === 'Hired' && <option value="Hired">Hired</option>}
+                          </select>
                           <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                             {job.jobType}
                           </span>

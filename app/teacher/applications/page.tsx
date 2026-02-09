@@ -6,7 +6,19 @@ import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeacher';
 import { format } from 'date-fns';
-import { Briefcase, MapPin, Star, CheckCircle } from 'lucide-react';
+import { Briefcase, MapPin, Star, CheckCircle, Loader2 } from 'lucide-react';
+
+// Derive display status: application.status trumps job.progress for "Hired"
+function getDisplayStatus(applicationStatus: string, jobProgress: string): string {
+  if (applicationStatus === 'Hired') return 'Hired';
+  switch (jobProgress) {
+    case 'Open': return 'Applied';
+    case 'Interviewing': return 'In Progress';
+    case 'Hired': return 'Hired';
+    case 'Closed': return 'Closed';
+    default: return 'Applied';
+  }
+}
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -89,10 +101,7 @@ export default function TeacherApplicationsPage() {
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <div className="w-12 h-12 border-4 border-[#2563eb] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading applications...</p>
-              </div>
+              <Loader2 size={32} className="animate-spin text-gray-400" />
             </div>
           ) : applications.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -119,6 +128,8 @@ export default function TeacherApplicationsPage() {
                 const school = application.school;
 
                 if (!job || !school) return null;
+
+                const displayStatus = getDisplayStatus(application.status, job.progress);
 
                 return (
                   <div
@@ -152,8 +163,8 @@ export default function TeacherApplicationsPage() {
                             Shortlisted
                           </span>
                         )}
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(application.status)}`}>
-                          {application.status}
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(displayStatus)}`}>
+                          {displayStatus}
                         </span>
                       </div>
                     </div>
@@ -181,15 +192,6 @@ export default function TeacherApplicationsPage() {
                         {format(new Date(job.startDate), 'MMM d, yyyy')}
                       </div>
                     </div>
-
-                    {application.shortlisted && (
-                      <div className="mt-4 bg-green-50 border border-green-200 rounded-md p-3">
-                        <p className="text-sm text-green-700 font-medium flex items-center gap-2">
-                          <CheckCircle size={16} />
-                          You have been shortlisted for this position!
-                        </p>
-                      </div>
-                    )}
 
                     {/* Action Button */}
                     <div className="mt-4">
