@@ -10,7 +10,6 @@ import {
   FileText,
   LogOut,
   Users,
-  Clock,
   ShieldCheck,
   MessageSquare,
   LayoutDashboard,
@@ -147,11 +146,6 @@ export const schoolSidebarLinks: SidebarLink[] = [
     label: 'Post New Job',
     href: '/school/post-job',
     icon: <PlusCircle size={20} />,
-  },
-  {
-    label: 'Active Listings',
-    href: '/school/active',
-    icon: <Clock size={20} />,
   },
 ];
 
