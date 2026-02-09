@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
+import { createClient } from '@/lib/supabase/client';
 import {
   User,
   Settings,
@@ -29,10 +32,55 @@ interface SidebarProps {
   userEmail?: string;
 }
 
+const PP_CACHE_KEY = 'sidebar-profile-pic-path';
+
+function getCachedPath(userId: string): string | undefined {
+  try {
+    const raw = sessionStorage.getItem(PP_CACHE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (parsed.userId === userId) return parsed.path;
+  } catch { /* ignore */ }
+  return undefined;
+}
+
+function setCachedPath(userId: string, path: string) {
+  try { sessionStorage.setItem(PP_CACHE_KEY, JSON.stringify({ userId, path })); } catch { /* ignore */ }
+}
+
+function useProfilePicturePath(): string | undefined {
+  const { user } = useAuth();
+  const supabaseRef = useRef(createClient());
+  const [path, setPath] = useState<string | undefined>(() => user ? getCachedPath(user.id) : undefined);
+
+  const fetchPath = useCallback(async () => {
+    if (!user) return;
+    const table = user.type === 'teacher' ? 'teachers' : user.type === 'school' ? 'schools' : null;
+    if (!table) return;
+
+    const { data } = await supabaseRef.current
+      .from(table)
+      .select('profile_picture')
+      .eq('user_id', user.id)
+      .single();
+
+    if (data?.profile_picture) {
+      setCachedPath(user.id, data.profile_picture);
+      setPath(data.profile_picture);
+    }
+  }, [user]);
+
+  useEffect(() => { fetchPath(); }, [fetchPath]);
+
+  return path;
+}
+
 export default function Sidebar({ links, userEmail }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const profilePicPath = useProfilePicturePath();
+  const profilePicUrl = useSignedUrl('profile-pictures', profilePicPath);
 
   const handleLogout = async () => {
     await logout();
@@ -79,8 +127,12 @@ export default function Sidebar({ links, userEmail }: SidebarProps) {
         {userEmail && (
           <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-[#1c1d1f] flex items-center justify-center text-white text-sm font-bold">
-                {userEmail[0].toUpperCase()}
+              <div className="w-9 h-9 rounded-full bg-[#1c1d1f] flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+                {profilePicUrl ? (
+                  <img src={profilePicUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  userEmail[0].toUpperCase()
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-[#1c1d1f] truncate font-medium">{userEmail}</p>
