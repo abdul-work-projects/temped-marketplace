@@ -335,15 +335,6 @@ export default function TeacherProfilePage() {
                 )}
               </div>
 
-              {/* Past Jobs on TempEd */}
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Jobs Completed on TempEd</h2>
-                <div className="bg-gray-50 border border-gray-300 p-6 text-center">
-                  <p className="text-sm text-gray-500">No completed jobs yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Your completed jobs will be listed here</p>
-                </div>
-              </div>
-
               {/* Verification Status */}
               <div className="border-t border-gray-300 pt-6">
                 <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Verification Status</h2>
