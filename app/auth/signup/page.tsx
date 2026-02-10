@@ -86,7 +86,7 @@ export default function SignupPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         {emailSent ? (
-          <div className="bg-card py-8 px-4 shadow sm:rounded-xl sm:px-10 text-center">
+          <div className="px-4 sm:px-0 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -105,7 +105,7 @@ export default function SignupPage() {
           </div>
         ) : (
         <>
-        <div className="bg-card py-8 px-4 shadow sm:rounded-xl sm:px-10">
+        <div className="px-4 sm:px-0">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
