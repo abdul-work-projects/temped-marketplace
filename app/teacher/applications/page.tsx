@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeacher';
 import { useCreateTestimonial, useMyTestimonials } from '@/lib/hooks/useTestimonials';
 import { format } from 'date-fns';
+import { calculateDistance, formatDistance } from '@/lib/utils/distance';
 import { Briefcase, MapPin, Star, CheckCircle, Loader2, MessageSquare, Pencil, Trash2, Clock, Check, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -203,12 +204,20 @@ export default function TeacherApplicationsPage() {
                           >
                             {school.name}
                           </Link>
-                          {school.address && (
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                              <MapPin size={14} />
-                              <span>{school.address}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                            {school.address && (
+                              <span className="flex items-center gap-1">
+                                <MapPin size={14} />
+                                {school.address}
+                              </span>
+                            )}
+                            {teacher?.location && school.location && (
+                              <Badge variant="secondary" className="bg-blue-50 text-blue-700 text-xs">
+                                <MapPin size={12} />
+                                {formatDistance(calculateDistance(teacher.location.lat, teacher.location.lng, school.location.lat, school.location.lng))}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           {application.shortlisted && (

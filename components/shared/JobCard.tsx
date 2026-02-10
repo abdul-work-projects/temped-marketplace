@@ -75,7 +75,7 @@ export default function JobCard({
             {distance !== null && (
               <>
                 <span className="text-muted-foreground/50">&middot;</span>
-                <span className="inline-flex items-center gap-0.5">
+                <span className="inline-flex items-center gap-0.5 text-blue-600 font-medium">
                   <MapPin size={12} />
                   {formatDistance(distance)}
                 </span>
@@ -125,9 +125,11 @@ export default function JobCard({
 
           {/* Distance Badge */}
           {distance !== null && (
-            <div className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
-              <MapPin size={14} />
-              <span>{formatDistance(distance)}</span>
+            <div className="mb-3">
+              <Badge className="bg-blue-50 text-blue-700 text-xs">
+                <MapPin size={12} />
+                {formatDistance(distance)}
+              </Badge>
             </div>
           )}
 
