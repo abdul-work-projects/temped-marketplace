@@ -49,28 +49,29 @@ export default function JobCard({
     return (
       <Link href={`${linkPrefix}/jobs/${job.id}`} className="block hover:bg-muted/50 transition-colors">
         <div className="py-4 px-5">
-          {/* Top row: title + tags + badges */}
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="text-sm font-bold text-foreground truncate">{job.title}</h3>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Badge variant="outline">{job.educationPhase}</Badge>
-              <Badge variant="outline">{job.subject}</Badge>
-              {job.jobType && (
-                <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>
-                  {job.jobType}
-                </Badge>
-              )}
-              {applied && (
-                <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
-              )}
-              {isUrgent && (
-                <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
-              )}
-              <ChevronRight size={16} className="text-muted-foreground" />
-            </div>
+          {/* Title */}
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <h3 className="text-sm font-bold text-foreground">{job.title}</h3>
+            <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" />
+          </div>
+          {/* Badges */}
+          <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+            <Badge variant="outline">{job.educationPhase}</Badge>
+            <Badge variant="outline">{job.subject}</Badge>
+            {job.jobType && (
+              <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>
+                {job.jobType}
+              </Badge>
+            )}
+            {applied && (
+              <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
+            )}
+            {isUrgent && (
+              <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
+            )}
           </div>
           {/* Bottom row: school · distance · dates */}
-          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
             <span>{school.name}</span>
             {distance !== null && (
               <>

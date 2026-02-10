@@ -105,7 +105,7 @@ export default function TeacherDashboard() {
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-foreground mb-1">
                   Available Jobs
@@ -115,11 +115,11 @@ export default function TeacherDashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-6">
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-xs font-bold text-muted-foreground">Available Jobs</p>
                   <p className="text-2xl font-bold text-foreground">{loading ? '...' : filteredJobs.length}</p>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-xs font-bold text-muted-foreground">My Applications</p>
                   <p className="text-2xl font-bold text-foreground">{appsLoading ? '...' : applications.length}</p>
                 </div>
