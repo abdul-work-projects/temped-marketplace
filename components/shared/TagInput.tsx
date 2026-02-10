@@ -45,19 +45,19 @@ export default function TagInput({ value, onChange, placeholder = 'Type and pres
 
   return (
     <div
-      className="flex flex-wrap gap-2 w-full px-3 py-2 border border-gray-300 rounded-md focus-within:border-[#1c1d1f] cursor-text min-h-[42px]"
+      className="flex flex-wrap gap-2 w-full px-3 py-2 border border-input rounded-md focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] cursor-text min-h-[42px]"
       onClick={() => inputRef.current?.focus()}
     >
       {value.map((tag, i) => (
         <span
           key={i}
-          className="inline-flex items-center gap-1 bg-gray-100 text-[#1c1d1f] text-sm px-2.5 py-1 rounded-full"
+          className="inline-flex items-center gap-1 bg-muted text-foreground text-sm px-2.5 py-1 rounded-full"
         >
           {tag}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); removeTag(i); }}
-            className="text-gray-400 hover:text-gray-700 transition-colors"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-3.5 h-3.5" />
           </button>

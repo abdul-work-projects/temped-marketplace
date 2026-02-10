@@ -9,6 +9,9 @@ import { useSchoolProfile, useSchoolJobs, useDeleteJob, useUpdateJob } from '@/l
 import { createClient } from '@/lib/supabase/client';
 import { format } from 'date-fns';
 import { Plus, Users, Calendar, Clock, Trash2, Loader2, Briefcase, Pencil } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function SchoolDashboard() {
   const { user } = useAuth();
@@ -66,9 +69,9 @@ export default function SchoolDashboard() {
       case 'Hired':
         return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'Closed':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -78,87 +81,73 @@ export default function SchoolDashboard() {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Job Postings</h1>
-              <p className="text-gray-600">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Job Postings</h1>
+              <p className="text-muted-foreground">
                 Manage your job listings and applications
               </p>
             </div>
-            <Link
-              href="/school/post-job"
-              className="flex items-center gap-2 px-4 py-3 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors"
-            >
-              <Plus size={20} />
-              Post New Job
-            </Link>
+            <Button asChild>
+              <Link href="/school/post-job">
+                <Plus size={20} />
+                Post New Job
+              </Link>
+            </Button>
           </div>
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={32} className="animate-spin text-gray-400" />
+              <Loader2 size={32} className="animate-spin text-muted-foreground" />
             </div>
           ) : jobs.length === 0 ? (
-            <div className="bg-white border border-gray-300 p-12 text-center">
-              <Briefcase size={48} className="mx-auto text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-[#1c1d1f] mb-2">No job postings yet</h3>
-              <p className="text-gray-600 mb-4">
+            <Card><CardContent className="p-12 text-center">
+              <Briefcase size={48} className="mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No job postings yet</h3>
+              <p className="text-muted-foreground mb-4">
                 Create your first job posting to start hiring teachers
               </p>
-              <Link
-                href="/school/post-job"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors"
-              >
-                <Plus size={20} />
-                Post Your First Job
-              </Link>
-            </div>
+              <Button asChild>
+                <Link href="/school/post-job">
+                  <Plus size={20} />
+                  Post Your First Job
+                </Link>
+              </Button>
+            </CardContent></Card>
           ) : (
-            <div className="space-y-4">
+            <div className="border border-border rounded-lg divide-y divide-border">
               {jobs.map(job => {
                 const count = applicantCounts[job.id] || 0;
 
                 return (
-                  <div
-                    key={job.id}
-                    className="bg-white border border-gray-300 p-6 hover:shadow-md transition-shadow"
-                  >
+                  <div key={job.id} className="p-6 hover:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-[#1c1d1f]">
+                          <h3 className="text-lg font-semibold text-foreground">
                             {job.title}
                           </h3>
+                          <Badge variant="secondary">{job.jobType}</Badge>
+                          {job.tags.map(tag => (
+                            <Badge key={tag} variant="secondary" className={tag === 'Urgent' ? 'bg-red-100 text-red-700' : ''}>
+                              {tag}
+                            </Badge>
+                          ))}
                           <select
                             value={job.progress}
                             onChange={async (e) => {
                               const { success } = await updateJob(job.id, { progress: e.target.value });
                               if (success) refetch();
                             }}
-                            className={`px-3 py-1 text-xs font-bold border cursor-pointer focus:outline-none ${getProgressColor(job.progress)}`}
+                            className={`ml-auto px-3 py-1 text-xs font-bold border rounded-md cursor-pointer focus:outline-none ${getProgressColor(job.progress)}`}
                           >
                             <option value="Open">Open</option>
                             <option value="Interviewing">Interviewing</option>
                             <option value="Closed">Closed</option>
                             {jobsWithHires.has(job.id) && <option value="Hired">Hired</option>}
                           </select>
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                            {job.jobType}
-                          </span>
-                          {job.tags.map(tag => (
-                            <span
-                              key={tag}
-                              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                tag === 'Urgent'
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-gray-100 text-gray-700'
-                              }`}
-                            >
-                              {tag}
-                            </span>
-                          ))}
                         </div>
-                        <p className="text-gray-700 mb-3 line-clamp-2">{job.description}</p>
+                        <p className="text-muted-foreground mb-3 line-clamp-2">{job.description}</p>
 
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar size={16} />
                             <span>
@@ -181,40 +170,36 @@ export default function SchoolDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                        {job.educationPhase}
-                      </span>
-                      <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                        {job.subject}
-                      </span>
+                      <Badge variant="outline">{job.educationPhase}</Badge>
+                      <Badge variant="outline">{job.subject}</Badge>
                     </div>
 
-                    <div className="flex gap-3">
-                      <Link
-                        href={`/school/jobs/${job.id}/applicants`}
-                        className="flex-1 py-2 px-4 bg-[#2563eb] text-white text-center font-medium hover:bg-[#1d4ed8] transition-colors"
-                      >
-                        View Applicants ({count})
-                      </Link>
-                      <Link
-                        href={`/school/jobs/${job.id}/edit`}
-                        className="flex items-center gap-2 py-2 px-4 border border-gray-300 text-[#1c1d1f] font-medium hover:bg-gray-50 transition-colors"
-                      >
-                        <Pencil size={16} />
-                        Edit
-                      </Link>
-                      <button
+                    <div className="flex gap-2">
+                      <Button size="sm" asChild>
+                        <Link href={`/school/jobs/${job.id}/applicants`}>
+                          <Users size={14} />
+                          Applicants ({count})
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/school/jobs/${job.id}/edit`}>
+                          <Pencil size={14} />
+                          Edit
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDelete(job.id, job.title)}
                         disabled={deleting}
-                        className="flex items-center gap-2 py-2 px-4 border border-red-300 text-red-600 font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+                        className="border-red-300 text-red-600 hover:bg-red-50"
                       >
                         {deleting ? (
-                          <Loader2 size={16} className="animate-spin" />
+                          <Loader2 size={14} className="animate-spin" />
                         ) : (
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         )}
-                        Delete
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 );

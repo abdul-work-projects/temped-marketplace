@@ -11,6 +11,8 @@ import { calculateDistance } from '@/lib/utils/distance';
 import { EducationPhase, JobType } from '@/types';
 import { Filter, X, Loader2, LayoutGrid, List } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { cn, SELECT_CLASS } from '@/lib/utils';
 
 const EDUCATION_PHASES: EducationPhase[] = [
   'Foundation Phase',
@@ -99,27 +101,27 @@ export default function TeacherDashboard() {
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-3xl font-bold text-[#1c1d1f] mb-1">
+                <h1 className="text-3xl font-bold text-foreground mb-1">
                   Available Jobs
                 </h1>
-                <p className="text-gray-600 text-sm">
+                <p className="text-muted-foreground text-sm">
                   Browse and apply to teaching positions
                 </p>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">
-                  <p className="text-xs font-bold text-gray-500">Available Jobs</p>
-                  <p className="text-2xl font-bold text-[#1c1d1f]">{loading ? '...' : filteredJobs.length}</p>
+                  <p className="text-xs font-bold text-muted-foreground">Available Jobs</p>
+                  <p className="text-2xl font-bold text-foreground">{loading ? '...' : filteredJobs.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-gray-500">My Applications</p>
-                  <p className="text-2xl font-bold text-[#1c1d1f]">{appsLoading ? '...' : applications.length}</p>
+                  <p className="text-xs font-bold text-muted-foreground">My Applications</p>
+                  <p className="text-2xl font-bold text-foreground">{appsLoading ? '...' : applications.length}</p>
                 </div>
               </div>
             </div>
@@ -151,11 +153,11 @@ export default function TeacherDashboard() {
 
             {/* Filters */}
             <div className="mb-6 flex items-center gap-3 flex-wrap">
-              <Filter size={16} className="text-gray-400" />
+              <Filter size={16} className="text-muted-foreground" />
               <select
                 value={phaseFilter}
                 onChange={(e) => setPhaseFilter(e.target.value)}
-                className="border border-gray-300 px-3 py-1.5 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+                className={cn(SELECT_CLASS, 'w-auto')}
               >
                 <option value="">All Phases</option>
                 {EDUCATION_PHASES.map((phase) => (
@@ -165,7 +167,7 @@ export default function TeacherDashboard() {
               <select
                 value={jobTypeFilter}
                 onChange={(e) => setJobTypeFilter(e.target.value)}
-                className="border border-gray-300 px-3 py-1.5 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+                className={cn(SELECT_CLASS, 'w-auto')}
               >
                 <option value="">All Types</option>
                 {JOB_TYPES.map((type) => (
@@ -173,25 +175,22 @@ export default function TeacherDashboard() {
                 ))}
               </select>
               {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#2563eb]"
-                >
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-muted-foreground">
                   <X size={14} />
                   Clear
-                </button>
+                </Button>
               )}
-              <div className="ml-auto flex items-center border border-gray-300">
+              <div className="ml-auto flex items-center border border-border rounded-md overflow-hidden">
                 <button
                   onClick={() => setViewMode('expanded')}
-                  className={`p-1.5 ${viewMode === 'expanded' ? 'bg-[#2563eb] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-1.5 ${viewMode === 'expanded' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-muted-foreground'}`}
                   title="Grid view"
                 >
                   <LayoutGrid size={16} />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-1.5 ${viewMode === 'list' ? 'bg-[#2563eb] text-white' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`p-1.5 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-muted-foreground'}`}
                   title="List view"
                 >
                   <List size={16} />
@@ -202,28 +201,25 @@ export default function TeacherDashboard() {
             {/* Jobs List */}
             {loading ? (
               <div className="flex items-center justify-center py-16">
-                <Loader2 size={32} className="animate-spin text-gray-400" />
+                <Loader2 size={32} className="animate-spin text-muted-foreground" />
               </div>
             ) : filteredJobs.length === 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <div className="text-gray-400 mb-4">
+              <div className="bg-card rounded-lg border border-border p-12 text-center">
+                <div className="text-muted-foreground mb-4">
                   <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs available</h3>
-                <p className="text-gray-600">
+                <h3 className="text-lg font-medium text-foreground mb-2">No jobs available</h3>
+                <p className="text-muted-foreground">
                   {hasActiveFilters
                     ? 'No jobs match your current filters. Try adjusting them.'
                     : 'Check back later for new opportunities'}
                 </p>
                 {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="mt-4 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors"
-                  >
+                  <Button onClick={clearFilters} className="mt-4">
                     Clear Filters
-                  </button>
+                  </Button>
                 )}
               </div>
             ) : (
@@ -240,7 +236,7 @@ export default function TeacherDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="bg-white border border-gray-300 divide-y divide-gray-200">
+                <div className="bg-card border border-border rounded-xl divide-y divide-border overflow-hidden">
                   {filteredJobs.map(({ job, school }) => (
                     <JobCard
                       key={job.id}

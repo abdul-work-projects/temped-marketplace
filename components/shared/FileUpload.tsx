@@ -113,15 +113,15 @@ export default function FileUpload({
 
   return (
     <div>
-      <label className="block text-sm font-bold text-[#1c1d1f] mb-2">{label}</label>
+      <label className="block text-sm font-bold text-foreground mb-2">{label}</label>
 
       {/* Existing files */}
       {existingFiles.length > 0 && (
         <div className="space-y-2 mb-3">
           {existingFiles.map((url) => (
-            <div key={url} className="flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200">
-              <FileText size={16} className="text-gray-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700 truncate flex-1">
+            <div key={url} className="flex items-center gap-2 p-2 bg-muted/50 rounded border border-border">
+              <FileText size={16} className="text-muted-foreground flex-shrink-0" />
+              <span className="text-sm text-muted-foreground truncate flex-1">
                 {getFileName(url)}
               </span>
               <button
@@ -142,26 +142,26 @@ export default function FileUpload({
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-gray-400 transition-colors"
+          className="border border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors"
         >
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 size={24} className="animate-spin text-gray-400" />
-              <p className="text-sm text-gray-500">Uploading... {progress}%</p>
-              <div className="w-full max-w-xs bg-gray-200 rounded-full h-2">
+              <Loader2 size={24} className="animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">Uploading... {progress}%</p>
+              <div className="w-full max-w-xs bg-muted rounded-full h-2">
                 <div
-                  className="bg-[#2563eb] h-2 rounded-full transition-all"
+                  className="bg-primary h-2 rounded-full transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <Upload size={24} className="text-gray-400" />
-              <p className="text-sm text-gray-500">
+              <Upload size={24} className="text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
                 Drag & drop or click to upload
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 Max {Math.round(maxSizeBytes / 1024 / 1024)}MB per file
                 {maxFiles > 1 && ` · ${maxFiles - existingFiles.length} file(s) remaining`}
               </p>

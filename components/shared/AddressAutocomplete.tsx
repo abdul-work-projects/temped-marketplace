@@ -165,13 +165,13 @@ export default function AddressAutocomplete({
           onChange={handleChange}
           placeholder={placeholder}
           required={required}
-          className={className || 'w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]'}
+          className={className || 'border-input h-9 w-full rounded-md border bg-transparent px-3 py-1 pr-10 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] md:text-sm'}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2">
           {!ready ? (
-            <Loader2 size={16} className="animate-spin text-gray-400" />
+            <Loader2 size={16} className="animate-spin text-muted-foreground" />
           ) : (
-            <MapPin size={16} className={locationSet ? 'text-green-600' : 'text-gray-400'} />
+            <MapPin size={16} className={locationSet ? 'text-green-600' : 'text-muted-foreground'} />
           )}
         </div>
       </div>
@@ -180,7 +180,7 @@ export default function AddressAutocomplete({
           type="button"
           onClick={handleUseCurrentLocation}
           disabled={locating}
-          className="flex items-center gap-1.5 text-xs text-[#2563eb] hover:text-[#1d4ed8] disabled:opacity-50 cursor-pointer"
+          className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/90 disabled:opacity-50 cursor-pointer"
         >
           {locating ? (
             <Loader2 size={13} className="animate-spin" />

@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useAdminSearchTeachers } from '@/lib/hooks/useAdmin';
 import { isTeacherVerified } from '@/lib/utils/verification';
 import { Loader2, Search, Eye, GraduationCap, ShieldCheck, X as XIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function AdminTeachers() {
   const { teachers, loading, searchTeachers } = useAdminSearchTeachers();
@@ -29,28 +33,28 @@ export default function AdminTeachers() {
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Teachers</h1>
-            <p className="text-gray-600">Search and manage teacher accounts</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Teachers</h1>
+            <p className="text-muted-foreground">Search and manage teacher accounts</p>
           </div>
 
           {/* Search Bar */}
           <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or email..."
-              className="w-full pl-10 pr-10 py-3 bg-white border border-gray-300 text-sm text-[#1c1d1f] focus:outline-none focus:border-[#2563eb]"
+              className="w-full pl-10 pr-10 py-3 h-auto"
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
               >
                 <XIcon className="w-4 h-4" />
               </button>
@@ -60,20 +64,22 @@ export default function AdminTeachers() {
           {/* Teachers Table */}
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-[#2563eb]" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : teachers.length === 0 ? (
-            <div className="bg-white border border-gray-200 p-12 text-center">
-              <GraduationCap className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No teachers found</h3>
-              <p className="text-gray-600">
-                {query ? 'No teachers match your search query.' : 'No teachers registered yet.'}
-              </p>
-            </div>
+            <Card>
+              <CardContent className="p-12 text-center">
+                <GraduationCap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No teachers found</h3>
+                <p className="text-muted-foreground">
+                  {query ? 'No teachers match your search query.' : 'No teachers registered yet.'}
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="bg-white border border-gray-200 overflow-hidden">
+            <div>
               {/* Table Header */}
-              <div className="hidden md:grid md:grid-cols-5 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <div className="hidden md:grid md:grid-cols-5 gap-4 px-6 py-3 bg-muted/50 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <div className="col-span-1">Name</div>
                 <div className="col-span-1">Email</div>
                 <div className="col-span-1">Verified</div>
@@ -85,47 +91,46 @@ export default function AdminTeachers() {
               {teachers.map((teacher) => (
                 <div
                   key={teacher.id}
-                  className="grid grid-cols-1 md:grid-cols-5 gap-4 px-6 py-4 border-b border-gray-100 items-center hover:bg-gray-50 transition-colors"
+                  className="grid grid-cols-1 md:grid-cols-5 gap-4 px-6 py-4 border-b border-border items-center hover:bg-muted/50 transition-colors"
                 >
                   <div className="col-span-1">
-                    <p className="text-sm font-medium text-[#1c1d1f]">
+                    <p className="text-sm font-medium text-foreground">
                       {teacher.firstName} {teacher.surname}
                     </p>
                   </div>
                   <div className="col-span-1">
-                    <p className="text-sm text-gray-600 truncate">{teacher.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">{teacher.email}</p>
                   </div>
                   <div className="col-span-1">
                     {isTeacherVerified(teacher.documents) ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      <Badge className="bg-green-100 text-green-700">
                         <ShieldCheck className="w-3 h-3" />
                         Verified
-                      </span>
+                      </Badge>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 bg-amber-100 text-amber-800 text-xs font-medium rounded-full">
+                      <Badge className="bg-yellow-100 text-yellow-700">
                         Unverified
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <div className="col-span-1">
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#2563eb] rounded-full"
+                          className="h-full bg-primary rounded-full"
                           style={{ width: `${teacher.profileCompleteness}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-600">{teacher.profileCompleteness}%</span>
+                      <span className="text-xs text-muted-foreground">{teacher.profileCompleteness}%</span>
                     </div>
                   </div>
                   <div className="col-span-1">
-                    <Link
-                      href={`/admin/teachers/${teacher.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#2563eb] border border-[#2563eb] hover:bg-blue-50 transition-colors"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View
-                    </Link>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/admin/teachers/${teacher.id}`}>
+                        <Eye className="w-4 h-4" />
+                        View
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               ))}

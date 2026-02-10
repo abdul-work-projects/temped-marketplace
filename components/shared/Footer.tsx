@@ -1,14 +1,14 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-200 bg-white mt-auto">
+    <footer className="border-t border-border bg-card mt-auto">
       <div className="px-6 py-4">
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <p>© 2026 TempEd. All rights reserved.</p>
           <div className="flex items-center gap-2">
             <span>Support:</span>
             <a
               href="mailto:support@temped.co.za"
-              className="text-[#2563eb] hover:text-[#1d4ed8] font-bold"
+              className="text-primary hover:text-primary/90 font-bold"
             >
               support@temped.co.za
             </a>

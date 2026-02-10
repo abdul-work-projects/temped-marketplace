@@ -10,6 +10,8 @@ import { createClient } from '@/lib/supabase/client';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { SchoolType, OwnershipType, Curriculum } from '@/types';
 import { Loader2, Building2, Camera, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { SELECT_CLASS } from '@/lib/utils';
 
 export default function SchoolSetupPage() {
   const { user } = useAuth();
@@ -256,7 +258,7 @@ export default function SchoolSetupPage() {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
+          <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -267,8 +269,8 @@ export default function SchoolSetupPage() {
       <div className="p-8 pb-24">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">School Profile Setup</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground mb-2">School Profile Setup</h1>
+            <p className="text-muted-foreground">
               Complete your school profile to start posting jobs
             </p>
           </div>
@@ -285,13 +287,13 @@ export default function SchoolSetupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="divide-y divide-border [&>*]:pt-6 space-y-6">
             {/* Profile Picture */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h2 className="text-lg font-bold text-[#1c1d1f] mb-4">Profile Picture</h2>
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-4">Profile Picture</h2>
               <div
                 className={`flex items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingPic ? 'border-[#2563eb] bg-blue-50' : 'border-gray-300'
+                  draggingPic ? 'border-primary bg-primary/5' : 'border-border'
                 }`}
                 onDragOver={(e) => { e.preventDefault(); setDraggingPic(true); }}
                 onDragLeave={() => setDraggingPic(false)}
@@ -311,11 +313,11 @@ export default function SchoolSetupPage() {
                         <img
                           src={displayPicUrl}
                           alt="Profile"
-                          className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                          className="w-24 h-24 rounded-full object-cover border-2 border-border"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
-                          <Loader2 size={24} className="animate-spin text-gray-400" />
+                        <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center">
+                          <Loader2 size={24} className="animate-spin text-muted-foreground" />
                         </div>
                       )}
                       <button
@@ -327,21 +329,21 @@ export default function SchoolSetupPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      <Building2 size={32} className="text-gray-400" />
+                    <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center">
+                      <Building2 size={32} className="text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <div>
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => profilePicInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white text-sm font-medium rounded hover:bg-[#1d4ed8] transition-colors"
                   >
                     <Camera size={16} />
                     {hasPic ? 'Change Photo' : 'Upload Photo'}
-                  </button>
-                  <p className="text-xs text-gray-500 mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
                 </div>
                 <input
                   ref={profilePicInputRef}
@@ -358,11 +360,11 @@ export default function SchoolSetupPage() {
             </div>
 
             {/* School Information */}
-            <div className="bg-white border border-gray-300 p-6 space-y-4">
-              <h2 className="text-lg font-bold text-[#1c1d1f]">School Information</h2>
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-foreground">School Information</h2>
 
               <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                <label className="block text-sm font-bold text-foreground mb-2">
                   School Name *
                 </label>
                 <input
@@ -370,45 +372,45 @@ export default function SchoolSetupPage() {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                <label className="block text-sm font-bold text-foreground mb-2">
                   School Description
                 </label>
                 <textarea
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell teachers about your school, its values, and environment..."
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     EMIS Number
                   </label>
                   <input
                     type="text"
                     value={formData.emisNumber}
                     onChange={(e) => setFormData({ ...formData, emisNumber: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     District
                   </label>
                   <input
                     type="text"
                     value={formData.district}
                     onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="e.g., Cape Winelands"
                   />
                 </div>
@@ -416,14 +418,14 @@ export default function SchoolSetupPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     School Type *
                   </label>
                   <select
                     required
                     value={formData.schoolType}
                     onChange={(e) => setFormData({ ...formData, schoolType: e.target.value as SchoolType })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className={SELECT_CLASS}
                   >
                     <option value="Primary">Primary</option>
                     <option value="Secondary">Secondary</option>
@@ -433,14 +435,14 @@ export default function SchoolSetupPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     Ownership Type *
                   </label>
                   <select
                     required
                     value={formData.ownershipType}
                     onChange={(e) => setFormData({ ...formData, ownershipType: e.target.value as OwnershipType })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className={SELECT_CLASS}
                   >
                     <option value="Public">Public</option>
                     <option value="Private">Private</option>
@@ -450,27 +452,27 @@ export default function SchoolSetupPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     Education District
                   </label>
                   <input
                     type="text"
                     value={formData.educationDistrict}
                     onChange={(e) => setFormData({ ...formData, educationDistrict: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="e.g., Metro East"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                  <label className="block text-sm font-bold text-foreground mb-2">
                     Curriculum *
                   </label>
                   <select
                     required
                     value={formData.curriculum}
                     onChange={(e) => setFormData({ ...formData, curriculum: e.target.value as Curriculum })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className={SELECT_CLASS}
                   >
                     <option value="CAPS">CAPS</option>
                     <option value="Cambridge">Cambridge</option>
@@ -481,7 +483,7 @@ export default function SchoolSetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                <label className="block text-sm font-bold text-foreground mb-2">
                   Address *
                 </label>
                 <AddressAutocomplete
@@ -498,11 +500,11 @@ export default function SchoolSetupPage() {
             </div>
 
             {/* Registration Certificate */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h2 className="text-lg font-bold text-[#1c1d1f] mb-4">Registration Certificate</h2>
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-4">Registration Certificate</h2>
               <div
                 className={`p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingCert ? 'border-[#2563eb] bg-blue-50' : 'border-gray-300'
+                  draggingCert ? 'border-primary bg-primary/5' : 'border-border'
                 }`}
                 onDragOver={(e) => { e.preventDefault(); setDraggingCert(true); }}
                 onDragLeave={() => setDraggingCert(false)}
@@ -519,21 +521,21 @@ export default function SchoolSetupPage() {
                       <img
                         src={displayCertUrl}
                         alt="Certificate"
-                        className="w-16 h-16 rounded object-cover border border-gray-200 flex-shrink-0"
+                        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded bg-blue-50 border border-blue-200 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-[#2563eb]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-12 h-12 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1c1d1f] truncate">
+                      <p className="text-sm font-medium text-foreground truncate">
                         {displayCertName || 'Certificate uploaded'}
                       </p>
                       {!pendingCertFile && certUrl && (
-                        <a href={certUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-[#2563eb] hover:underline">
+                        <a href={certUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
                           View current file
                         </a>
                       )}
@@ -548,14 +550,14 @@ export default function SchoolSetupPage() {
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
                       onClick={() => certInputRef.current?.click()}
-                      className="flex items-center gap-2 px-4 py-2 mx-auto bg-[#2563eb] text-white text-sm font-medium rounded hover:bg-[#1d4ed8] transition-colors"
                     >
                       Upload Certificate
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">Drag & drop or click. PDF, JPG, or PNG, max 10MB</p>
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">Drag & drop or click. PDF, JPG, or PNG, max 10MB</p>
                   </div>
                 )}
                 <input
@@ -581,9 +583,8 @@ export default function SchoolSetupPage() {
           hasChanges ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex justify-center px-4 pb-4">
-          <div className="w-full max-w-3xl">
-            <div className="bg-[#1c1d1f] text-white rounded-lg shadow-2xl px-6 py-3 flex items-center justify-between">
+        <div className="flex justify-center px-8 pb-6">
+            <div className="w-full max-w-2xl bg-foreground text-white rounded-lg shadow-lg px-6 py-3 flex items-center justify-between">
               <p className="text-sm font-medium">
                 Careful — you have unsaved changes!
               </p>
@@ -595,17 +596,16 @@ export default function SchoolSetupPage() {
                 >
                   Reset
                 </button>
-                <button
+                <Button
                   type="button"
+                  size="sm"
                   onClick={() => handleSubmit()}
                   disabled={saving}
-                  className="px-4 py-1.5 bg-[#2563eb] text-white text-sm font-bold rounded hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
-                </button>
+                </Button>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </DashboardLayout>

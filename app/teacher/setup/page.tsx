@@ -15,6 +15,7 @@ const ARTS_CULTURE_OPTIONS: ArtsCultureType[] = ['Drama', 'Debate', 'Choir', 'Ot
 import { createClient } from '@/lib/supabase/client';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { Plus, Trash2, Loader2, ChevronDown, User, Camera, X, FileText, ShieldCheck, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import SelfieCapture from '@/components/shared/SelfieCapture';
 
 function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fileName?: string; onExpand?: (url: string) => void }) {
@@ -27,7 +28,7 @@ function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fi
       <img
         src={url}
         alt="Document"
-        className="w-16 h-16 rounded object-cover border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onError={() => setImgError(true)}
         onClick={() => onExpand?.(url)}
       />
@@ -36,15 +37,15 @@ function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fi
 
   if (isImage && !url && !imgError) {
     return (
-      <div className="w-16 h-16 rounded bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0">
-        <Loader2 size={16} className="animate-spin text-gray-400" />
+      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center flex-shrink-0">
+        <Loader2 size={16} className="animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="w-16 h-16 rounded bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-      <FileText size={20} className="text-gray-500" />
+    <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+      <FileText size={20} className="text-muted-foreground" />
     </div>
   );
 }
@@ -432,31 +433,31 @@ export default function TeacherSetupPage() {
       <div className="p-8 pb-24">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Profile Setup</h1>
-            <p className="text-gray-600">Complete your profile to start applying for jobs</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Profile Setup</h1>
+            <p className="text-muted-foreground">Complete your profile to start applying for jobs</p>
           </div>
 
           {/* Progress Bar */}
-          <div className="bg-white border border-gray-300 p-6 mb-6">
+          <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-gray-700">Profile Completeness</span>
-              <span className="text-sm font-bold text-[#2563eb]">{completeness}%</span>
+              <span className="text-sm font-bold text-muted-foreground">Profile Completeness</span>
+              <span className="text-sm font-bold text-primary">{completeness}%</span>
             </div>
-            <div className="w-full bg-gray-200 h-3">
+            <div className="w-full bg-muted h-3">
               <div
-                className="bg-[#2563eb] h-3 transition-all duration-300"
+                className="bg-primary h-3 transition-all duration-300"
                 style={{ width: `${completeness}%` }}
               />
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="divide-y divide-border [&>*]:pt-6 space-y-6">
             {/* Section 1: Profile Picture */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h2 className="text-lg font-bold text-[#1c1d1f] mb-4">Profile Picture</h2>
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-4">Profile Picture</h2>
               <div
                 className={`flex items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingPic ? 'border-[#2563eb] bg-blue-50' : 'border-gray-300'
+                  draggingPic ? 'border-primary bg-primary/5' : 'border-border'
                 }`}
                 onDragOver={(e) => { e.preventDefault(); setDraggingPic(true); }}
                 onDragLeave={() => setDraggingPic(false)}
@@ -476,11 +477,11 @@ export default function TeacherSetupPage() {
                         <img
                           src={displayPicUrl}
                           alt="Profile"
-                          className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                          className="w-24 h-24 rounded-full object-cover border-2 border-border"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
-                          <Loader2 size={24} className="animate-spin text-gray-400" />
+                        <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center">
+                          <Loader2 size={24} className="animate-spin text-muted-foreground" />
                         </div>
                       )}
                       <button
@@ -492,21 +493,21 @@ export default function TeacherSetupPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center">
-                      <User size={32} className="text-gray-400" />
+                    <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center">
+                      <User size={32} className="text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <div>
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => profilePicInputRef.current?.click()}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white text-sm font-medium rounded hover:bg-[#1d4ed8] transition-colors"
                   >
                     <Camera size={16} />
                     {hasPic ? 'Change Photo' : 'Upload Photo'}
-                  </button>
-                  <p className="text-xs text-gray-500 mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
                 </div>
                 <input
                   ref={profilePicInputRef}
@@ -523,12 +524,12 @@ export default function TeacherSetupPage() {
             </div>
 
             {/* Section 2: Personal Information */}
-            <div className="bg-white border border-gray-300 p-6 space-y-4">
-              <h2 className="text-lg font-bold text-[#1c1d1f]">Personal Information</h2>
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['firstName'] ? 'text-red-600' : 'text-[#1c1d1f]'}`}>
+                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['firstName'] ? 'text-red-600' : 'text-foreground'}`}>
                     First Name * {fieldErrors['firstName'] && <span className="font-normal">— required</span>}
                   </label>
                   <input
@@ -536,12 +537,12 @@ export default function TeacherSetupPage() {
                     value={firstName}
                     onChange={(e) => { setFirstName(e.target.value); clearFieldError('firstName'); }}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
-                      fieldErrors['firstName'] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                      fieldErrors['firstName'] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
                     }`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['surname'] ? 'text-red-600' : 'text-[#1c1d1f]'}`}>
+                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['surname'] ? 'text-red-600' : 'text-foreground'}`}>
                     Last Name * {fieldErrors['surname'] && <span className="font-normal">— required</span>}
                   </label>
                   <input
@@ -549,14 +550,14 @@ export default function TeacherSetupPage() {
                     value={surname}
                     onChange={(e) => { setSurname(e.target.value); clearFieldError('surname'); }}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
-                      fieldErrors['surname'] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                      fieldErrors['surname'] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
                     }`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
+                <label className="block text-sm font-bold text-foreground mb-2">
                   Short Description (up to 500 words)
                 </label>
                 <textarea
@@ -564,38 +565,38 @@ export default function TeacherSetupPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   maxLength={3000}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell schools about yourself, your teaching philosophy, and experience..."
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {description.split(/\s+/).filter(Boolean).length}/500 words
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">Date of Birth</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">Date of Birth</label>
                   <input
                     type="date"
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-[#1c1d1f] mb-2">ID Number</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">ID Number</label>
                   <input
                     type="text"
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="South African ID number"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">Address</label>
+                <label className="block text-sm font-bold text-foreground mb-2">Address</label>
                 <AddressAutocomplete
                   value={address}
                   onChange={setAddress}
@@ -608,11 +609,11 @@ export default function TeacherSetupPage() {
               </div>
 
               <div>
-                <label className="flex items-center gap-2 text-sm font-bold text-[#1c1d1f] mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-foreground mb-2">
                   Distance Radius: {distanceRadius}km
                   <span className="relative group">
-                    <Info size={14} className="text-gray-400 cursor-help" />
-                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#1c1d1f] text-white text-xs rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
+                    <Info size={14} className="text-muted-foreground cursor-help" />
+                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-foreground text-white text-xs rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
                       Maximum distance you&apos;re willing to travel to a school
                     </span>
                   </span>
@@ -626,7 +627,7 @@ export default function TeacherSetupPage() {
                   onChange={(e) => setDistanceRadius(Number(e.target.value))}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-muted-foreground">
                   <span>5km</span>
                   <span>200km</span>
                 </div>
@@ -634,9 +635,9 @@ export default function TeacherSetupPage() {
             </div>
 
             {/* Section 3: Education Phases */}
-            <div className="bg-white border border-gray-300 p-6 space-y-3">
-              <h2 className="text-lg font-bold text-[#1c1d1f]">Education Phases *</h2>
-              <p className="text-sm text-gray-600">Select the phases you teach, then choose your subjects, sports, and arts &amp; culture for each.</p>
+            <div className="space-y-3">
+              <h2 className="text-lg font-bold text-foreground">Education Phases *</h2>
+              <p className="text-sm text-muted-foreground">Select the phases you teach, then choose your subjects, sports, and arts &amp; culture for each.</p>
 
               {EDUCATION_PHASES.map(phase => {
                 const isSelected = selectedPhases.includes(phase);
@@ -651,7 +652,7 @@ export default function TeacherSetupPage() {
                   (artsCulture[phase]?.length || 0);
 
                 return (
-                  <div key={phase} className={`border-2 rounded-lg overflow-hidden transition-colors ${isSelected ? 'border-[#2563eb]' : 'border-gray-300'}`}>
+                  <div key={phase} className={`border-2 rounded-lg overflow-hidden transition-colors ${isSelected ? 'border-primary' : 'border-border'}`}>
                     {/* Phase header */}
                     <div
                       role="button"
@@ -665,11 +666,11 @@ export default function TeacherSetupPage() {
                         }
                       }}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
-                      className={`w-full flex items-center justify-between p-4 text-left cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
+                      className={`w-full flex items-center justify-between p-4 text-left cursor-pointer transition-colors ${isSelected ? 'bg-primary/5' : 'bg-card hover:bg-muted/50'}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 ${
-                          isSelected ? 'bg-[#2563eb] border-[#2563eb]' : 'border-gray-400'
+                          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
                         }`}>
                           {isSelected && (
                             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -677,9 +678,9 @@ export default function TeacherSetupPage() {
                             </svg>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-[#1c1d1f]">{phase}</span>
+                        <span className="text-sm font-bold text-foreground">{phase}</span>
                         {isSelected && selectedCount > 0 && (
-                          <span className="text-xs text-[#2563eb] bg-blue-100 px-2 py-0.5 rounded-full font-medium">
+                          <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">
                             {selectedCount} selected
                           </span>
                         )}
@@ -701,7 +702,7 @@ export default function TeacherSetupPage() {
                         {isSelected && (
                           <ChevronDown
                             size={18}
-                            className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                            className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
                           />
                         )}
                       </div>
@@ -709,11 +710,11 @@ export default function TeacherSetupPage() {
 
                     {/* Dropdown content */}
                     {isSelected && isOpen && (
-                      <div className="border-t border-gray-200 p-4 space-y-5 bg-white">
+                      <div className="border-t border-border p-4 space-y-5 bg-card">
                         {/* Subjects */}
                         {academicCat && (
                           <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Subjects</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Subjects</p>
                             <div className="flex flex-wrap gap-2">
                               {academicCat.subjects.map(subject => {
                                 const isSubSelected = (subjects[phase] || []).includes(subject);
@@ -724,8 +725,8 @@ export default function TeacherSetupPage() {
                                     onClick={() => handleSubjectToggle(phase, subject)}
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isSubSelected
-                                        ? 'bg-[#1c1d1f] text-white border-[#1c1d1f]'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                                        ? 'bg-foreground text-background border-foreground'
+                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
                                     }`}
                                   >
                                     {subject}
@@ -739,7 +740,7 @@ export default function TeacherSetupPage() {
                         {/* Sports */}
                         {coachingCat && (
                           <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Sports / Coaching</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Sports / Coaching</p>
                             <div className="flex flex-wrap gap-2">
                               {coachingCat.subjects.map(sport => {
                                 const isSportSelected = (sports[phase] || []).includes(sport);
@@ -751,7 +752,7 @@ export default function TeacherSetupPage() {
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isSportSelected
                                         ? 'bg-green-700 text-white border-green-700'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
                                     }`}
                                   >
                                     {sport}
@@ -765,7 +766,7 @@ export default function TeacherSetupPage() {
                         {/* Arts & Culture */}
                         {artsCat && (
                           <div>
-                            <p className="text-xs font-bold text-gray-500 uppercase mb-2">Arts &amp; Culture</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Arts &amp; Culture</p>
                             <div className="flex flex-wrap gap-2">
                               {artsCat.subjects.map(item => {
                                 const isArtSelected = (artsCulture[phase] || []).includes(item);
@@ -777,7 +778,7 @@ export default function TeacherSetupPage() {
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isArtSelected
                                         ? 'bg-purple-700 text-white border-purple-700'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
                                     }`}
                                   >
                                     {item}
@@ -795,23 +796,24 @@ export default function TeacherSetupPage() {
             </div>
 
             {/* Section 4: Teaching Experience */}
-            <div className="bg-white border border-gray-300 p-6 space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-[#1c1d1f]">Teaching Experience</h2>
-                <button
+                <h2 className="text-lg font-bold text-foreground">Teaching Experience</h2>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={addExperience}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-[#2563eb] border border-[#2563eb] hover:bg-blue-50 transition-colors"
                 >
                   <Plus size={16} />
                   Add
-                </button>
+                </Button>
               </div>
 
               {experiences.map((exp, index) => (
-                <div key={exp.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div key={exp.id} className="border border-border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
-                    <span className="text-sm font-bold text-gray-500">Experience #{index + 1}</span>
+                    <span className="text-sm font-bold text-muted-foreground">Experience #{index + 1}</span>
                     <button
                       type="button"
                       onClick={() => removeExperience(index)}
@@ -822,7 +824,7 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-title`] ? 'text-red-600' : 'text-gray-600'}`}>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-title`] ? 'text-red-600' : 'text-muted-foreground'}`}>
                         Title {fieldErrors[`exp-${index}-title`] && <span className="font-normal">— required</span>}
                       </label>
                       <input
@@ -830,13 +832,13 @@ export default function TeacherSetupPage() {
                         value={exp.title}
                         onChange={(e) => { updateExperience(index, 'title', e.target.value); clearFieldError(`exp-${index}-title`); }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
-                          fieldErrors[`exp-${index}-title`] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                          fieldErrors[`exp-${index}-title`] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
                         }`}
                         placeholder="e.g., Mathematics Teacher"
                       />
                     </div>
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-company`] ? 'text-red-600' : 'text-gray-600'}`}>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-company`] ? 'text-red-600' : 'text-muted-foreground'}`}>
                         School/Company {fieldErrors[`exp-${index}-company`] && <span className="font-normal">— required</span>}
                       </label>
                       <input
@@ -844,14 +846,14 @@ export default function TeacherSetupPage() {
                         value={exp.company}
                         onChange={(e) => { updateExperience(index, 'company', e.target.value); clearFieldError(`exp-${index}-company`); }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
-                          fieldErrors[`exp-${index}-company`] ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-300 focus:border-[#1c1d1f]'
+                          fieldErrors[`exp-${index}-company`] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
                         }`}
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-startDate`] ? 'text-red-600' : 'text-gray-600'}`}>
+                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-startDate`] ? 'text-red-600' : 'text-muted-foreground'}`}>
                         Start Date {fieldErrors[`exp-${index}-startDate`] && <span className="font-normal">— required</span>}
                       </label>
                       <input
@@ -860,56 +862,57 @@ export default function TeacherSetupPage() {
                         onChange={(e) => { updateExperience(index, 'startDate', e.target.value); clearFieldError(`exp-${index}-startDate`); }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
                           fieldErrors[`exp-${index}-startDate`]
-                            ? 'border-red-400 bg-red-50 focus:border-red-500'
-                            : 'border-gray-300 focus:border-[#1c1d1f]'
+                            ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]'
+                            : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
                         }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">End Date</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">End Date</label>
                       <input
                         type="date"
                         value={exp.endDate || ''}
                         onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-600 mb-1">Description</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">Description</label>
                     <textarea
                       rows={2}
                       value={exp.description || ''}
                       onChange={(e) => updateExperience(index, 'description', e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                      className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     />
                   </div>
                 </div>
               ))}
 
               {experiences.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No experience added yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No experience added yet</p>
               )}
             </div>
 
             {/* Section 8: References */}
-            <div className="bg-white border border-gray-300 p-6 space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-[#1c1d1f]">References</h2>
-                <button
+                <h2 className="text-lg font-bold text-foreground">References</h2>
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setReferences(prev => [...prev, { name: '', relationship: '', email: '', phone: '' }])}
-                  className="flex items-center gap-1 px-3 py-1.5 text-sm font-bold text-[#2563eb] border border-[#2563eb] hover:bg-blue-50 transition-colors"
                 >
                   <Plus size={16} />
                   Add
-                </button>
+                </Button>
               </div>
 
               {references.map((ref, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div key={index} className="border border-border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
-                    <span className="text-sm font-bold text-gray-500">Reference #{index + 1}</span>
+                    <span className="text-sm font-bold text-muted-foreground">Reference #{index + 1}</span>
                     <button
                       type="button"
                       onClick={() => setReferences(prev => prev.filter((_, i) => i !== index))}
@@ -920,42 +923,42 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Name</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Name</label>
                       <input
                         type="text"
                         value={ref.name}
                         onChange={(e) => updateReference(index, 'name', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Relationship</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Relationship</label>
                       <input
                         type="text"
                         value={ref.relationship}
                         onChange={(e) => updateReference(index, 'relationship', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         placeholder="e.g., Former Principal"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Email</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Email</label>
                       <input
                         type="email"
                         value={ref.email}
                         onChange={(e) => updateReference(index, 'email', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-600 mb-1">Phone</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">Phone</label>
                       <input
                         type="tel"
                         value={ref.phone}
                         onChange={(e) => updateReference(index, 'phone', e.target.value)}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
+                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                   </div>
@@ -963,7 +966,7 @@ export default function TeacherSetupPage() {
               ))}
 
               {references.length === 0 && (
-                <p className="text-sm text-gray-500 text-center py-4">No references added yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">No references added yet</p>
               )}
             </div>
 
@@ -974,12 +977,12 @@ export default function TeacherSetupPage() {
               const canUploadSelfie = selfieSummary && !selfieSummary.hasApproved && !selfieSummary.hasPending;
 
               return (
-                <div className="bg-white border border-gray-300 p-6 space-y-4">
+                <div className="space-y-4">
                   <div className="flex items-center gap-3">
-                    <ShieldCheck size={22} className="text-[#2563eb]" />
+                    <ShieldCheck size={22} className="text-primary" />
                     <div>
-                      <h2 className="text-lg font-bold text-[#1c1d1f]">Face Verification</h2>
-                      <p className="text-sm text-gray-600">Take a live photo using your device camera to verify your identity</p>
+                      <h2 className="text-lg font-bold text-foreground">Face Verification</h2>
+                      <p className="text-sm text-muted-foreground">Take a live photo using your device camera to verify your identity</p>
                     </div>
                     {selfieSummary?.hasApproved && (
                       <span className="ml-auto px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
@@ -991,7 +994,7 @@ export default function TeacherSetupPage() {
                       <span className="ml-auto px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
                     )}
                     {selfieSummary && !selfieSummary.latest && (
-                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-100 rounded-full">Not submitted</span>
+                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not submitted</span>
                     )}
                   </div>
 
@@ -1006,13 +1009,13 @@ export default function TeacherSetupPage() {
                   {selfieDocsOfType.length > 0 && (
                     <div className="space-y-1">
                       {selfieDocsOfType.map(doc => (
-                        <div key={doc.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded border border-gray-200 text-sm">
+                        <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
                           <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={setLightboxUrl} />
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                             doc.status === 'approved' ? 'bg-green-500' :
                             doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
                           }`} />
-                          <span className="text-xs text-gray-500 flex-1">
+                          <span className="text-xs text-muted-foreground flex-1">
                             {new Date(doc.createdAt).toLocaleDateString('en-ZA')}
                           </span>
                           {doc.status === 'pending' && (
@@ -1034,14 +1037,14 @@ export default function TeacherSetupPage() {
 
                   {/* Pending selfie preview */}
                   {pendingDocs.selfie && (
-                    <div className="flex items-center gap-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <div className="flex items-center gap-3 p-2 bg-primary/5 border border-primary/20 rounded">
                       <img
                         src={pendingDocs.selfie.preview}
                         alt="Preview"
-                        className="w-16 h-16 rounded-full object-cover border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        className="w-16 h-16 rounded-full object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => setLightboxUrl(pendingDocs.selfie?.preview ?? null)}
                       />
-                      <span className="text-xs text-blue-600 font-medium flex-1">Unsaved</span>
+                      <span className="text-xs text-primary font-medium flex-1">Unsaved</span>
                       <button
                         type="button"
                         onClick={() => handleDocRemove('selfie')}
@@ -1054,23 +1057,23 @@ export default function TeacherSetupPage() {
 
                   {/* Start button */}
                   {canUploadSelfie && !pendingDocs.selfie && (
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
                       onClick={() => setSelfieModalOpen(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white text-sm font-medium rounded-lg hover:bg-[#1d4ed8] transition-colors w-fit"
                     >
                       <Camera size={18} />
                       Start Face Verification
-                    </button>
+                    </Button>
                   )}
                 </div>
               );
             })()}
 
             {/* Section 9: Documents */}
-            <div className="bg-white border border-gray-300 p-6 space-y-6">
-              <h2 className="text-lg font-bold text-[#1c1d1f]">Documents</h2>
-              <p className="text-sm text-gray-600">
+            <div className="space-y-6">
+              <h2 className="text-lg font-bold text-foreground">Documents</h2>
+              <p className="text-sm text-muted-foreground">
                 Upload the required documents below. Each document will be reviewed by an admin before your profile is verified.
               </p>
 
@@ -1092,7 +1095,7 @@ export default function TeacherSetupPage() {
                   <div
                     key={type}
                     className={`border-2 rounded-lg p-4 transition-colors ${
-                      isDraggingOver ? 'border-[#2563eb] bg-blue-50' : 'border-gray-200'
+                      isDraggingOver ? 'border-primary bg-primary/5' : 'border-border'
                     }`}
                     onDragOver={(e) => {
                       if (!canUpload || pendingDocs[type]) return;
@@ -1110,8 +1113,8 @@ export default function TeacherSetupPage() {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <h3 className="text-sm font-bold text-[#1c1d1f]">{config.label}</h3>
-                        <p className="text-xs text-gray-500">{config.description}</p>
+                        <h3 className="text-sm font-bold text-foreground">{config.label}</h3>
+                        <p className="text-xs text-muted-foreground">{config.description}</p>
                       </div>
                       {hasApproved && (
                         <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
@@ -1123,7 +1126,7 @@ export default function TeacherSetupPage() {
                         <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
                       )}
                       {!latest && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-gray-500 bg-gray-100 rounded-full">Not uploaded</span>
+                        <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not uploaded</span>
                       )}
                     </div>
 
@@ -1138,13 +1141,13 @@ export default function TeacherSetupPage() {
                     {docsOfType.length > 0 && (
                       <div className="space-y-1 mb-3">
                         {docsOfType.map(doc => (
-                          <div key={doc.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded border border-gray-200 text-sm">
+                          <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
                             <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={setLightboxUrl} />
                             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                               doc.status === 'approved' ? 'bg-green-500' :
                               doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
                             }`} />
-                            <span className="text-xs text-gray-500 flex-1">
+                            <span className="text-xs text-muted-foreground flex-1">
                               {new Date(doc.createdAt).toLocaleDateString('en-ZA')}
                             </span>
                             {doc.status === 'pending' && (
@@ -1166,20 +1169,20 @@ export default function TeacherSetupPage() {
 
                     {/* Pending file preview */}
                     {pendingDocs[type] && (
-                      <div className="flex items-center gap-3 p-2 bg-blue-50 border border-blue-200 rounded mb-3">
+                      <div className="flex items-center gap-3 p-2 bg-primary/5 border border-primary/20 rounded mb-3">
                         {pendingDocs[type].file.type.startsWith('image/') ? (
                           <img
                             src={pendingDocs[type].preview}
                             alt="Preview"
-                            className="w-16 h-16 rounded object-cover border border-gray-200 flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => setLightboxUrl(pendingDocs[type]?.preview ?? null)}
                           />
                         ) : (
-                          <div className="w-16 h-16 rounded bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-                            <FileText size={20} className="text-gray-500" />
+                          <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                            <FileText size={20} className="text-muted-foreground" />
                           </div>
                         )}
-                        <span className="text-xs text-blue-600 font-medium flex-1">Unsaved</span>
+                        <span className="text-xs text-primary font-medium flex-1">Unsaved</span>
                         <button
                           type="button"
                           onClick={() => handleDocRemove(type)}
@@ -1193,10 +1196,10 @@ export default function TeacherSetupPage() {
                     {/* Upload button */}
                     {canUpload && !pendingDocs[type] && (
                       <label className={`flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer w-full justify-center ${
-                        isDraggingOver ? 'border-[#2563eb] bg-blue-100' : 'border-gray-300 hover:border-gray-400'
+                        isDraggingOver ? 'border-primary bg-primary/10' : 'border-border hover:border-muted-foreground'
                       }`}>
-                        <Plus size={20} className={isDraggingOver ? 'text-[#2563eb]' : 'text-gray-400'} />
-                        <span className={`text-sm ${isDraggingOver ? 'text-[#2563eb] font-medium' : 'text-gray-600'}`}>
+                        <Plus size={20} className={isDraggingOver ? 'text-primary' : 'text-muted-foreground'} />
+                        <span className={`text-sm ${isDraggingOver ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
                           {isDraggingOver ? 'Drop file here' : 'Drag & drop or click to choose file'}
                         </span>
                         <input
@@ -1226,16 +1229,15 @@ export default function TeacherSetupPage() {
           hasChanges || saved ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        <div className="flex justify-center px-4 pb-4">
-          <div className="w-full max-w-3xl">
-          <div className={`rounded-lg shadow-2xl px-6 py-3 flex items-center justify-between ${saved ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-[#1c1d1f] text-white'}`}>
+        <div className="flex justify-center px-8 pb-6">
+          <div className={`w-full max-w-2xl rounded-lg shadow-lg px-6 py-3 flex items-center justify-between ${saved ? 'bg-green-50 border border-green-200 text-green-700' : formError ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-foreground text-white'}`}>
             <div className="flex-1 min-w-0">
               {saved ? (
                 <p className="text-sm font-medium">Profile saved successfully!</p>
               ) : saving ? (
                 <p className="text-sm font-medium flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Saving your profile...</p>
               ) : formError ? (
-                <p className="text-sm font-medium text-red-400">{formError}</p>
+                <p className="text-sm font-medium">{formError}</p>
               ) : (
                 <p className="text-sm font-medium">Careful — you have unsaved changes!</p>
               )}
@@ -1279,18 +1281,17 @@ export default function TeacherSetupPage() {
               >
                 Reset
               </button>
-              <button
+              <Button
                 type="button"
+                size="sm"
                 onClick={() => handleSubmit()}
                 disabled={saving}
-                className="px-4 py-1.5 bg-[#2563eb] text-white text-sm font-bold rounded hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {saving && <Loader2 size={14} className="animate-spin" />}
                 {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              </Button>
             </div>}
           </div>
-        </div>
         </div>
       </div>
 

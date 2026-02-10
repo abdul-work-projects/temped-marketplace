@@ -6,9 +6,10 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useSchoolJobs } from '@/lib/hooks/useSchool';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { useTestimonials } from '@/lib/hooks/useTestimonials';
-import { Building2, MapPin, FileText, Loader2, MessageSquare } from 'lucide-react';
+import { Building2, MapPin, FileText, Loader2, MessageSquare, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
 
 export default function SchoolProfilePage() {
   const { user } = useAuth();
@@ -22,7 +23,7 @@ export default function SchoolProfilePage() {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
+          <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -33,8 +34,8 @@ export default function SchoolProfilePage() {
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-gray-600">School profile not found. Please complete your setup.</p>
-            <Link href="/school/setup" className="mt-4 inline-block text-[#2563eb] hover:text-[#1d4ed8] font-bold">
+            <p className="text-muted-foreground">School profile not found. Please complete your setup.</p>
+            <Link href="/school/setup" className="mt-4 inline-block text-primary hover:text-primary/90 font-bold">
               Go to Setup
             </Link>
           </div>
@@ -48,173 +49,154 @@ export default function SchoolProfilePage() {
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
-      <div className="p-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white border border-gray-300 overflow-hidden">
-            {/* Header Section */}
-            <div className="bg-[#2563eb] h-32"></div>
-
-            <div className="px-8 pb-8">
-              {/* Profile Picture */}
-              <div className="relative -mt-16 mb-4">
-                <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {profilePicUrl ? (
-                    <img
-                      src={profilePicUrl}
-                      alt={school.name}
-                      className="w-full h-full rounded-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <Building2 size={48} className="text-gray-400" />
-                  )}
-                </div>
-              </div>
-
-              {/* Name and Info */}
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">
-                  {school.name}
-                </h1>
-                <p className="text-gray-600">{user?.email}</p>
-
-                {school.address && (
-                  <div className="flex items-center gap-2 text-gray-600 mt-2">
-                    <MapPin size={18} />
-                    <span>{school.address}</span>
-                  </div>
+      <div className="py-8 px-12">
+        <div className="max-w-3xl">
+          {/* Header Section */}
+          <div className="flex items-start gap-6 mb-6">
+            <div className="flex-shrink-0">
+              <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                {profilePicUrl ? (
+                  <img
+                    src={profilePicUrl}
+                    alt={school.name}
+                    className="w-full h-full rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <Building2 size={28} className="text-muted-foreground" />
                 )}
               </div>
-
-              {/* Description */}
-              {school.description && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-[#1c1d1f] mb-2">About Us</h2>
-                  <p className="text-gray-700 whitespace-pre-wrap">{school.description}</p>
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-foreground mb-1">{school.name}</h1>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
+              {school.address && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
+                  <MapPin size={14} />
+                  <span>{school.address}</span>
                 </div>
               )}
+            </div>
+            <Button variant="ghost" size="icon" asChild className="flex-shrink-0">
+              <Link href="/school/setup">
+                <Pencil size={18} />
+              </Link>
+            </Button>
+          </div>
 
-              {/* School Details */}
-              <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="divide-y divide-border [&>*]:py-6">
+            {/* Description */}
+            {school.description && (
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-2">About Us</h2>
+                <p className="text-muted-foreground whitespace-pre-wrap">{school.description}</p>
+              </div>
+            )}
+
+            {/* School Details */}
+            <div>
+              <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">School Type</h3>
-                  <p className="text-[#1c1d1f]">{school.schoolType || 'Not specified'}</p>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">School Type</h3>
+                  <p className="text-sm text-foreground font-medium">{school.schoolType || 'Not specified'}</p>
                 </div>
-
                 <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">Ownership</h3>
-                  <p className="text-[#1c1d1f]">{school.ownershipType || 'Not specified'}</p>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Ownership</h3>
+                  <p className="text-sm text-foreground font-medium">{school.ownershipType || 'Not specified'}</p>
                 </div>
-
                 <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">Curriculum</h3>
-                  <p className="text-[#1c1d1f]">{school.curriculum || 'Not specified'}</p>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Curriculum</h3>
+                  <p className="text-sm text-foreground font-medium">{school.curriculum || 'Not specified'}</p>
                 </div>
-
                 <div>
-                  <h3 className="text-sm font-bold text-gray-600 mb-1">District</h3>
-                  <p className="text-[#1c1d1f]">{school.district || school.educationDistrict || 'Not specified'}</p>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">District</h3>
+                  <p className="text-sm text-foreground font-medium">{school.district || school.educationDistrict || 'Not specified'}</p>
                 </div>
-
                 {school.emisNumber && (
                   <div>
-                    <h3 className="text-sm font-bold text-gray-600 mb-1">EMIS Number</h3>
-                    <p className="text-[#1c1d1f]">{school.emisNumber}</p>
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">EMIS Number</h3>
+                    <p className="text-sm text-foreground font-medium">{school.emisNumber}</p>
                   </div>
                 )}
-
                 {school.educationDistrict && school.district && (
                   <div>
-                    <h3 className="text-sm font-bold text-gray-600 mb-1">Education District</h3>
-                    <p className="text-[#1c1d1f]">{school.educationDistrict}</p>
+                    <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Education District</h3>
+                    <p className="text-sm text-foreground font-medium">{school.educationDistrict}</p>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Registration Certificate */}
-              {school.registrationCertificate && (
-                <div className="mb-6">
-                  <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Registration Certificate</h2>
-                  {certUrl ? (
-                    <a
-                      href={certUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-[#1c1d1f] hover:bg-gray-50 transition-colors"
-                    >
-                      <FileText size={18} />
+            {/* Registration Certificate */}
+            {school.registrationCertificate && (
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-3">Registration Certificate</h2>
+                {certUrl ? (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={certUrl} target="_blank" rel="noopener noreferrer">
+                      <FileText size={14} />
                       View Certificate
                     </a>
-                  ) : (
-                    <span className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md text-gray-400">
-                      <Loader2 size={18} className="animate-spin" />
-                      Loading...
-                    </span>
-                  )}
+                  </Button>
+                ) : (
+                  <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 size={14} className="animate-spin" />
+                    Loading...
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Reviews from Teachers */}
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+                <MessageSquare size={20} />
+                Reviews from Teachers
+              </h2>
+              {testimonials.length > 0 ? (
+                <div className="space-y-4">
+                  {testimonials.map((t) => (
+                    <div key={t.id} className="border border-border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="font-bold text-foreground">{t.senderName}</p>
+                        <p className="text-xs text-muted-foreground">{format(new Date(t.createdAt), 'MMM d, yyyy')}</p>
+                      </div>
+                      <p className="text-muted-foreground text-sm">{t.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-muted/50 border border-border rounded-lg p-6 text-center">
+                  <p className="text-sm text-muted-foreground">No reviews yet</p>
+                  <p className="text-xs text-muted-foreground mt-1">Reviews will appear here after teachers complete jobs</p>
                 </div>
               )}
+            </div>
 
-              {/* Reviews from Teachers */}
-              <div className="border-t border-gray-300 pt-6 mb-6">
-                <h2 className="text-lg font-bold text-[#1c1d1f] mb-3 flex items-center gap-2">
-                  <MessageSquare size={20} />
-                  Reviews from Teachers
-                </h2>
-                {testimonials.length > 0 ? (
-                  <div className="space-y-4">
-                    {testimonials.map((t) => (
-                      <div key={t.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="font-bold text-[#1c1d1f]">{t.senderName}</p>
-                          <p className="text-xs text-gray-500">{format(new Date(t.createdAt), 'MMM d, yyyy')}</p>
-                        </div>
-                        <p className="text-gray-700 text-sm">{t.comment}</p>
-                      </div>
-                    ))}
+            {/* Job Postings Stats */}
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-3">Job Postings</h2>
+              {jobsLoading ? (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Loader2 size={16} className="animate-spin" />
+                  Loading stats...
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-6">
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{jobs.length}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Total Posted</p>
                   </div>
-                ) : (
-                  <div className="bg-gray-50 border border-gray-300 p-6 text-center">
-                    <p className="text-sm text-gray-500">No reviews yet</p>
-                    <p className="text-xs text-gray-400 mt-1">Reviews will appear here after teachers complete jobs</p>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{openJobs.length}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Active</p>
                   </div>
-                )}
-              </div>
-
-              {/* Job Postings Stats */}
-              <div className="border-t border-gray-300 pt-6 mb-6">
-                <h2 className="text-lg font-bold text-[#1c1d1f] mb-3">Job Postings</h2>
-                {jobsLoading ? (
-                  <div className="flex items-center gap-2 text-gray-500">
-                    <Loader2 size={16} className="animate-spin" />
-                    Loading stats...
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{hiredJobs.length}</p>
+                    <p className="text-sm text-muted-foreground font-medium">Hired</p>
                   </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="border border-gray-300 p-4">
-                      <p className="text-2xl font-bold text-[#1c1d1f]">{jobs.length}</p>
-                      <p className="text-sm text-gray-600 font-bold">Total Posted</p>
-                    </div>
-                    <div className="border border-gray-300 p-4">
-                      <p className="text-2xl font-bold text-[#1c1d1f]">{openJobs.length}</p>
-                      <p className="text-sm text-gray-600 font-bold">Active</p>
-                    </div>
-                    <div className="border border-gray-300 p-4">
-                      <p className="text-2xl font-bold text-[#1c1d1f]">{hiredJobs.length}</p>
-                      <p className="text-sm text-gray-600 font-bold">Hired</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Edit Button */}
-              <div>
-                <Link
-                  href="/school/setup"
-                  className="inline-block w-full py-3 px-4 bg-[#2563eb] text-white text-center font-bold hover:bg-[#1d4ed8] transition-colors"
-                >
-                  Edit Profile
-                </Link>
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

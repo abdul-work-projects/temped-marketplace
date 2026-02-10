@@ -203,7 +203,7 @@ export default function SelfieCapture({ open, onClose, onCapture }: SelfieCaptur
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-6 py-3 bg-[#2563eb] text-white font-bold rounded-full hover:bg-[#1d4ed8] transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-full hover:bg-primary/90 transition-colors"
             >
               <Check size={18} />
               Submit

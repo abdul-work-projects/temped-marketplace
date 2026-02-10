@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -53,35 +56,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center justify-center gap-2 mb-6">
-            <div className="w-12 h-12 bg-[#2563eb] flex items-center justify-center">
+            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <span className="text-3xl font-bold text-[#1c1d1f]">TempEd</span>
+            <span className="text-3xl font-bold text-foreground">TempEd</span>
           </Link>
-          <h1 className="text-2xl font-bold text-[#1c1d1f] mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Log In to Your TempEd Account
           </h1>
         </div>
 
-        <div className="bg-white border border-gray-300 rounded px-8 py-10 shadow-sm">
+        <div className="bg-card border border-border rounded-xl px-8 py-10 shadow-sm">
           <form className="space-y-4" onSubmit={handleSubmit}>
             {(error || errorFromUrl) && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {error || errorFromUrl}
               </div>
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+              <Label htmlFor="email" className="font-bold">
                 Email
-              </label>
-              <input
+              </Label>
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -89,17 +92,16 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                 placeholder="Email"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+              <Label htmlFor="password" className="font-bold">
                 Password
-              </label>
+              </Label>
               <div className="relative">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
@@ -107,24 +109,20 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2.5 pr-10 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                  className="pr-10"
                   placeholder="Password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
+            <Button className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -136,15 +134,16 @@ export default function LoginPage() {
               ) : (
                 'Sign in'
               )}
-            </button>
+            </Button>
           </form>
 
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <button
+          <div className="mt-4 pt-4 border-t border-border">
+            <Button
+              variant="outline"
+              className="w-full"
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -165,14 +164,14 @@ export default function LoginPage() {
                 />
               </svg>
               Sign in with Google
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/signup" className="text-[#2563eb] font-bold hover:text-[#1d4ed8]">
+            <Link href="/auth/signup" className="text-primary font-bold hover:text-primary/90">
               Sign up
             </Link>
           </p>

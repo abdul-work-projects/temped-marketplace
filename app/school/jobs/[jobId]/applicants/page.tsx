@@ -14,15 +14,18 @@ import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { useCreateTestimonial, useMyTestimonials } from '@/lib/hooks/useTestimonials';
 import { Star, MapPin, GraduationCap, Briefcase, Mail, ArrowLeft, CheckCircle, Loader2, MessageSquare, Pencil, Trash2, Clock, Check, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 function TeacherAvatar({ profilePicture, firstName, surname }: { profilePicture?: string; firstName: string; surname: string }) {
   const url = useSignedUrl('profile-pictures', profilePicture);
   return (
-    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+    <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
       {url ? (
         <img src={url} alt={`${firstName} ${surname}`} className="w-full h-full object-cover" />
       ) : (
-        <span className="text-3xl text-gray-400">{firstName[0]}{surname[0]}</span>
+        <span className="text-3xl text-muted-foreground">{firstName[0]}{surname[0]}</span>
       )}
     </div>
   );
@@ -32,24 +35,24 @@ function ReviewStatusBadge({ status }: { status: string }) {
   switch (status) {
     case 'pending':
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">
+        <Badge variant="outline" className="border-yellow-200 bg-yellow-100 text-yellow-700">
           <Clock size={12} />
           Pending Review
-        </span>
+        </Badge>
       );
     case 'approved':
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+        <Badge variant="outline" className="border-green-200 bg-green-100 text-green-700">
           <Check size={12} />
           Live
-        </span>
+        </Badge>
       );
     case 'rejected':
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
+        <Badge variant="outline" className="border-red-200 bg-red-100 text-red-700">
           <XCircle size={12} />
           Rejected
-        </span>
+        </Badge>
       );
     default:
       return null;
@@ -150,7 +153,7 @@ export default function JobApplicantsPage() {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
+          <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -161,7 +164,7 @@ export default function JobApplicantsPage() {
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8">
           <div className="max-w-6xl mx-auto text-center">
-            <p className="text-gray-600">Job not found</p>
+            <p className="text-muted-foreground">Job not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -174,87 +177,90 @@ export default function JobApplicantsPage() {
         <div className="max-w-6xl mx-auto">
           <Link
             href="/school/dashboard"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6"
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/90 mb-6"
           >
             <ArrowLeft size={20} />
             Back to Job Postings
           </Link>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{job.title}</h1>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                  <span>{job.subject}</span>
-                  <span>•</span>
-                  <span>{job.educationPhase}</span>
-                  <span>•</span>
-                  <span>
-                    {format(new Date(job.startDate), 'MMM d')} - {format(new Date(job.endDate), 'MMM d, yyyy')}
-                  </span>
+          <div className="border border-border rounded-lg p-6 mb-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-foreground mb-2">{job.title}</h1>
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span>{job.subject}</span>
+                    <span>-</span>
+                    <span>{job.educationPhase}</span>
+                    <span>-</span>
+                    <span>
+                      {format(new Date(job.startDate), 'MMM d')} - {format(new Date(job.endDate), 'MMM d, yyyy')}
+                    </span>
+                  </div>
                 </div>
+                <select
+                  value={job.progress}
+                  onChange={async (e) => {
+                    const { success } = await updateJob(job.id, { progress: e.target.value });
+                    if (success) refetchJob();
+                  }}
+                  className={`px-3 py-1.5 text-sm font-bold border rounded-md cursor-pointer focus:outline-none ${
+                    job.progress === 'Open' ? 'bg-green-100 text-green-700 border-green-200' :
+                    job.progress === 'Interviewing' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                    job.progress === 'Hired' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                    'bg-muted text-muted-foreground border-border'
+                  }`}
+                >
+                  <option value="Open">Open</option>
+                  <option value="Interviewing">Interviewing</option>
+                  <option value="Closed">Closed</option>
+                  {applicants.some(a => a.application.status === 'Hired') && <option value="Hired">Hired</option>}
+                </select>
               </div>
-              <select
-                value={job.progress}
-                onChange={async (e) => {
-                  const { success } = await updateJob(job.id, { progress: e.target.value });
-                  if (success) refetchJob();
-                }}
-                className={`px-3 py-1.5 text-sm font-bold border cursor-pointer focus:outline-none ${
-                  job.progress === 'Open' ? 'bg-green-100 text-green-700 border-green-200' :
-                  job.progress === 'Interviewing' ? 'bg-blue-100 text-blue-700 border-blue-200' :
-                  job.progress === 'Hired' ? 'bg-purple-100 text-purple-700 border-purple-200' :
-                  'bg-gray-100 text-gray-700 border-gray-200'
-                }`}
-              >
-                <option value="Open">Open</option>
-                <option value="Interviewing">Interviewing</option>
-                <option value="Closed">Closed</option>
-                {applicants.some(a => a.application.status === 'Hired') && <option value="Hired">Hired</option>}
-              </select>
-            </div>
           </div>
 
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-xl font-semibold text-foreground mb-2">
                 Applicants ({applicants.length})
               </h2>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Review applications and shortlist candidates for interview
               </p>
             </div>
-            <button
+            <Button
+              variant="outline"
               onClick={() => setShowShortlistedOnly(!showShortlistedOnly)}
-              className={`px-4 py-2 text-sm font-bold transition-colors ${
+              className={
                 showShortlistedOnly
-                  ? 'bg-yellow-100 text-yellow-700 border border-yellow-300'
-                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
+                  ? 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-700'
+                  : ''
+              }
             >
-              <Star size={16} className="inline mr-1" fill={showShortlistedOnly ? 'currentColor' : 'none'} />
+              <Star size={16} fill={showShortlistedOnly ? 'currentColor' : 'none'} />
               {showShortlistedOnly ? 'Show All' : 'Shortlisted Only'}
-            </button>
+            </Button>
           </div>
 
           {displayedApplicants.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {showShortlistedOnly ? 'No shortlisted applicants' : 'No applicants yet'}
-              </h3>
-              <p className="text-gray-600">
-                {showShortlistedOnly
-                  ? 'Shortlist candidates to see them here.'
-                  : 'Teachers will see your job posting and can apply. Check back soon!'}
-              </p>
-            </div>
+            <Card>
+              <CardContent className="p-12 text-center">
+                <div className="text-muted-foreground mb-4">
+                  <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {showShortlistedOnly ? 'No shortlisted applicants' : 'No applicants yet'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {showShortlistedOnly
+                    ? 'Shortlist candidates to see them here.'
+                    : 'Teachers will see your job posting and can apply. Check back soon!'}
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="border border-border rounded-lg divide-y divide-border">
               {displayedApplicants.map(({ application, teacher }) => {
                 const allSubjects = getSubjectsFlat(teacher.subjects);
                 const existingReview = myReviews.find(r => r.toUserId === teacher.userId);
@@ -262,180 +268,175 @@ export default function JobApplicantsPage() {
                 return (
                   <div
                     key={application.id}
-                    className={`bg-white rounded-lg border-2 p-6 transition-all ${
+                    className={`p-6 transition-all ${
                       application.status === 'Hired'
-                        ? 'border-green-300 bg-green-50'
+                        ? 'bg-green-50'
                         : application.shortlisted
-                          ? 'border-yellow-300 bg-yellow-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'bg-yellow-50'
+                          : ''
                     }`}
                   >
-                    <div className="flex gap-6">
-                      {/* Profile Picture */}
-                      <div className="flex-shrink-0">
-                        <TeacherAvatar profilePicture={teacher.profilePicture} firstName={teacher.firstName} surname={teacher.surname} />
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                              {teacher.firstName} {teacher.surname}
-                              {application.status === 'Hired' && (
-                                <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full align-middle">
-                                  <CheckCircle size={12} />
-                                  Hired
-                                </span>
-                              )}
-                            </h3>
-                            {teacher.address && (
-                              <div className="flex items-center gap-1 text-sm text-gray-600">
-                                <MapPin size={14} />
-                                <span>{teacher.address}</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <button
-                            onClick={() => handleToggleShortlist(application.id, application.shortlisted)}
-                            className={`flex items-center gap-2 px-4 py-2 font-bold transition-colors ${
-                              application.shortlisted
-                                ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300'
-                                : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <Star size={18} fill={application.shortlisted ? 'currentColor' : 'none'} />
-                            {application.shortlisted ? 'Shortlisted' : 'Shortlist'}
-                          </button>
+                      <div className="flex gap-6">
+                        {/* Profile Picture */}
+                        <div className="flex-shrink-0">
+                          <TeacherAvatar profilePicture={teacher.profilePicture} firstName={teacher.firstName} surname={teacher.surname} />
                         </div>
 
-                        {teacher.description && (
-                          <p className="text-gray-700 mb-4 line-clamp-2">{teacher.description}</p>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                              <GraduationCap size={16} />
-                              <span className="font-medium">Education Phase:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {teacher.educationPhases.map(phase => (
-                                <span
-                                  key={phase}
-                                  className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
-                                >
-                                  {phase}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                              <Briefcase size={16} />
-                              <span className="font-medium">Subjects:</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {allSubjects.slice(0, 3).map(subject => (
-                                <span
-                                  key={subject}
-                                  className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
-                                >
-                                  {subject}
-                                </span>
-                              ))}
-                              {allSubjects.length > 3 && (
-                                <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                                  +{allSubjects.length - 3} more
-                                </span>
+                        {/* Details */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-xl font-semibold text-foreground mb-1">
+                                {teacher.firstName} {teacher.surname}
+                                {application.status === 'Hired' && (
+                                  <Badge className="ml-2 bg-green-100 text-green-700 align-middle">
+                                    <CheckCircle size={12} />
+                                    Hired
+                                  </Badge>
+                                )}
+                              </h3>
+                              {teacher.address && (
+                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                  <MapPin size={14} />
+                                  <span>{teacher.address}</span>
+                                </div>
                               )}
                             </div>
-                          </div>
-                        </div>
 
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
-                          <span>Applied: {format(new Date(application.appliedAt), 'MMM d, yyyy')}</span>
-                        </div>
-
-                        {/* Existing Review */}
-                        {application.status === 'Hired' && existingReview && (
-                          <div className="mb-4 border border-gray-200 rounded-lg p-4 bg-white">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <MessageSquare size={14} className="text-gray-500" />
-                                <span className="text-sm font-bold text-[#1c1d1f]">Your Review</span>
-                                <ReviewStatusBadge status={existingReview.status} />
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}`, existingId: existingReview.id, existingComment: existingReview.comment })}
-                                  className="p-1.5 text-gray-500 hover:text-[#2563eb] hover:bg-blue-50 rounded"
-                                  title="Edit review"
-                                >
-                                  <Pencil size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteReview(existingReview.id)}
-                                  disabled={reviewSubmitting}
-                                  className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                                  title="Delete review"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-700 line-clamp-3">{existingReview.comment}</p>
-                          </div>
-                        )}
-
-                        <div className="flex gap-3">
-                          {application.status === 'Hired' ? (
-                            <>
-                              <button
-                                onClick={() => handleUnhire(application.id)}
-                                className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 font-bold hover:bg-red-50"
-                              >
-                                Unhire
-                              </button>
-                              {!existingReview && (
-                                <button
-                                  onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}` })}
-                                  className="flex items-center gap-2 px-4 py-2 border border-[#2563eb] text-[#2563eb] font-bold hover:bg-blue-50"
-                                >
-                                  <MessageSquare size={16} />
-                                  Write Review
-                                </button>
-                              )}
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setHireConfirm({ applicationId: application.id, teacherName: `${teacher.firstName} ${teacher.surname}` })}
-                              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700"
+                            <Button
+                              variant="outline"
+                              onClick={() => handleToggleShortlist(application.id, application.shortlisted)}
+                              className={
+                                application.shortlisted
+                                  ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 hover:text-yellow-700 border-yellow-200'
+                                  : ''
+                              }
                             >
-                              <CheckCircle size={16} />
-                              Hire
-                            </button>
+                              <Star size={18} fill={application.shortlisted ? 'currentColor' : 'none'} />
+                              {application.shortlisted ? 'Shortlisted' : 'Shortlist'}
+                            </Button>
+                          </div>
+
+                          {teacher.description && (
+                            <p className="text-muted-foreground mb-4 line-clamp-2">{teacher.description}</p>
                           )}
 
-                          <button
-                            onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email })}
-                            className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8]"
-                          >
-                            <Mail size={16} />
-                            Contact
-                          </button>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                <GraduationCap size={16} />
+                                <span className="font-medium">Education Phase:</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {teacher.educationPhases.map(phase => (
+                                  <Badge key={phase} variant="outline">
+                                    {phase}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
 
-                          <Link
-                            href={`/school/teachers/${teacher.id}`}
-                            className="px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50"
-                          >
-                            View Full Profile
-                          </Link>
+                            <div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                                <Briefcase size={16} />
+                                <span className="font-medium">Subjects:</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {allSubjects.slice(0, 3).map(subject => (
+                                  <Badge key={subject} variant="outline">
+                                    {subject}
+                                  </Badge>
+                                ))}
+                                {allSubjects.length > 3 && (
+                                  <Badge variant="outline">
+                                    +{allSubjects.length - 3} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                            <span>Applied: {format(new Date(application.appliedAt), 'MMM d, yyyy')}</span>
+                          </div>
+
+                          {/* Existing Review */}
+                          {application.status === 'Hired' && existingReview && (
+                            <div className="border border-border rounded-lg p-4 bg-muted/50 mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <MessageSquare size={14} className="text-muted-foreground" />
+                                    <span className="text-sm font-bold text-foreground">Your Review</span>
+                                    <ReviewStatusBadge status={existingReview.status} />
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}`, existingId: existingReview.id, existingComment: existingReview.comment })}
+                                      className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded"
+                                      title="Edit review"
+                                    >
+                                      <Pencil size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteReview(existingReview.id)}
+                                      disabled={reviewSubmitting}
+                                      className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                                      title="Delete review"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-3">{existingReview.comment}</p>
+                            </div>
+                          )}
+
+                          <div className="flex gap-3">
+                            {application.status === 'Hired' ? (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-600"
+                                  onClick={() => handleUnhire(application.id)}
+                                >
+                                  Unhire
+                                </Button>
+                                {!existingReview && (
+                                  <Button
+                                    variant="outline"
+                                    className="border-primary text-primary hover:bg-primary/5 hover:text-primary"
+                                    onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}` })}
+                                  >
+                                    <MessageSquare size={16} />
+                                    Write Review
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <Button
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => setHireConfirm({ applicationId: application.id, teacherName: `${teacher.firstName} ${teacher.surname}` })}
+                              >
+                                <CheckCircle size={16} />
+                                Hire
+                              </Button>
+                            )}
+
+                            <Button
+                              onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email })}
+                            >
+                              <Mail size={16} />
+                              Contact
+                            </Button>
+
+                            <Button variant="outline" asChild>
+                              <Link href={`/school/teachers/${teacher.id}`}>
+                                View Full Profile
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
                   </div>
                 );
               })}
@@ -467,29 +468,31 @@ export default function JobApplicantsPage() {
       {hireConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={() => !hiring && setHireConfirm(null)} />
-          <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-bold text-[#1c1d1f] mb-2">Confirm Hire</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to hire <span className="font-bold text-[#1c1d1f]">{hireConfirm.teacherName}</span> for this position?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setHireConfirm(null)}
-                disabled={hiring}
-                className="px-4 py-2 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmHire}
-                disabled={hiring}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-bold hover:bg-green-700 disabled:opacity-50"
-              >
-                {hiring ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                {hiring ? 'Hiring...' : 'Confirm Hire'}
-              </button>
-            </div>
-          </div>
+          <Card className="relative max-w-md w-full mx-4">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-bold text-foreground mb-2">Confirm Hire</h3>
+              <p className="text-muted-foreground mb-6">
+                Are you sure you want to hire <span className="font-bold text-foreground">{hireConfirm.teacherName}</span> for this position?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setHireConfirm(null)}
+                  disabled={hiring}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={confirmHire}
+                  disabled={hiring}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {hiring ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                  {hiring ? 'Hiring...' : 'Confirm Hire'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </DashboardLayout>

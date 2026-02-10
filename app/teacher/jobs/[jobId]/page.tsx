@@ -10,19 +10,21 @@ import { calculateDistance, formatDistance } from '@/lib/utils/distance';
 import { MapPin, Calendar, Clock, ArrowLeft, AlertCircle, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 function getJobTypeBadge(jobType: string) {
   switch (jobType) {
     case 'Permanent':
-      return 'bg-green-100 text-green-700 border-green-300';
+      return 'bg-green-100 text-green-700 border-green-200';
     case 'Temporary':
-      return 'bg-blue-100 text-blue-700 border-blue-300';
+      return 'bg-blue-100 text-blue-700 border-blue-200';
     case 'Invigilator':
-      return 'bg-orange-100 text-orange-700 border-orange-300';
+      return 'bg-orange-100 text-orange-700 border-orange-200';
     case 'Coach':
-      return 'bg-teal-100 text-teal-700 border-teal-300';
+      return 'bg-teal-100 text-teal-700 border-teal-200';
     default:
-      return 'bg-gray-100 text-gray-700 border-gray-300';
+      return 'bg-muted text-muted-foreground border-border';
   }
 }
 
@@ -70,7 +72,7 @@ export default function JobDetailPage() {
     return (
       <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
         <div className="p-8 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
+          <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -81,8 +83,8 @@ export default function JobDetailPage() {
       <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
         <div className="p-8">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-gray-600 mb-4">Job not found</p>
-            <Link href="/teacher/dashboard" className="text-[#2563eb] hover:text-[#1d4ed8] font-bold">
+            <p className="text-muted-foreground mb-4">Job not found</p>
+            <Link href="/teacher/dashboard" className="text-primary hover:text-primary/90 font-bold">
               &larr; Back to Available Jobs
             </Link>
           </div>
@@ -98,190 +100,188 @@ export default function JobDetailPage() {
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
-      <div className="p-8 bg-gray-50 min-h-screen">
+      <div className="p-8">
         <div className="max-w-4xl mx-auto">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-gray-600 hover:text-[#2563eb] mb-6 font-bold"
+            className="mb-6"
           >
             <ArrowLeft size={20} />
             Back
-          </button>
+          </Button>
 
-          <div className="bg-white border border-gray-300 p-8">
-            {/* Header */}
-            <div className="mb-6 pb-6 border-b border-gray-300">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">
-                    {job.title}
-                  </h1>
-                  <Link
-                    href={`/teacher/schools/${school.id}`}
-                    className="text-lg text-gray-600 hover:text-[#2563eb] font-medium inline-flex items-center gap-2"
-                  >
-                    {school.name}
-                    <span className="text-sm">&rarr;</span>
-                  </Link>
-                </div>
-                <div className="flex items-center gap-2">
-                  {applied && (
-                    <span className="inline-flex items-center px-3 py-1.5 text-sm font-bold bg-purple-100 text-purple-700">
-                      Applied
-                    </span>
-                  )}
-                  {/* Job Type Badge */}
-                  <span
-                    className={`inline-flex items-center px-3 py-1.5 text-sm font-bold border ${getJobTypeBadge(job.jobType)}`}
-                  >
-                    {job.jobType}
-                  </span>
-                  {isUrgent && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 text-sm font-bold">
-                      <AlertCircle size={16} />
-                      URGENT
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Key Info */}
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                {distance !== null && (
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={16} />
-                    <span className="font-medium">{formatDistance(distance)} away</span>
+          <div className="divide-y divide-border [&>*]:py-6">
+              {/* Header */}
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      {job.title}
+                    </h1>
+                    <Link
+                      href={`/teacher/schools/${school.id}`}
+                      className="text-lg text-muted-foreground hover:text-primary font-medium inline-flex items-center gap-2"
+                    >
+                      {school.name}
+                      <span className="text-sm">&rarr;</span>
+                    </Link>
                   </div>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={16} />
-                  <span>{startDate} - {endDate}</span>
+                  <div className="flex items-center gap-2">
+                    {applied && (
+                      <Badge className="bg-purple-100 text-purple-700">
+                        Applied
+                      </Badge>
+                    )}
+                    {/* Job Type Badge */}
+                    <Badge variant="outline" className={getJobTypeBadge(job.jobType)}>
+                      {job.jobType}
+                    </Badge>
+                    {isUrgent && (
+                      <Badge className="bg-red-100 text-red-700 border-red-200">
+                        <AlertCircle size={16} />
+                        URGENT
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={16} />
-                  <span>Apply by {deadline}</span>
+
+                {/* Key Info */}
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                  {distance !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <MapPin size={16} />
+                      <span className="font-medium">{formatDistance(distance)} away</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={16} />
+                    <span>{startDate} - {endDate}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={16} />
+                    <span>Apply by {deadline}</span>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div className="flex flex-wrap items-center gap-2 mt-4">
+                  <Badge variant="outline">
+                    {job.educationPhase}
+                  </Badge>
+                  <Badge variant="outline">
+                    {job.subject}
+                  </Badge>
+                  {job.tags.filter(t => t !== 'Urgent').map((tag) => (
+                    <Badge variant="outline" key={tag}>
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
 
-              {/* Tags */}
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                  {job.educationPhase}
-                </span>
-                <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-                  {job.subject}
-                </span>
-                {job.tags.filter(t => t !== 'Urgent').map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Job Description */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-[#1c1d1f] mb-3">Job Description</h2>
-              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {job.description}
-              </p>
-            </div>
-
-            {/* Required Qualifications */}
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-[#1c1d1f] mb-3">Required Qualifications</h2>
-              <div className="bg-gray-50 border border-gray-300 p-4">
-                <p className="text-gray-700 whitespace-pre-wrap">
-                  {job.requiredQualifications}
+              {/* Job Description */}
+              <div>
+                <h2 className="text-xl font-bold text-foreground mb-3">Job Description</h2>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                  {job.description}
                 </p>
               </div>
-            </div>
 
-            {/* School Information */}
-            <div className="mb-8 pb-8 border-b border-gray-300">
-              <h2 className="text-xl font-bold text-[#1c1d1f] mb-3">About the School</h2>
-              {school.address && (
-                <div className="flex items-center gap-2 text-gray-600 mb-2">
-                  <MapPin size={16} />
-                  <span>{school.address}</span>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mt-3">
-                {school.schoolType && (
-                  <div className="flex items-center gap-1.5">
-                    <Briefcase size={16} />
-                    <span>{school.schoolType} School</span>
-                  </div>
-                )}
-                {school.curriculum && (
-                  <div className="flex items-center gap-1.5">
-                    <GraduationCap size={16} />
-                    <span>{school.curriculum} Curriculum</span>
-                  </div>
-                )}
-              </div>
-              {school.description && (
-                <p className="text-gray-700 mt-4 line-clamp-3">
-                  {school.description}
-                </p>
-              )}
-              <Link
-                href={`/teacher/schools/${school.id}`}
-                className="text-[#2563eb] hover:text-[#1d4ed8] font-bold text-sm mt-2 inline-block"
-              >
-                View Full School Profile &rarr;
-              </Link>
-            </div>
-
-            {/* Apply / Withdraw Button */}
-            <div className="flex gap-4">
-              {applied ? (
-                <button
-                  onClick={handleWithdraw}
-                  disabled={withdrawing}
-                  className="flex-1 py-3 px-6 font-bold transition-colors border-2 border-red-500 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {withdrawing ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      Withdrawing...
-                    </>
-                  ) : (
-                    'Withdraw Application'
-                  )}
-                </button>
-              ) : teacher && teacher.profileCompleteness < 100 ? (
-                <div className="flex-1 text-center">
-                  <p className="text-sm text-gray-600 mb-2">
-                    Your profile must be 100% complete to apply. Currently at <span className="font-bold text-[#1c1d1f]">{teacher.profileCompleteness}%</span>.
+              {/* Required Qualifications */}
+              <div>
+                <h2 className="text-xl font-bold text-foreground mb-3">Required Qualifications</h2>
+                <div className="bg-muted/50 border border-border rounded-lg p-4">
+                  <p className="text-muted-foreground whitespace-pre-wrap">
+                    {job.requiredQualifications}
                   </p>
-                  <Link
-                    href="/teacher/setup"
-                    className="inline-block w-full py-3 px-6 font-bold transition-colors bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-center"
-                  >
-                    Complete Your Profile
-                  </Link>
                 </div>
-              ) : (
-                <button
-                  onClick={handleApply}
-                  disabled={applying}
-                  className="flex-1 py-3 px-6 font-bold transition-colors bg-[#2563eb] text-white hover:bg-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {applying ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      Applying...
-                    </>
-                  ) : (
-                    'Apply for this Position'
+              </div>
+
+              {/* School Information */}
+              <div>
+                <h2 className="text-xl font-bold text-foreground mb-3">About the School</h2>
+                {school.address && (
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <MapPin size={16} />
+                    <span>{school.address}</span>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-3">
+                  {school.schoolType && (
+                    <div className="flex items-center gap-1.5">
+                      <Briefcase size={16} />
+                      <span>{school.schoolType} School</span>
+                    </div>
                   )}
-                </button>
-              )}
-            </div>
+                  {school.curriculum && (
+                    <div className="flex items-center gap-1.5">
+                      <GraduationCap size={16} />
+                      <span>{school.curriculum} Curriculum</span>
+                    </div>
+                  )}
+                </div>
+                {school.description && (
+                  <p className="text-muted-foreground mt-4 line-clamp-3">
+                    {school.description}
+                  </p>
+                )}
+                <Link
+                  href={`/teacher/schools/${school.id}`}
+                  className="text-primary hover:text-primary/90 font-bold text-sm mt-2 inline-block"
+                >
+                  View Full School Profile &rarr;
+                </Link>
+              </div>
+
+              {/* Apply / Withdraw Button */}
+              <div className="flex gap-4">
+                {applied ? (
+                  <Button
+                    variant="outline"
+                    onClick={handleWithdraw}
+                    disabled={withdrawing}
+                    className="flex-1 py-3 border-red-500 text-red-600 hover:bg-red-50"
+                    size="lg"
+                  >
+                    {withdrawing ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        Withdrawing...
+                      </>
+                    ) : (
+                      'Withdraw Application'
+                    )}
+                  </Button>
+                ) : teacher && teacher.profileCompleteness < 100 ? (
+                  <div className="flex-1 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Your profile must be 100% complete to apply. Currently at <span className="font-bold text-foreground">{teacher.profileCompleteness}%</span>.
+                    </p>
+                    <Button asChild className="w-full" size="lg">
+                      <Link href="/teacher/setup">
+                        Complete Your Profile
+                      </Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    onClick={handleApply}
+                    disabled={applying}
+                    className="flex-1 py-3"
+                    size="lg"
+                  >
+                    {applying ? (
+                      <>
+                        <Loader2 size={20} className="animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      'Apply for this Position'
+                    )}
+                  </Button>
+                )}
+              </div>
           </div>
         </div>
       </div>

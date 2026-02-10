@@ -3,6 +3,7 @@ import { Job, School } from '@/types';
 import { MapPin, Calendar, Clock, AlertCircle, ChevronRight } from 'lucide-react';
 import { calculateDistance, formatDistance } from '@/lib/utils/distance';
 import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
 
 const JOB_TYPE_COLORS: Record<string, string> = {
   Permanent: 'bg-green-100 text-green-700',
@@ -46,50 +47,41 @@ export default function JobCard({
 
   if (variant === 'list') {
     return (
-      <Link href={`${linkPrefix}/jobs/${job.id}`} className="block hover:bg-gray-50 transition-colors">
+      <Link href={`${linkPrefix}/jobs/${job.id}`} className="block hover:bg-muted/50 transition-colors">
         <div className="py-4 px-5">
           {/* Top row: title + tags + badges */}
           <div className="flex items-center justify-between gap-4">
-            <h3 className="text-sm font-bold text-[#1c1d1f] truncate">{job.title}</h3>
+            <h3 className="text-sm font-bold text-foreground truncate">{job.title}</h3>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="px-2 py-0.5 text-xs font-bold text-gray-700 border border-gray-300">
-                {job.educationPhase}
-              </span>
-              <span className="px-2 py-0.5 text-xs font-bold text-gray-700 border border-gray-300">
-                {job.subject}
-              </span>
+              <Badge variant="outline">{job.educationPhase}</Badge>
+              <Badge variant="outline">{job.subject}</Badge>
               {job.jobType && (
-                <span className={`px-2 py-0.5 text-xs font-bold ${JOB_TYPE_COLORS[job.jobType] || 'bg-gray-100 text-gray-700'}`}>
+                <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>
                   {job.jobType}
-                </span>
+                </Badge>
               )}
               {applied && (
-                <span className="px-2 py-0.5 text-xs font-bold bg-purple-100 text-purple-700">
-                  Applied
-                </span>
+                <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
               )}
               {isUrgent && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold">
-                  <AlertCircle size={12} />
-                  URGENT
-                </span>
+                <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
               )}
-              <ChevronRight size={16} className="text-gray-400" />
+              <ChevronRight size={16} className="text-muted-foreground" />
             </div>
           </div>
           {/* Bottom row: school · distance · dates */}
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
             <span>{school.name}</span>
             {distance !== null && (
               <>
-                <span className="text-gray-300">&middot;</span>
+                <span className="text-muted-foreground/50">&middot;</span>
                 <span className="inline-flex items-center gap-0.5">
                   <MapPin size={12} />
                   {formatDistance(distance)}
                 </span>
               </>
             )}
-            <span className="text-gray-300">&middot;</span>
+            <span className="text-muted-foreground/50">&middot;</span>
             <span className="inline-flex items-center gap-0.5">
               <Calendar size={12} />
               {startDate} – {endDate}
@@ -102,17 +94,17 @@ export default function JobCard({
 
   return (
     <Link href={`${linkPrefix}/jobs/${job.id}`} className="block h-full">
-      <div className="bg-white border border-gray-300 p-5 hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
+      <div className="bg-card border border-border rounded-lg p-5 hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
         <div className="flex flex-col flex-1">
           {/* Header */}
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-[#1c1d1f] mb-1">
+              <h3 className="text-lg font-bold text-foreground mb-1">
                 {job.title}
               </h3>
               <Link
                 href={`${linkPrefix}/schools/${school.id}`}
-                className="text-sm text-gray-600 hover:text-[#2563eb] font-medium"
+                className="text-sm text-muted-foreground hover:text-primary font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
                 {school.name}
@@ -120,37 +112,30 @@ export default function JobCard({
             </div>
             <div className="flex items-center gap-2">
               {applied && (
-                <span className="px-2 py-1 text-xs font-bold bg-purple-100 text-purple-700">
-                  Applied
-                </span>
+                <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
               )}
               {job.jobType && (
-                <span className={`px-2 py-1 text-xs font-bold ${JOB_TYPE_COLORS[job.jobType] || 'bg-gray-100 text-gray-700'}`}>
-                  {job.jobType}
-                </span>
+                <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>{job.jobType}</Badge>
               )}
               {isUrgent && (
-                <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-bold">
-                  <AlertCircle size={12} />
-                  URGENT
-                </span>
+                <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
               )}
             </div>
           </div>
 
           {/* Distance Badge */}
           {distance !== null && (
-            <div className="text-sm text-gray-600 mb-3 flex items-center gap-1">
+            <div className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
               <MapPin size={14} />
               <span>{formatDistance(distance)}</span>
             </div>
           )}
 
           {/* Description */}
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">{job.description}</p>
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{job.description}</p>
 
           {/* Date Info */}
-          <div className="space-y-2 mb-4 text-sm text-gray-600">
+          <div className="space-y-2 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar size={14} />
               <span>{startDate} - {endDate}</span>
@@ -163,21 +148,15 @@ export default function JobCard({
 
           {/* Tags */}
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-              {job.educationPhase}
-            </span>
-            <span className="px-2 py-1 text-xs font-bold text-gray-700 border border-gray-300">
-              {job.subject}
-            </span>
+            <Badge variant="outline">{job.educationPhase}</Badge>
+            <Badge variant="outline">{job.subject}</Badge>
             {job.tags.filter(t => t !== 'Urgent').map(tag => (
-              <span key={tag} className="px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded">
-                {tag}
-              </span>
+              <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
 
           {/* View Details Button */}
-          <div className="w-full py-2.5 px-4 font-bold transition-colors bg-[#2563eb] text-white hover:bg-[#1d4ed8] text-center mt-auto">
+          <div className="w-full py-2.5 px-4 font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/90 text-center mt-auto rounded-md">
             {applied ? 'View Application' : 'View Details'}
           </div>
         </div>

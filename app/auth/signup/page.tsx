@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/context/AuthContext';
 import { UserType } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -66,107 +69,107 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="inline-flex items-center justify-center gap-2 mb-6 w-full">
-          <div className="w-12 h-12 bg-[#2563eb] flex items-center justify-center">
+          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
             <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <span className="text-3xl font-bold text-[#1c1d1f]">TempEd</span>
+          <span className="text-3xl font-bold text-foreground">TempEd</span>
         </Link>
-        <h2 className="text-center text-2xl font-bold text-[#1c1d1f] mb-2">
+        <h2 className="text-center text-2xl font-bold text-foreground mb-2">
           Create Your TempEd Account
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         {emailSent ? (
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+          <div className="bg-card py-8 px-4 shadow sm:rounded-xl sm:px-10 text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-bold text-[#1c1d1f] mb-2">Check your email</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <h3 className="text-lg font-bold text-foreground mb-2">Check your email</h3>
+            <p className="text-sm text-muted-foreground mb-4">
               We&apos;ve sent a confirmation link to <span className="font-bold">{email}</span>. Please click the link in that email to verify your account before signing in.
             </p>
             <Link
               href="/auth/login"
-              className="inline-block w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors text-center"
+              className="inline-block w-full py-3 px-4 bg-primary text-white font-bold hover:bg-primary/90 transition-colors text-center"
             >
               Go to Sign In
             </Link>
           </div>
         ) : (
         <>
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-card py-8 px-4 shadow sm:rounded-xl sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
                 {error}
               </div>
             )}
 
             <div>
-              <label htmlFor="account-type" className="block text-sm font-bold text-[#1c1d1f] mb-2">
+              <Label htmlFor="account-type" className="font-bold">
                 I am a...
-              </label>
+              </Label>
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setAccountType('teacher')}
-                  className={`py-3 px-4 border-2 font-bold transition-colors ${
+                  className={`py-3 px-4 font-bold ${
                     accountType === 'teacher'
-                      ? 'border-[#1c1d1f] bg-gray-50 text-[#1c1d1f]'
-                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                      ? 'border-primary bg-primary/5 text-foreground ring-2 ring-primary/20'
+                      : 'border-border text-muted-foreground hover:border-muted-foreground'
                   }`}
                 >
                   Teacher
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setAccountType('school')}
-                  className={`py-3 px-4 border-2 font-bold transition-colors ${
+                  className={`py-3 px-4 font-bold ${
                     accountType === 'school'
-                      ? 'border-[#1c1d1f] bg-gray-50 text-[#1c1d1f]'
-                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                      ? 'border-primary bg-primary/5 text-foreground ring-2 ring-primary/20'
+                      : 'border-border text-muted-foreground hover:border-muted-foreground'
                   }`}
                 >
                   School
-                </button>
+                </Button>
               </div>
             </div>
 
             {accountType === 'teacher' ? (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                  <Label htmlFor="firstName" className="font-bold">
                     First Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="firstName"
                     type="text"
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                     placeholder="First name"
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                  <Label htmlFor="lastName" className="font-bold">
                     Last Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="lastName"
                     type="text"
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                     placeholder="Last name"
                   />
                 </div>
@@ -174,30 +177,28 @@ export default function SignupPage() {
             ) : (
               <>
                 <div>
-                  <label htmlFor="schoolName" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                  <Label htmlFor="schoolName" className="font-bold">
                     School Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="schoolName"
                     type="text"
                     required
                     value={schoolName}
                     onChange={(e) => setSchoolName(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                     placeholder="School name"
                   />
                 </div>
                 <div>
-                  <label htmlFor="emisNumber" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+                  <Label htmlFor="emisNumber" className="font-bold">
                     EMIS Number
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     id="emisNumber"
                     type="text"
                     required
                     value={emisNumber}
                     onChange={(e) => setEmisNumber(e.target.value)}
-                    className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                     placeholder="EMIS number"
                   />
                 </div>
@@ -205,10 +206,10 @@ export default function SignupPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+              <Label htmlFor="email" className="font-bold">
                 Email
-              </label>
-              <input
+              </Label>
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -216,17 +217,16 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
                 placeholder="Email"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-bold text-[#1c1d1f] mb-1">
+              <Label htmlFor="password" className="font-bold">
                 Password
-              </label>
+              </Label>
               <div className="relative">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
@@ -234,13 +234,13 @@ export default function SignupPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2.5 pr-10 border border-gray-300 rounded text-[#1c1d1f] placeholder-gray-400 focus:outline-none focus:border-[#1c1d1f] transition-colors"
+                  className="pr-10"
                   placeholder="Password (min 6 characters)"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -248,22 +248,19 @@ export default function SignupPage() {
             </div>
 
             <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
+              <Button className="w-full" disabled={isLoading}>
                 {isLoading ? 'Creating account...' : 'Sign up'}
-              </button>
+              </Button>
             </div>
           </form>
 
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <button
+          <div className="mt-4 pt-4 border-t border-border">
+            <Button
+              variant="outline"
+              className="w-full"
               type="button"
               onClick={handleGoogleSignup}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -284,14 +281,14 @@ export default function SignupPage() {
                 />
               </svg>
               Sign up with Google
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-[#2563eb] font-bold hover:text-[#1d4ed8]">
+            <Link href="/auth/login" className="text-primary font-bold hover:text-primary/90">
               Log in
             </Link>
           </p>

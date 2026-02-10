@@ -9,7 +9,12 @@ import { useUpdateJob } from '@/lib/hooks/useSchool';
 import { EducationPhase, JobType } from '@/types';
 import { subjectsByPhase } from '@/lib/data/subjects';
 import TagInput from '@/components/shared/TagInput';
+import { SELECT_CLASS } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function EditJobPage() {
   const params = useParams();
@@ -82,7 +87,7 @@ export default function EditJobPage() {
     return (
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8 flex items-center justify-center">
-          <Loader2 size={32} className="animate-spin text-gray-400" />
+          <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
       </DashboardLayout>
     );
@@ -93,7 +98,7 @@ export default function EditJobPage() {
       <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-gray-600">Job not found</p>
+            <p className="text-muted-foreground">Job not found</p>
           </div>
         </div>
       </DashboardLayout>
@@ -105,8 +110,8 @@ export default function EditJobPage() {
       <div className="p-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-[#1c1d1f] mb-2">Edit Job</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-foreground mb-2">Edit Job</h1>
+            <p className="text-muted-foreground">
               Update the details for this position
             </p>
           </div>
@@ -117,185 +122,180 @@ export default function EditJobPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="bg-white border border-gray-300 p-6 space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                Job Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                placeholder="e.g., Mathematics Teacher - Grade 10-12"
-              />
-            </div>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Job Title *
+                  </Label>
+                  <Input
+                    type="text"
+                    required
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="e.g., Mathematics Teacher - Grade 10-12"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                Job Description *
-              </label>
-              <textarea
-                required
-                rows={5}
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                placeholder="Describe the position, responsibilities, and any additional requirements..."
-              />
-            </div>
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Job Description *
+                  </Label>
+                  <Textarea
+                    required
+                    rows={5}
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe the position, responsibilities, and any additional requirements..."
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  Education Phase *
-                </label>
-                <select
-                  required
-                  value={formData.educationPhase}
-                  onChange={(e) => {
-                    const newPhase = e.target.value as EducationPhase;
-                    const categories = subjectsByPhase[newPhase] || [];
-                    const allSubjects = categories.flatMap(c => c.subjects);
-                    setFormData({
-                      ...formData,
-                      educationPhase: newPhase,
-                      subject: allSubjects.includes(formData.subject) ? formData.subject : '',
-                    });
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                >
-                  <option value="Foundation Phase">Foundation Phase</option>
-                  <option value="Primary">Primary</option>
-                  <option value="Secondary">Secondary</option>
-                  <option value="Tertiary">Tertiary</option>
-                </select>
-              </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="mb-2 font-bold">
+                      Education Phase *
+                    </Label>
+                    <select
+                      required
+                      value={formData.educationPhase}
+                      onChange={(e) => {
+                        const newPhase = e.target.value as EducationPhase;
+                        const categories = subjectsByPhase[newPhase] || [];
+                        const allSubjects = categories.flatMap(c => c.subjects);
+                        setFormData({
+                          ...formData,
+                          educationPhase: newPhase,
+                          subject: allSubjects.includes(formData.subject) ? formData.subject : '',
+                        });
+                      }}
+                      className={SELECT_CLASS}
+                    >
+                      <option value="Foundation Phase">Foundation Phase</option>
+                      <option value="Primary">Primary</option>
+                      <option value="Secondary">Secondary</option>
+                      <option value="Tertiary">Tertiary</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  Subject *
-                </label>
-                <select
-                  required
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                >
-                  <option value="">Select a subject</option>
-                  {(subjectsByPhase[formData.educationPhase] || []).map(cat => (
-                    <optgroup key={cat.category} label={cat.category}>
-                      {cat.subjects.map(s => (
-                        <option key={`${cat.category}-${s}`} value={s}>{s}</option>
+                  <div>
+                    <Label className="mb-2 font-bold">
+                      Subject *
+                    </Label>
+                    <select
+                      required
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className={SELECT_CLASS}
+                    >
+                      <option value="">Select a subject</option>
+                      {(subjectsByPhase[formData.educationPhase] || []).map(cat => (
+                        <optgroup key={cat.category} label={cat.category}>
+                          {cat.subjects.map(s => (
+                            <option key={`${cat.category}-${s}`} value={s}>{s}</option>
+                          ))}
+                        </optgroup>
                       ))}
-                    </optgroup>
-                  ))}
-                </select>
-              </div>
-            </div>
+                    </select>
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                Job Type *
-              </label>
-              <select
-                required
-                value={formData.jobType}
-                onChange={(e) => setFormData({ ...formData, jobType: e.target.value as JobType })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-              >
-                <option value="Permanent">Permanent</option>
-                <option value="Temporary">Temporary</option>
-                <option value="Invigilator">Invigilator</option>
-                <option value="Coach">Coach</option>
-              </select>
-            </div>
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Job Type *
+                  </Label>
+                  <select
+                    required
+                    value={formData.jobType}
+                    onChange={(e) => setFormData({ ...formData, jobType: e.target.value as JobType })}
+                    className={SELECT_CLASS}
+                  >
+                    <option value="Permanent">Permanent</option>
+                    <option value="Temporary">Temporary</option>
+                    <option value="Invigilator">Invigilator</option>
+                    <option value="Coach">Coach</option>
+                  </select>
+                </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  Start Date *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                />
-              </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="mb-2 font-bold">
+                      Start Date *
+                    </Label>
+                    <Input
+                      type="date"
+                      required
+                      value={formData.startDate}
+                      onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  End Date *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                />
-              </div>
+                  <div>
+                    <Label className="mb-2 font-bold">
+                      End Date *
+                    </Label>
+                    <Input
+                      type="date"
+                      required
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                  Application Deadline *
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.applicationDeadline}
-                  onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                />
-              </div>
-            </div>
+                  <div>
+                    <Label className="mb-2 font-bold">
+                      Application Deadline *
+                    </Label>
+                    <Input
+                      type="date"
+                      required
+                      value={formData.applicationDeadline}
+                      onChange={(e) => setFormData({ ...formData, applicationDeadline: e.target.value })}
+                    />
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                Required Qualifications *
-              </label>
-              <textarea
-                required
-                rows={3}
-                value={formData.requiredQualifications}
-                onChange={(e) => setFormData({ ...formData, requiredQualifications: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#1c1d1f]"
-                placeholder="e.g., Bachelor of Education in Mathematics, SACE registered"
-              />
-            </div>
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Required Qualifications *
+                  </Label>
+                  <Textarea
+                    required
+                    rows={3}
+                    value={formData.requiredQualifications}
+                    onChange={(e) => setFormData({ ...formData, requiredQualifications: e.target.value })}
+                    placeholder="e.g., Bachelor of Education in Mathematics, SACE registered"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-bold text-[#1c1d1f] mb-2">
-                Tags
-              </label>
-              <TagInput
-                value={formData.tags}
-                onChange={(tags) => setFormData({ ...formData, tags })}
-                placeholder="e.g., Urgent, CAPS, Grade 10"
-              />
-            </div>
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Tags
+                  </Label>
+                  <TagInput
+                    value={formData.tags}
+                    onChange={(tags) => setFormData({ ...formData, tags })}
+                    placeholder="e.g., Urgent, CAPS, Grade 10"
+                  />
+                </div>
 
-            <div className="pt-4 border-t border-gray-300 flex gap-3">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex-1 py-3 px-4 border border-gray-300 text-[#1c1d1f] font-bold hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={updating}
-                className="flex-1 py-3 px-4 bg-[#2563eb] text-white font-bold hover:bg-[#1d4ed8] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {updating && <Loader2 size={20} className="animate-spin" />}
-                {updating ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </form>
+                <div className="pt-4 border-t border-border flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => router.back()}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updating}
+                    className="flex-1"
+                  >
+                    {updating && <Loader2 size={20} className="animate-spin" />}
+                    {updating ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </form>
         </div>
       </div>
     </DashboardLayout>
