@@ -79,14 +79,14 @@ export default function SchoolDashboard() {
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Job Postings</h1>
               <p className="text-muted-foreground">
                 Manage your job listings and applications
               </p>
             </div>
-            <Button asChild>
+            <Button asChild className="w-fit">
               <Link href="/school/post-job">
                 <Plus size={20} />
                 Post New Job
@@ -119,9 +119,9 @@ export default function SchoolDashboard() {
 
                 return (
                   <div key={job.id} className="p-6 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="mb-4">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <h3 className="text-lg font-semibold text-foreground">
                             {job.title}
                           </h3>
@@ -137,7 +137,7 @@ export default function SchoolDashboard() {
                               const { success } = await updateJob(job.id, { progress: e.target.value });
                               if (success) refetch();
                             }}
-                            className={`ml-auto px-3 py-1 text-xs font-bold border rounded-md cursor-pointer focus:outline-none ${getProgressColor(job.progress)}`}
+                            className={`sm:ml-auto px-3 py-1 text-xs font-bold border rounded-md cursor-pointer focus:outline-none ${getProgressColor(job.progress)}`}
                           >
                             <option value="Open">Open</option>
                             <option value="Interviewing">Interviewing</option>
@@ -174,7 +174,7 @@ export default function SchoolDashboard() {
                       <Badge variant="outline">{job.subject}</Badge>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button size="sm" asChild>
                         <Link href={`/school/jobs/${job.id}/applicants`}>
                           <Users size={14} />

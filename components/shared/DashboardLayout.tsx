@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
+import { Briefcase, Menu } from 'lucide-react';
+import Link from 'next/link';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -23,6 +25,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -50,8 +53,28 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar links={sidebarLinks} userEmail={user.email} />
+      <Sidebar
+        links={sidebarLinks}
+        userEmail={user.email}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col overflow-auto">
+        {/* Mobile top bar */}
+        <div className="sticky top-0 z-40 md:hidden bg-card border-b border-border px-4 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Briefcase size={16} className="text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">TempEd</span>
+          </Link>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-md text-foreground hover:bg-muted transition-colors"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
         <main className="flex-1">
           {children}
         </main>

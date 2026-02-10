@@ -49,10 +49,10 @@ export default function SchoolProfilePage() {
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
-      <div className="py-8 px-12">
+      <div className="py-8 px-4 sm:px-6 lg:px-12">
         <div className="max-w-3xl">
           {/* Header Section */}
-          <div className="flex items-start gap-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">
             <div className="flex-shrink-0">
               <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {profilePicUrl ? (
@@ -95,7 +95,7 @@ export default function SchoolProfilePage() {
 
             {/* School Details */}
             <div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">School Type</h3>
                   <p className="text-sm text-foreground font-medium">{school.schoolType || 'Not specified'}</p>
@@ -182,7 +182,7 @@ export default function SchoolProfilePage() {
                   Loading stats...
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   <div>
                     <p className="text-2xl font-bold text-foreground">{jobs.length}</p>
                     <p className="text-sm text-muted-foreground font-medium">Total Posted</p>

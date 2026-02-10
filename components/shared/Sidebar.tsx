@@ -19,6 +19,7 @@ import {
   GraduationCap,
   School,
   PlusCircle,
+  X,
 } from 'lucide-react';
 
 interface SidebarLink {
@@ -30,6 +31,8 @@ interface SidebarLink {
 interface SidebarProps {
   links: SidebarLink[];
   userEmail?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const PP_CACHE_KEY = 'sidebar-profile-pic-path';
@@ -75,22 +78,27 @@ function useProfilePicturePath(): string | undefined {
   return path;
 }
 
-export default function Sidebar({ links, userEmail }: SidebarProps) {
+export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
   const profilePicPath = useProfilePicturePath();
   const profilePicUrl = useSignedUrl('profile-pictures', profilePicPath);
 
+  // Auto-close mobile drawer on route change
+  useEffect(() => {
+    onClose?.();
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleLogout = async () => {
     await logout();
     router.push('/auth/login');
   };
 
-  return (
-    <aside className="w-64 bg-card border-r border-border h-screen sticky top-0 flex flex-col">
+  const sidebarContent = (
+    <>
       {/* Logo Section */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-border flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
             <Briefcase size={18} className="text-white" />
@@ -99,6 +107,13 @@ export default function Sidebar({ links, userEmail }: SidebarProps) {
             TempEd
           </h1>
         </Link>
+        {/* Close button — mobile only */}
+        <button
+          onClick={onClose}
+          className="md:hidden w-8 h-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <X size={20} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -149,7 +164,31 @@ export default function Sidebar({ links, userEmail }: SidebarProps) {
           <span>Log out</span>
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex w-64 bg-card border-r border-border h-screen sticky top-0 flex-col">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile drawer overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={onClose}
+          />
+          {/* Drawer */}
+          <aside className="relative w-64 h-full bg-card flex flex-col shadow-xl animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 

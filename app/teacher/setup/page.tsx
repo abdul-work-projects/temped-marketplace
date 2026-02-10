@@ -456,7 +456,7 @@ export default function TeacherSetupPage() {
             <div>
               <h2 className="text-lg font-bold text-foreground mb-4">Profile Picture</h2>
               <div
-                className={`flex items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
+                className={`flex flex-col sm:flex-row items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
                   draggingPic ? 'border-primary bg-primary/5' : 'border-border'
                 }`}
                 onDragOver={(e) => { e.preventDefault(); setDraggingPic(true); }}
@@ -527,7 +527,7 @@ export default function TeacherSetupPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={`block text-sm font-bold mb-2 ${fieldErrors['firstName'] ? 'text-red-600' : 'text-foreground'}`}>
                     First Name * {fieldErrors['firstName'] && <span className="font-normal">— required</span>}
@@ -573,7 +573,7 @@ export default function TeacherSetupPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-foreground mb-2">Date of Birth</label>
                   <input
@@ -822,7 +822,7 @@ export default function TeacherSetupPage() {
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-title`] ? 'text-red-600' : 'text-muted-foreground'}`}>
                         Title {fieldErrors[`exp-${index}-title`] && <span className="font-normal">— required</span>}
@@ -851,7 +851,7 @@ export default function TeacherSetupPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-startDate`] ? 'text-red-600' : 'text-muted-foreground'}`}>
                         Start Date {fieldErrors[`exp-${index}-startDate`] && <span className="font-normal">— required</span>}
@@ -921,7 +921,7 @@ export default function TeacherSetupPage() {
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground mb-1">Name</label>
                       <input
@@ -942,7 +942,7 @@ export default function TeacherSetupPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground mb-1">Email</label>
                       <input
@@ -1225,7 +1225,7 @@ export default function TeacherSetupPage() {
 
       {/* Discord-style floating save bar */}
       <div
-        className={`fixed bottom-0 left-64 right-0 z-50 transition-all duration-300 ${
+        className={`fixed bottom-0 left-0 md:left-64 right-0 z-50 transition-all duration-300 ${
           hasChanges || saved ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
         }`}
       >

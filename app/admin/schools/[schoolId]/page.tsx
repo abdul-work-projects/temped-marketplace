@@ -122,7 +122,7 @@ export default function AdminSchoolDetail() {
 
   return (
     <div className="min-h-screen">
-      <div className="py-8 px-12">
+      <div className="py-8 px-4 sm:px-6 lg:px-12">
         <div className="max-w-3xl">
           {/* Back Button */}
           <Link
@@ -134,7 +134,7 @@ export default function AdminSchoolDetail() {
           </Link>
 
           {/* Header */}
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex flex-col sm:flex-row items-start justify-between mb-6 gap-4">
             <div className="flex items-start gap-4">
               <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center overflow-hidden">
                 {profilePicUrl ? (
@@ -320,7 +320,7 @@ export default function AdminSchoolDetail() {
 
           {/* Read-only Details */}
           <div>
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               <div>
                 <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">School Type</h3>
                 <p className="text-sm text-foreground font-medium">{school.schoolType || 'Not specified'}</p>

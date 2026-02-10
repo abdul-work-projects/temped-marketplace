@@ -183,8 +183,8 @@ export default function JobApplicantsPage() {
             Back to Job Postings
           </Link>
 
-          <div className="border border-border rounded-lg p-6 mb-6">
-              <div className="flex items-start justify-between">
+          <div className="border border-border rounded-lg p-4 sm:p-6 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
                   <h1 className="text-2xl font-bold text-foreground mb-2">{job.title}</h1>
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -218,7 +218,7 @@ export default function JobApplicantsPage() {
               </div>
           </div>
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 Applicants ({applicants.length})
@@ -230,11 +230,11 @@ export default function JobApplicantsPage() {
             <Button
               variant="outline"
               onClick={() => setShowShortlistedOnly(!showShortlistedOnly)}
-              className={
+              className={`w-fit flex-shrink-0 ${
                 showShortlistedOnly
                   ? 'bg-yellow-100 text-yellow-700 border-yellow-200 hover:bg-yellow-200 hover:text-yellow-700'
                   : ''
-              }
+              }`}
             >
               <Star size={16} fill={showShortlistedOnly ? 'currentColor' : 'none'} />
               {showShortlistedOnly ? 'Show All' : 'Shortlisted Only'}
@@ -276,15 +276,15 @@ export default function JobApplicantsPage() {
                           : ''
                     }`}
                   >
-                      <div className="flex gap-6">
+                      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                         {/* Profile Picture */}
                         <div className="flex-shrink-0">
                           <TeacherAvatar profilePicture={teacher.profilePicture} firstName={teacher.firstName} surname={teacher.surname} />
                         </div>
 
                         {/* Details */}
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
                             <div>
                               <h3 className="text-xl font-semibold text-foreground mb-1">
                                 {teacher.firstName} {teacher.surname}
@@ -321,7 +321,7 @@ export default function JobApplicantsPage() {
                             <p className="text-muted-foreground mb-4 line-clamp-2">{teacher.description}</p>
                           )}
 
-                          <div className="grid grid-cols-2 gap-4 mb-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                                 <GraduationCap size={16} />
@@ -391,7 +391,7 @@ export default function JobApplicantsPage() {
                             </div>
                           )}
 
-                          <div className="flex gap-3">
+                          <div className="flex flex-wrap gap-3">
                             {application.status === 'Hired' ? (
                               <>
                                 <Button

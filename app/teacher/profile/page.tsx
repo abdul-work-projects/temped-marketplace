@@ -64,10 +64,10 @@ export default function TeacherProfilePage() {
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
-      <div className="py-8 px-12">
+      <div className="py-8 px-4 sm:px-6 lg:px-12">
         <div className="max-w-3xl">
           {/* Header Section */}
-          <div className="flex items-start gap-6 mb-6">
+          <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {profilePicUrl ? (
@@ -316,7 +316,7 @@ export default function TeacherProfilePage() {
             {/* Verification Status */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-3">Verification Status</h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {docSummary.map(({ type, hasApproved, hasPending, latestRejection }) => {
                   const labels: Record<DocumentType, string> = {
                     cv: 'CV',
