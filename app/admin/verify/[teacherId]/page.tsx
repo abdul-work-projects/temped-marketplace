@@ -62,13 +62,20 @@ function DocStatusBadge({ status }: { status: string }) {
   );
 }
 
+const PDF_EXTENSIONS = ['.pdf'];
+
+function hasPdfExtension(fileName?: string, fileUrl?: string): boolean {
+  const name = (fileName || fileUrl || '').toLowerCase();
+  return PDF_EXTENSIONS.some(ext => name.endsWith(ext));
+}
+
 /** Small thumbnail for inline document display */
 function DocThumbnail({
   doc,
   onOpenLightbox,
 }: {
   doc: TeacherDocument;
-  onOpenLightbox: (src: string, alt: string) => void;
+  onOpenLightbox: (src: string, alt: string, fileName?: string) => void;
 }) {
   const signedUrl = useSignedUrl('documents', doc.fileUrl);
 
@@ -78,15 +85,27 @@ function DocThumbnail({
         src={signedUrl}
         alt={doc.fileName || DOC_LABELS[doc.documentType]}
         className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
-        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType])}
+        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
       />
+    );
+  }
+
+  if (hasPdfExtension(doc.fileName, doc.fileUrl) && signedUrl) {
+    return (
+      <button
+        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName || 'document.pdf')}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-red-500" />
+        <span className="text-[10px] text-red-600 font-medium">PDF</span>
+      </button>
     );
   }
 
   if (signedUrl) {
     return (
       <button
-        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType])}
+        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
         className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
       >
         <FileText className="w-6 h-6 text-muted-foreground" />
@@ -148,7 +167,7 @@ export default function AdminVerifyTeacherDetail() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
   const [showCompareModal, setShowCompareModal] = useState(false);
 
   const profilePicUrl = useSignedUrl('profile-pictures', teacher?.profilePicture);
@@ -162,7 +181,7 @@ export default function AdminVerifyTeacherDetail() {
     || documents.find(d => d.documentType === 'id_document');
   const canCompare = selfieDoc || idDoc;
 
-  const openLightbox = (src: string, alt: string) => setLightbox({ src, alt });
+  const openLightbox = (src: string, alt: string, fileName?: string) => setLightbox({ src, alt, fileName });
   const closeLightbox = () => setLightbox(null);
 
   const handleApprove = async (docId: string) => {
@@ -526,11 +545,12 @@ export default function AdminVerifyTeacherDetail() {
         </div>
       )}
 
-      {/* Lightbox Modal */}
+      {/* Lightbox / PDF Viewer Modal */}
       {lightbox && (
         <ImageLightbox
           src={lightbox.src}
           alt={lightbox.alt}
+          fileName={lightbox.fileName}
           open={true}
           onClose={closeLightbox}
         />
