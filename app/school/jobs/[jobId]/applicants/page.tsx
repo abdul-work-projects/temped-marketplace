@@ -494,7 +494,7 @@ export default function JobApplicantsPage() {
                               className={`text-sm text-muted-foreground mt-2 whitespace-pre-wrap ${
                                 expandedCoverLetters.has(application.id)
                                   ? ""
-                                  : "line-clamp-3"
+                                  : "line-clamp-2"
                               }`}
                             >
                               {application.coverLetter}

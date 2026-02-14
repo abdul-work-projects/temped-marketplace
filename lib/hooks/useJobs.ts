@@ -200,6 +200,7 @@ export function useWithdrawApplication() {
 export function useCheckApplication(jobId: string | undefined, teacherId: string | undefined) {
   const [applied, setApplied] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
@@ -212,13 +213,14 @@ export function useCheckApplication(jobId: string | undefined, teacherId: string
     try {
       const { data } = await supabaseRef.current
         .from('applications')
-        .select('id, status')
+        .select('id, status, cover_letter')
         .eq('job_id', jobId)
         .eq('teacher_id', teacherId)
         .maybeSingle();
 
       setApplied(!!data);
       setApplicationId(data?.id || null);
+      setCoverLetter((data?.cover_letter as string) || undefined);
     } catch {
       // prevent loading stuck
     } finally {
@@ -230,7 +232,7 @@ export function useCheckApplication(jobId: string | undefined, teacherId: string
     check();
   }, [check]);
 
-  return { applied, applicationId, loading, refetch: check };
+  return { applied, applicationId, coverLetter, loading, refetch: check };
 }
 
 export function useSchoolById(schoolId: string | undefined) {

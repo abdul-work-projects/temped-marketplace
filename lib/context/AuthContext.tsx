@@ -196,6 +196,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (authData.user) {
+      // If identities is empty, the email already exists (Supabase returns a
+      // fake success to prevent enumeration). Don't overwrite user state —
+      // the metadata in the response reflects the signup call, not the DB.
+      const identities = (authData.user as Record<string, unknown>).identities as unknown[] | undefined;
+      if (!identities || identities.length === 0) {
+        return { success: false, error: 'An account with this email already exists. Please log in instead.' };
+      }
+
       const userType = authData.user.user_metadata?.user_type as UserType | undefined;
       if (userType) {
         setUser({

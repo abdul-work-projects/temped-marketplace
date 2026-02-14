@@ -23,6 +23,9 @@ import {
   GraduationCap,
   Loader2,
   X,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -56,6 +59,7 @@ export default function JobDetailPage() {
   const { job, school, loading: jobLoading } = useJobDetail(jobId);
   const {
     applied,
+    coverLetter: existingCoverLetter,
     loading: checkLoading,
     refetch: refetchCheck,
   } = useCheckApplication(jobId, teacher?.id);
@@ -66,6 +70,7 @@ export default function JobDetailPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const [showFullCoverLetter, setShowFullCoverLetter] = useState(false);
 
   // Animate panel open/close
   const openPanel = () => {
@@ -314,6 +319,33 @@ export default function JobDetailPage() {
                 View Full School Profile &rarr;
               </Link>
             </div>
+
+            {/* Cover Letter (shown after applying) */}
+            {applied && existingCoverLetter && (
+              <div>
+                <div className="border border-border rounded-lg p-4 bg-muted/30">
+                  <button
+                    onClick={() => setShowFullCoverLetter(!showFullCoverLetter)}
+                    className="flex items-center gap-2 text-sm font-medium text-foreground w-full"
+                  >
+                    <FileText size={14} className="text-muted-foreground" />
+                    Your Cover Letter
+                    {showFullCoverLetter ? (
+                      <ChevronUp size={14} className="ml-auto text-muted-foreground" />
+                    ) : (
+                      <ChevronDown size={14} className="ml-auto text-muted-foreground" />
+                    )}
+                  </button>
+                  <p
+                    className={`text-sm text-muted-foreground mt-2 whitespace-pre-wrap ${
+                      showFullCoverLetter ? "" : "line-clamp-2"
+                    }`}
+                  >
+                    {existingCoverLetter}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Apply / Withdraw Button */}
             <div className="flex gap-4">
