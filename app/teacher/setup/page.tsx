@@ -1,27 +1,80 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import DashboardLayout from '@/components/shared/DashboardLayout';
-import { teacherSidebarLinks } from '@/components/shared/Sidebar';
-import { useAuth } from '@/lib/context/AuthContext';
-import { useTeacherProfile, useUpdateTeacher, useTeacherDocuments, useUploadDocument, useDeleteDocument } from '@/lib/hooks/useTeacher';
-import { EducationPhase, SportType, ArtsCultureType, Experience, Reference, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
-import { getVerificationSummary } from '@/lib/utils/verification';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { subjectsByPhase } from '@/lib/data/subjects';
+import { useState, useEffect, useRef } from "react";
+import DashboardLayout from "@/components/shared/DashboardLayout";
+import { teacherSidebarLinks } from "@/components/shared/Sidebar";
+import { useAuth } from "@/lib/context/AuthContext";
+import {
+  useTeacherProfile,
+  useUpdateTeacher,
+  useTeacherDocuments,
+  useUploadDocument,
+  useDeleteDocument,
+} from "@/lib/hooks/useTeacher";
+import {
+  EducationPhase,
+  SportType,
+  ArtsCultureType,
+  Experience,
+  Reference,
+  DocumentType,
+  REQUIRED_DOCUMENT_TYPES,
+} from "@/types";
+import { getVerificationSummary } from "@/lib/utils/verification";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { subjectsByPhase } from "@/lib/data/subjects";
 
-const SPORT_OPTIONS: SportType[] = ['Tennis', 'Rugby', 'Netball', 'Cricket', 'Table tennis', 'Soccer', 'Hockey', 'Athletics', 'Cross country', 'Other'];
-const ARTS_CULTURE_OPTIONS: ArtsCultureType[] = ['Drama', 'Debate', 'Choir', 'Other'];
-import { createClient } from '@/lib/supabase/client';
-import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
-import { Plus, Trash2, Loader2, ChevronDown, User, Camera, X, FileText, ShieldCheck, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import SelfieCapture from '@/components/shared/SelfieCapture';
-import ImageLightbox from '@/components/shared/ImageLightbox';
+const SPORT_OPTIONS: SportType[] = [
+  "Tennis",
+  "Rugby",
+  "Netball",
+  "Cricket",
+  "Table tennis",
+  "Soccer",
+  "Hockey",
+  "Athletics",
+  "Cross country",
+  "Other",
+];
+const ARTS_CULTURE_OPTIONS: ArtsCultureType[] = [
+  "Drama",
+  "Debate",
+  "Choir",
+  "Other",
+];
+import { createClient } from "@/lib/supabase/client";
+import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  ChevronDown,
+  User,
+  Camera,
+  X,
+  FileText,
+  ShieldCheck,
+  Info,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import SelfieCapture from "@/components/shared/SelfieCapture";
+import dynamic from "next/dynamic";
+const ImageLightbox = dynamic(
+  () => import("@/components/shared/ImageLightbox"),
+  { ssr: false }
+);
 
-function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fileName?: string; onExpand?: (url: string, fileName?: string) => void }) {
-  const url = useSignedUrl('documents', fileUrl);
-  const name = fileName || fileUrl || '';
+function SignedDocPreview({
+  fileUrl,
+  fileName,
+  onExpand,
+}: {
+  fileUrl: string;
+  fileName?: string;
+  onExpand?: (url: string, fileName?: string) => void;
+}) {
+  const url = useSignedUrl("documents", fileUrl);
+  const name = fileName || fileUrl || "";
   const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
   const isPdf = /\.pdf$/i.test(name);
   const [imgError, setImgError] = useState(false);
@@ -50,7 +103,7 @@ function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fi
     return (
       <button
         type="button"
-        onClick={() => onExpand?.(url, fileName || 'document.pdf')}
+        onClick={() => onExpand?.(url, fileName || "document.pdf")}
         className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
       >
         <FileText size={18} className="text-red-500" />
@@ -75,34 +128,41 @@ function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fi
 }
 
 const EDUCATION_PHASES: EducationPhase[] = [
-  'Foundation Phase',
-  'Primary',
-  'Secondary',
-  'Tertiary',
+  "Foundation Phase",
+  "Primary",
+  "Secondary",
+  "Tertiary",
 ];
 
 export default function TeacherSetupPage() {
   const { user } = useAuth();
-  const { teacher, experiences: existingExperiences, loading, refetch: refetchTeacher } = useTeacherProfile(user?.id);
+  const {
+    teacher,
+    experiences: existingExperiences,
+    loading,
+    refetch: refetchTeacher,
+  } = useTeacherProfile(user?.id);
   const { updateTeacher } = useUpdateTeacher();
   const [saving, setSaving] = useState(false);
   const { documents, refetch: refetchDocs } = useTeacherDocuments(teacher?.id);
   const { uploadDocument, uploading: uploadingDoc } = useUploadDocument();
   const { deleteDocument } = useDeleteDocument();
 
-  const [firstName, setFirstName] = useState('');
-  const [surname, setSurname] = useState('');
-  const [description, setDescription] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [description, setDescription] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [selectedPhases, setSelectedPhases] = useState<EducationPhase[]>([]);
   const [subjects, setSubjects] = useState<Record<string, string[]>>({});
   const [sports, setSports] = useState<Record<string, string[]>>({});
   const [artsCulture, setArtsCulture] = useState<Record<string, string[]>>({});
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState("");
   const [distanceRadius, setDistanceRadius] = useState(50);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [idNumber, setIdNumber] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+  const [idNumber, setIdNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [profilePicture, setProfilePicture] = useState<string[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
@@ -116,10 +176,19 @@ export default function TeacherSetupPage() {
   const supabaseRef = useRef(createClient());
   const [draggingPic, setDraggingPic] = useState(false);
   const [pendingPicFile, setPendingPicFile] = useState<File | null>(null);
-  const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(null);
+  const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(
+    null
+  );
   const [removedPic, setRemovedPic] = useState(false);
-  const [pendingDocs, setPendingDocs] = useState<Partial<Record<DocumentType, { file: File; preview: string; fileName: string }>>>({});
-  const [lightbox, setLightbox] = useState<{ src: string; fileName?: string } | null>(null);
+  const [pendingDocs, setPendingDocs] = useState<
+    Partial<
+      Record<DocumentType, { file: File; preview: string; fileName: string }>
+    >
+  >({});
+  const [lightbox, setLightbox] = useState<{
+    src: string;
+    fileName?: string;
+  } | null>(null);
   const [selfieModalOpen, setSelfieModalOpen] = useState(false);
   const [draggingDocType, setDraggingDocType] = useState<string | null>(null);
 
@@ -131,10 +200,13 @@ export default function TeacherSetupPage() {
   };
 
   // Signed URL for the saved profile picture (from DB)
-  const profilePicUrl = useSignedUrl('profile-pictures', profilePicture[0]);
+  const profilePicUrl = useSignedUrl("profile-pictures", profilePicture[0]);
   // Display URL: pending local preview takes priority over saved signed URL
-  const displayPicUrl = pendingPicPreview || (removedPic ? null : profilePicUrl);
-  const hasPic = pendingPicFile ? true : (!removedPic && profilePicture.length > 0);
+  const displayPicUrl =
+    pendingPicPreview || (removedPic ? null : profilePicUrl);
+  const hasPic = pendingPicFile
+    ? true
+    : !removedPic && profilePicture.length > 0;
 
   const handleProfilePicSelect = (file: File) => {
     if (file.size > 5 * 1024 * 1024) return;
@@ -156,7 +228,7 @@ export default function TeacherSetupPage() {
     // Revoke old preview if replacing
     const old = pendingDocs[type];
     if (old) URL.revokeObjectURL(old.preview);
-    setPendingDocs(prev => ({
+    setPendingDocs((prev) => ({
       ...prev,
       [type]: { file, preview: URL.createObjectURL(file), fileName: file.name },
     }));
@@ -165,7 +237,7 @@ export default function TeacherSetupPage() {
   const handleDocRemove = (type: DocumentType) => {
     const old = pendingDocs[type];
     if (old) URL.revokeObjectURL(old.preview);
-    setPendingDocs(prev => {
+    setPendingDocs((prev) => {
       const next = { ...prev };
       delete next[type];
       return next;
@@ -177,17 +249,17 @@ export default function TeacherSetupPage() {
     if (teacher) {
       setFirstName(teacher.firstName);
       setSurname(teacher.surname);
-      setDescription(teacher.description || '');
-      setDateOfBirth(teacher.dateOfBirth || '');
+      setDescription(teacher.description || "");
+      setDateOfBirth(teacher.dateOfBirth || "");
       setSelectedPhases(teacher.educationPhases);
       setSubjects(teacher.subjects || {});
       setSports(teacher.sports || {});
       setArtsCulture(teacher.artsCulture || {});
-      setAddress(teacher.address || '');
+      setAddress(teacher.address || "");
       setDistanceRadius(teacher.distanceRadius || 50);
       setLocation(teacher.location || null);
-      setIdNumber(teacher.idNumber || '');
-      setPhoneNumber(teacher.phoneNumber || '');
+      setIdNumber(teacher.idNumber || "");
+      setPhoneNumber(teacher.phoneNumber || "");
       setProfilePicture(teacher.profilePicture ? [teacher.profilePicture] : []);
       if (teacher.teacherReferences?.length > 0) {
         setReferences([...teacher.teacherReferences]);
@@ -204,23 +276,46 @@ export default function TeacherSetupPage() {
     const changed =
       firstName !== teacher.firstName ||
       surname !== teacher.surname ||
-      (description || '') !== (teacher.description || '') ||
-      (dateOfBirth || '') !== (teacher.dateOfBirth || '') ||
-      JSON.stringify(selectedPhases) !== JSON.stringify(teacher.educationPhases) ||
+      (description || "") !== (teacher.description || "") ||
+      (dateOfBirth || "") !== (teacher.dateOfBirth || "") ||
+      JSON.stringify(selectedPhases) !==
+        JSON.stringify(teacher.educationPhases) ||
       JSON.stringify(subjects) !== JSON.stringify(teacher.subjects || {}) ||
       JSON.stringify(sports) !== JSON.stringify(teacher.sports || {}) ||
-      JSON.stringify(artsCulture) !== JSON.stringify(teacher.artsCulture || {}) ||
-      (address || '') !== (teacher.address || '') ||
+      JSON.stringify(artsCulture) !==
+        JSON.stringify(teacher.artsCulture || {}) ||
+      (address || "") !== (teacher.address || "") ||
       distanceRadius !== (teacher.distanceRadius || 50) ||
-      (idNumber || '') !== (teacher.idNumber || '') ||
-      (phoneNumber || '') !== (teacher.phoneNumber || '') ||
+      (idNumber || "") !== (teacher.idNumber || "") ||
+      (phoneNumber || "") !== (teacher.phoneNumber || "") ||
       pendingPicFile !== null ||
       removedPic ||
       Object.keys(pendingDocs).length > 0 ||
-      JSON.stringify(references) !== JSON.stringify(teacher.teacherReferences || []) ||
+      JSON.stringify(references) !==
+        JSON.stringify(teacher.teacherReferences || []) ||
       JSON.stringify(experiences) !== JSON.stringify(existingExperiences);
     setHasChanges(changed);
-  }, [teacher, existingExperiences, firstName, surname, description, dateOfBirth, selectedPhases, subjects, sports, artsCulture, address, distanceRadius, idNumber, phoneNumber, pendingPicFile, removedPic, pendingDocs, references, experiences]);
+  }, [
+    teacher,
+    existingExperiences,
+    firstName,
+    surname,
+    description,
+    dateOfBirth,
+    selectedPhases,
+    subjects,
+    sports,
+    artsCulture,
+    address,
+    distanceRadius,
+    idNumber,
+    phoneNumber,
+    pendingPicFile,
+    removedPic,
+    pendingDocs,
+    references,
+    experiences,
+  ]);
 
   const docSummary = getVerificationSummary(documents);
 
@@ -230,16 +325,17 @@ export default function TeacherSetupPage() {
       surname,
       description,
       selectedPhases.length > 0,
-      Object.values(subjects).some(s => s.length > 0),
+      Object.values(subjects).some((s) => s.length > 0),
       address,
       idNumber,
       phoneNumber,
       hasPic,
       // Check each required doc type has at least one upload (saved or pending)
-      ...REQUIRED_DOCUMENT_TYPES.map(type =>
-        documents.some(d => d.documentType === type) || !!pendingDocs[type]
+      ...REQUIRED_DOCUMENT_TYPES.map(
+        (type) =>
+          documents.some((d) => d.documentType === type) || !!pendingDocs[type]
       ),
-      references.some(r => r.name && r.email),
+      references.some((r) => r.name && r.email),
     ];
     const completed = fields.filter(Boolean).length;
     return Math.round((completed / fields.length) * 100);
@@ -248,9 +344,9 @@ export default function TeacherSetupPage() {
   const completeness = calculateCompleteness();
 
   const handlePhaseToggle = (phase: EducationPhase) => {
-    setSelectedPhases(prev => {
+    setSelectedPhases((prev) => {
       if (prev.includes(phase)) {
-        const newPhases = prev.filter(p => p !== phase);
+        const newPhases = prev.filter((p) => p !== phase);
         // Remove subjects/sports/artsCulture for deselected phase
         const newSubjects = { ...subjects };
         delete newSubjects[phase];
@@ -268,65 +364,76 @@ export default function TeacherSetupPage() {
   };
 
   const handleSubjectToggle = (phase: string, subject: string) => {
-    setSubjects(prev => {
+    setSubjects((prev) => {
       const phaseSubjects = prev[phase] || [];
       if (phaseSubjects.includes(subject)) {
-        return { ...prev, [phase]: phaseSubjects.filter(s => s !== subject) };
+        return { ...prev, [phase]: phaseSubjects.filter((s) => s !== subject) };
       }
       return { ...prev, [phase]: [...phaseSubjects, subject] };
     });
   };
 
   const handleSportToggle = (phase: string, sport: string) => {
-    setSports(prev => {
+    setSports((prev) => {
       const phaseSports = prev[phase] || [];
       if (phaseSports.includes(sport)) {
-        return { ...prev, [phase]: phaseSports.filter(s => s !== sport) };
+        return { ...prev, [phase]: phaseSports.filter((s) => s !== sport) };
       }
       return { ...prev, [phase]: [...phaseSports, sport] };
     });
   };
 
   const handleArtsCultureToggle = (phase: string, item: string) => {
-    setArtsCulture(prev => {
+    setArtsCulture((prev) => {
       const phaseArts = prev[phase] || [];
       if (phaseArts.includes(item)) {
-        return { ...prev, [phase]: phaseArts.filter(s => s !== item) };
+        return { ...prev, [phase]: phaseArts.filter((s) => s !== item) };
       }
       return { ...prev, [phase]: [...phaseArts, item] };
     });
   };
 
   const addExperience = () => {
-    setExperiences(prev => [...prev, {
-      id: `exp-${Date.now()}`,
-      title: '',
-      company: '',
-      startDate: '',
-      endDate: '',
-      description: '',
-    }]);
+    setExperiences((prev) => [
+      ...prev,
+      {
+        id: `exp-${Date.now()}`,
+        title: "",
+        company: "",
+        startDate: "",
+        endDate: "",
+        description: "",
+      },
+    ]);
   };
 
   const removeExperience = (index: number) => {
-    setExperiences(prev => prev.filter((_, i) => i !== index));
+    setExperiences((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const updateExperience = (index: number, field: keyof Experience, value: string) => {
-    setExperiences(prev => prev.map((exp, i) =>
-      i === index ? { ...exp, [field]: value } : exp
-    ));
+  const updateExperience = (
+    index: number,
+    field: keyof Experience,
+    value: string
+  ) => {
+    setExperiences((prev) =>
+      prev.map((exp, i) => (i === index ? { ...exp, [field]: value } : exp))
+    );
   };
 
-  const updateReference = (index: number, field: keyof Reference, value: string) => {
-    setReferences(prev => prev.map((ref, i) =>
-      i === index ? { ...ref, [field]: value } : ref
-    ));
+  const updateReference = (
+    index: number,
+    field: keyof Reference,
+    value: string
+  ) => {
+    setReferences((prev) =>
+      prev.map((ref, i) => (i === index ? { ...ref, [field]: value } : ref))
+    );
   };
 
   const clearFieldError = (key: string) => {
     if (!fieldErrors[key]) return;
-    setFieldErrors(prev => {
+    setFieldErrors((prev) => {
       const next = { ...prev };
       delete next[key];
       if (Object.keys(next).length === 0) setFormError(null);
@@ -342,12 +449,17 @@ export default function TeacherSetupPage() {
 
     // Validate required fields
     const errors: Record<string, boolean> = {};
-    if (!firstName.trim()) errors['firstName'] = true;
-    if (!surname.trim()) errors['surname'] = true;
+    if (!firstName.trim()) errors["firstName"] = true;
+    if (!surname.trim()) errors["surname"] = true;
 
     // For experiences: if any field is filled, title + company + startDate are required
     experiences.forEach((exp, i) => {
-      const hasAnyField = exp.title || exp.company || exp.startDate || exp.endDate || exp.description;
+      const hasAnyField =
+        exp.title ||
+        exp.company ||
+        exp.startDate ||
+        exp.endDate ||
+        exp.description;
       if (hasAnyField) {
         if (!exp.title) errors[`exp-${i}-title`] = true;
         if (!exp.company) errors[`exp-${i}-company`] = true;
@@ -357,90 +469,108 @@ export default function TeacherSetupPage() {
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setFormError('Please fix the errors in the form before saving.');
+      setFormError("Please fix the errors in the form before saving.");
       return;
     }
 
     setSaving(true);
 
     try {
-    let picPath = profilePicture[0] || null;
+      let picPath = profilePicture[0] || null;
 
-    // Handle profile picture removal
-    if (removedPic && profilePicture[0]) {
-      const oldPath = extractPath(profilePicture[0], 'profile-pictures');
-      await supabaseRef.current.storage.from('profile-pictures').remove([oldPath]);
-      picPath = null;
-    }
-
-    // Handle new profile picture upload
-    if (pendingPicFile) {
-      // Delete old picture from storage if replacing
-      if (profilePicture[0]) {
-        const oldPath = extractPath(profilePicture[0], 'profile-pictures');
-        await supabaseRef.current.storage.from('profile-pictures').remove([oldPath]);
+      // Handle profile picture removal
+      if (removedPic && profilePicture[0]) {
+        const oldPath = extractPath(profilePicture[0], "profile-pictures");
+        await supabaseRef.current.storage
+          .from("profile-pictures")
+          .remove([oldPath]);
+        picPath = null;
       }
-      const ext = pendingPicFile.name.split('.').pop();
-      const fileName = `${Date.now()}.${ext}`;
-      const filePath = `${user?.id}/${fileName}`;
-      const { error } = await supabaseRef.current.storage
-        .from('profile-pictures')
-        .upload(filePath, pendingPicFile);
-      if (!error) {
-        picPath = filePath;
+
+      // Handle new profile picture upload
+      if (pendingPicFile) {
+        // Delete old picture from storage if replacing
+        if (profilePicture[0]) {
+          const oldPath = extractPath(profilePicture[0], "profile-pictures");
+          await supabaseRef.current.storage
+            .from("profile-pictures")
+            .remove([oldPath]);
+        }
+        const ext = pendingPicFile.name.split(".").pop();
+        const fileName = `${Date.now()}.${ext}`;
+        const filePath = `${user?.id}/${fileName}`;
+        const { error } = await supabaseRef.current.storage
+          .from("profile-pictures")
+          .upload(filePath, pendingPicFile);
+        if (!error) {
+          picPath = filePath;
+        }
       }
-    }
 
-    const updates = {
-      first_name: firstName,
-      surname: surname,
-      description: description || null,
-      date_of_birth: dateOfBirth || null,
-      education_phases: selectedPhases,
-      subjects: subjects,
-      sports: sports,
-      arts_culture: artsCulture,
-      address: address || null,
-      location: location,
-      distance_radius: distanceRadius,
-      id_number: idNumber || null,
-      phone_number: phoneNumber || null,
-      profile_picture: picPath,
-      teacher_references: references.filter(r => r.name || r.email),
-      profile_completeness: completeness,
-    };
+      const updates = {
+        first_name: firstName,
+        surname: surname,
+        description: description || null,
+        date_of_birth: dateOfBirth || null,
+        education_phases: selectedPhases,
+        subjects: subjects,
+        sports: sports,
+        arts_culture: artsCulture,
+        address: address || null,
+        location: location,
+        distance_radius: distanceRadius,
+        id_number: idNumber || null,
+        phone_number: phoneNumber || null,
+        profile_picture: picPath,
+        teacher_references: references.filter((r) => r.name || r.email),
+        profile_completeness: completeness,
+      };
 
-    const success = await updateTeacher(teacher.id, updates, experiences.filter(e => e.title && e.company && e.startDate));
-    if (!success) { setSaving(false); return; }
-
-    // Upload pending documents to storage + insert rows
-    for (const [docType, pending] of Object.entries(pendingDocs)) {
-      const ext = pending.file.name.split('.').pop();
-      const fileName = `${docType}-${Date.now()}.${ext}`;
-      const filePath = `${user?.id}/${fileName}`;
-      const { error: uploadErr } = await supabaseRef.current.storage
-        .from('documents')
-        .upload(filePath, pending.file);
-      if (!uploadErr) {
-        await uploadDocument(teacher.id, docType as DocumentType, filePath, pending.fileName);
+      const success = await updateTeacher(
+        teacher.id,
+        updates,
+        experiences.filter((e) => e.title && e.company && e.startDate)
+      );
+      if (!success) {
+        setSaving(false);
+        return;
       }
-    }
 
-    // Drop empty experience rows so local state matches what was saved
-    setExperiences(prev => prev.filter(e => e.title || e.company || e.startDate));
+      // Upload pending documents to storage + insert rows
+      for (const [docType, pending] of Object.entries(pendingDocs)) {
+        const ext = pending.file.name.split(".").pop();
+        const fileName = `${docType}-${Date.now()}.${ext}`;
+        const filePath = `${user?.id}/${fileName}`;
+        const { error: uploadErr } = await supabaseRef.current.storage
+          .from("documents")
+          .upload(filePath, pending.file);
+        if (!uploadErr) {
+          await uploadDocument(
+            teacher.id,
+            docType as DocumentType,
+            filePath,
+            pending.fileName
+          );
+        }
+      }
 
-    // Clean up pending state
-    if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
-    Object.values(pendingDocs).forEach(p => URL.revokeObjectURL(p.preview));
-    setPendingPicFile(null);
-    setPendingPicPreview(null);
-    setRemovedPic(false);
-    setPendingDocs({});
-    setSaved(true);
-    setHasChanges(false);
-    refetchTeacher();
-    refetchDocs();
-    setTimeout(() => setSaved(false), 3000);
+      // Drop empty experience rows so local state matches what was saved
+      setExperiences((prev) =>
+        prev.filter((e) => e.title || e.company || e.startDate)
+      );
+
+      // Clean up pending state
+      if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
+      Object.values(pendingDocs).forEach((p) => URL.revokeObjectURL(p.preview));
+      setPendingPicFile(null);
+      setPendingPicPreview(null);
+      setRemovedPic(false);
+      setPendingDocs({});
+      setSaved(true);
+      setHasChanges(false);
+      refetchTeacher();
+      refetchDocs();
+      setTimeout(() => setSaved(false), 3000);
     } finally {
       setSaving(false);
     }
@@ -448,7 +578,10 @@ export default function TeacherSetupPage() {
 
   if (loading) {
     return (
-      <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
+      <DashboardLayout
+        sidebarLinks={teacherSidebarLinks}
+        requiredUserType="teacher"
+      >
         <div className="flex items-center justify-center h-64">
           <Loader2 className="animate-spin" size={32} />
         </div>
@@ -457,19 +590,30 @@ export default function TeacherSetupPage() {
   }
 
   return (
-    <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
+    <DashboardLayout
+      sidebarLinks={teacherSidebarLinks}
+      requiredUserType="teacher"
+    >
       <div className="p-8 pb-24">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Profile Setup</h1>
-            <p className="text-muted-foreground">Complete your profile to start applying for jobs</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Profile Setup
+            </h1>
+            <p className="text-muted-foreground">
+              Complete your profile to start applying for jobs
+            </p>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-muted-foreground">Profile Completeness</span>
-              <span className="text-sm font-bold text-primary">{completeness}%</span>
+              <span className="text-sm font-bold text-muted-foreground">
+                Profile Completeness
+              </span>
+              <span className="text-sm font-bold text-primary">
+                {completeness}%
+              </span>
             </div>
             <div className="w-full bg-muted h-3">
               <div
@@ -479,21 +623,32 @@ export default function TeacherSetupPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="divide-y divide-border [&>*]:pt-6 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="divide-y divide-border [&>*]:pt-6 space-y-6"
+          >
             {/* Section 1: Profile Picture */}
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">Profile Picture</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                Profile Picture
+              </h2>
               <div
                 className={`flex flex-col sm:flex-row items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingPic ? 'border-primary bg-primary/5' : 'border-border'
+                  draggingPic ? "border-primary bg-primary/5" : "border-border"
                 }`}
-                onDragOver={(e) => { e.preventDefault(); setDraggingPic(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDraggingPic(true);
+                }}
                 onDragLeave={() => setDraggingPic(false)}
                 onDrop={(e) => {
                   e.preventDefault();
                   setDraggingPic(false);
                   const file = e.dataTransfer.files?.[0];
-                  if (file && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+                  if (
+                    file &&
+                    (file.type === "image/jpeg" || file.type === "image/png")
+                  ) {
                     handleProfilePicSelect(file);
                   }
                 }}
@@ -509,7 +664,10 @@ export default function TeacherSetupPage() {
                         />
                       ) : (
                         <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center">
-                          <Loader2 size={24} className="animate-spin text-muted-foreground" />
+                          <Loader2
+                            size={24}
+                            className="animate-spin text-muted-foreground"
+                          />
                         </div>
                       )}
                       <button
@@ -533,9 +691,11 @@ export default function TeacherSetupPage() {
                     onClick={() => profilePicInputRef.current?.click()}
                   >
                     <Camera size={16} />
-                    {hasPic ? 'Change Photo' : 'Upload Photo'}
+                    {hasPic ? "Change Photo" : "Upload Photo"}
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Drag & drop or click to upload. JPG or PNG, max 5MB
+                  </p>
                 </div>
                 <input
                   ref={profilePicInputRef}
@@ -545,7 +705,7 @@ export default function TeacherSetupPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleProfilePicSelect(file);
-                    e.target.value = '';
+                    e.target.value = "";
                   }}
                 />
               </div>
@@ -553,32 +713,62 @@ export default function TeacherSetupPage() {
 
             {/* Section 2: Personal Information */}
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">Personal Information</h2>
+              <h2 className="text-lg font-bold text-foreground">
+                Personal Information
+              </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['firstName'] ? 'text-red-600' : 'text-foreground'}`}>
-                    First Name * {fieldErrors['firstName'] && <span className="font-normal">— required</span>}
+                  <label
+                    className={`block text-sm font-bold mb-2 ${
+                      fieldErrors["firstName"]
+                        ? "text-red-600"
+                        : "text-foreground"
+                    }`}
+                  >
+                    First Name *{" "}
+                    {fieldErrors["firstName"] && (
+                      <span className="font-normal">— required</span>
+                    )}
                   </label>
                   <input
                     type="text"
                     value={firstName}
-                    onChange={(e) => { setFirstName(e.target.value); clearFieldError('firstName'); }}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      clearFieldError("firstName");
+                    }}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
-                      fieldErrors['firstName'] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                      fieldErrors["firstName"]
+                        ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                        : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     }`}
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-bold mb-2 ${fieldErrors['surname'] ? 'text-red-600' : 'text-foreground'}`}>
-                    Last Name * {fieldErrors['surname'] && <span className="font-normal">— required</span>}
+                  <label
+                    className={`block text-sm font-bold mb-2 ${
+                      fieldErrors["surname"]
+                        ? "text-red-600"
+                        : "text-foreground"
+                    }`}
+                  >
+                    Last Name *{" "}
+                    {fieldErrors["surname"] && (
+                      <span className="font-normal">— required</span>
+                    )}
                   </label>
                   <input
                     type="text"
                     value={surname}
-                    onChange={(e) => { setSurname(e.target.value); clearFieldError('surname'); }}
+                    onChange={(e) => {
+                      setSurname(e.target.value);
+                      clearFieldError("surname");
+                    }}
                     className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
-                      fieldErrors['surname'] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                      fieldErrors["surname"]
+                        ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                        : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     }`}
                   />
                 </div>
@@ -603,7 +793,9 @@ export default function TeacherSetupPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">Date of Birth</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">
+                    Date of Birth
+                  </label>
                   <input
                     type="date"
                     value={dateOfBirth}
@@ -612,7 +804,9 @@ export default function TeacherSetupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-foreground mb-2">ID Number</label>
+                  <label className="block text-sm font-bold text-foreground mb-2">
+                    ID Number
+                  </label>
                   <input
                     type="text"
                     value={idNumber}
@@ -624,7 +818,9 @@ export default function TeacherSetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">Phone Number</label>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  Phone Number
+                </label>
                 <input
                   type="tel"
                   value={phoneNumber}
@@ -635,7 +831,9 @@ export default function TeacherSetupPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-foreground mb-2">Address</label>
+                <label className="block text-sm font-bold text-foreground mb-2">
+                  Address
+                </label>
                 <AddressAutocomplete
                   value={address}
                   onChange={setAddress}
@@ -651,7 +849,10 @@ export default function TeacherSetupPage() {
                 <label className="flex items-center gap-2 text-sm font-bold text-foreground mb-2">
                   Distance Radius: {distanceRadius}km
                   <span className="relative group">
-                    <Info size={14} className="text-muted-foreground cursor-help" />
+                    <Info
+                      size={14}
+                      className="text-muted-foreground cursor-help"
+                    />
                     <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-foreground text-white text-xs rounded-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity">
                       Maximum distance you&apos;re willing to travel to a school
                     </span>
@@ -675,23 +876,39 @@ export default function TeacherSetupPage() {
 
             {/* Section 3: Education Phases */}
             <div className="space-y-3">
-              <h2 className="text-lg font-bold text-foreground">Education Phases *</h2>
-              <p className="text-sm text-muted-foreground">Select the phases you teach, then choose your subjects, sports, and arts &amp; culture for each.</p>
+              <h2 className="text-lg font-bold text-foreground">
+                Education Phases *
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Select the phases you teach, then choose your subjects, sports,
+                and arts &amp; culture for each.
+              </p>
 
-              {EDUCATION_PHASES.map(phase => {
+              {EDUCATION_PHASES.map((phase) => {
                 const isSelected = selectedPhases.includes(phase);
                 const isOpen = openPhases[phase] || false;
                 const categories = subjectsByPhase[phase] || [];
-                const academicCat = categories.find(c => c.category === 'Academic');
-                const coachingCat = categories.find(c => c.category === 'Coaching');
-                const artsCat = categories.find(c => c.category === 'Arts & Culture');
+                const academicCat = categories.find(
+                  (c) => c.category === "Academic"
+                );
+                const coachingCat = categories.find(
+                  (c) => c.category === "Coaching"
+                );
+                const artsCat = categories.find(
+                  (c) => c.category === "Arts & Culture"
+                );
                 const selectedCount =
                   (subjects[phase]?.length || 0) +
                   (sports[phase]?.length || 0) +
                   (artsCulture[phase]?.length || 0);
 
                 return (
-                  <div key={phase} className={`border-2 rounded-lg overflow-hidden transition-colors ${isSelected ? 'border-primary' : 'border-border'}`}>
+                  <div
+                    key={phase}
+                    className={`border-2 rounded-lg overflow-hidden transition-colors ${
+                      isSelected ? "border-primary" : "border-border"
+                    }`}
+                  >
                     {/* Phase header */}
                     <div
                       role="button"
@@ -699,25 +916,51 @@ export default function TeacherSetupPage() {
                       onClick={() => {
                         if (!isSelected) {
                           handlePhaseToggle(phase);
-                          setOpenPhases(prev => ({ ...prev, [phase]: true }));
+                          setOpenPhases((prev) => ({ ...prev, [phase]: true }));
                         } else {
-                          setOpenPhases(prev => ({ ...prev, [phase]: !prev[phase] }));
+                          setOpenPhases((prev) => ({
+                            ...prev,
+                            [phase]: !prev[phase],
+                          }));
                         }
                       }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
-                      className={`w-full flex items-center justify-between p-4 text-left cursor-pointer transition-colors ${isSelected ? 'bg-primary/5' : 'bg-card hover:bg-muted/50'}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.currentTarget.click();
+                        }
+                      }}
+                      className={`w-full flex items-center justify-between p-4 text-left cursor-pointer transition-colors ${
+                        isSelected
+                          ? "bg-primary/5"
+                          : "bg-card hover:bg-muted/50"
+                      }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 ${
-                          isSelected ? 'bg-primary border-primary' : 'border-muted-foreground'
-                        }`}>
+                        <div
+                          className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 ${
+                            isSelected
+                              ? "bg-primary border-primary"
+                              : "border-muted-foreground"
+                          }`}
+                        >
                           {isSelected && (
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           )}
                         </div>
-                        <span className="text-sm font-bold text-foreground">{phase}</span>
+                        <span className="text-sm font-bold text-foreground">
+                          {phase}
+                        </span>
                         {isSelected && selectedCount > 0 && (
                           <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">
                             {selectedCount} selected
@@ -731,7 +974,10 @@ export default function TeacherSetupPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePhaseToggle(phase);
-                              setOpenPhases(prev => ({ ...prev, [phase]: false }));
+                              setOpenPhases((prev) => ({
+                                ...prev,
+                                [phase]: false,
+                              }));
                             }}
                             className="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1"
                           >
@@ -741,7 +987,9 @@ export default function TeacherSetupPage() {
                         {isSelected && (
                           <ChevronDown
                             size={18}
-                            className={`text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                            className={`text-muted-foreground transition-transform ${
+                              isOpen ? "rotate-180" : ""
+                            }`}
                           />
                         )}
                       </div>
@@ -753,19 +1001,25 @@ export default function TeacherSetupPage() {
                         {/* Subjects */}
                         {academicCat && (
                           <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Subjects</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                              Subjects
+                            </p>
                             <div className="flex flex-wrap gap-2">
-                              {academicCat.subjects.map(subject => {
-                                const isSubSelected = (subjects[phase] || []).includes(subject);
+                              {academicCat.subjects.map((subject) => {
+                                const isSubSelected = (
+                                  subjects[phase] || []
+                                ).includes(subject);
                                 return (
                                   <button
                                     key={subject}
                                     type="button"
-                                    onClick={() => handleSubjectToggle(phase, subject)}
+                                    onClick={() =>
+                                      handleSubjectToggle(phase, subject)
+                                    }
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isSubSelected
-                                        ? 'bg-foreground text-background border-foreground'
-                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
+                                        ? "bg-foreground text-background border-foreground"
+                                        : "bg-card text-muted-foreground border-border hover:border-muted-foreground"
                                     }`}
                                   >
                                     {subject}
@@ -779,19 +1033,25 @@ export default function TeacherSetupPage() {
                         {/* Sports */}
                         {coachingCat && (
                           <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Sports / Coaching</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                              Sports / Coaching
+                            </p>
                             <div className="flex flex-wrap gap-2">
-                              {coachingCat.subjects.map(sport => {
-                                const isSportSelected = (sports[phase] || []).includes(sport);
+                              {coachingCat.subjects.map((sport) => {
+                                const isSportSelected = (
+                                  sports[phase] || []
+                                ).includes(sport);
                                 return (
                                   <button
                                     key={sport}
                                     type="button"
-                                    onClick={() => handleSportToggle(phase, sport)}
+                                    onClick={() =>
+                                      handleSportToggle(phase, sport)
+                                    }
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isSportSelected
-                                        ? 'bg-green-700 text-white border-green-700'
-                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
+                                        ? "bg-green-700 text-white border-green-700"
+                                        : "bg-card text-muted-foreground border-border hover:border-muted-foreground"
                                     }`}
                                   >
                                     {sport}
@@ -805,19 +1065,25 @@ export default function TeacherSetupPage() {
                         {/* Arts & Culture */}
                         {artsCat && (
                           <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Arts &amp; Culture</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                              Arts &amp; Culture
+                            </p>
                             <div className="flex flex-wrap gap-2">
-                              {artsCat.subjects.map(item => {
-                                const isArtSelected = (artsCulture[phase] || []).includes(item);
+                              {artsCat.subjects.map((item) => {
+                                const isArtSelected = (
+                                  artsCulture[phase] || []
+                                ).includes(item);
                                 return (
                                   <button
                                     key={item}
                                     type="button"
-                                    onClick={() => handleArtsCultureToggle(phase, item)}
+                                    onClick={() =>
+                                      handleArtsCultureToggle(phase, item)
+                                    }
                                     className={`px-3 py-1.5 text-xs font-medium border rounded-full transition-colors ${
                                       isArtSelected
-                                        ? 'bg-purple-700 text-white border-purple-700'
-                                        : 'bg-card text-muted-foreground border-border hover:border-muted-foreground'
+                                        ? "bg-purple-700 text-white border-purple-700"
+                                        : "bg-card text-muted-foreground border-border hover:border-muted-foreground"
                                     }`}
                                   >
                                     {item}
@@ -837,7 +1103,9 @@ export default function TeacherSetupPage() {
             {/* Section 4: Teaching Experience */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-foreground">Teaching Experience</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  Teaching Experience
+                </h2>
                 <Button
                   type="button"
                   variant="outline"
@@ -850,9 +1118,14 @@ export default function TeacherSetupPage() {
               </div>
 
               {experiences.map((exp, index) => (
-                <div key={exp.id} className="border border-border rounded-lg p-4 space-y-3">
+                <div
+                  key={exp.id}
+                  className="border border-border rounded-lg p-4 space-y-3"
+                >
                   <div className="flex justify-between items-start">
-                    <span className="text-sm font-bold text-muted-foreground">Experience #{index + 1}</span>
+                    <span className="text-sm font-bold text-muted-foreground">
+                      Experience #{index + 1}
+                    </span>
                     <button
                       type="button"
                       onClick={() => removeExperience(index)}
@@ -863,65 +1136,113 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-title`] ? 'text-red-600' : 'text-muted-foreground'}`}>
-                        Title {fieldErrors[`exp-${index}-title`] && <span className="font-normal">— required</span>}
+                      <label
+                        className={`block text-xs font-bold mb-1 ${
+                          fieldErrors[`exp-${index}-title`]
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        Title{" "}
+                        {fieldErrors[`exp-${index}-title`] && (
+                          <span className="font-normal">— required</span>
+                        )}
                       </label>
                       <input
                         type="text"
                         value={exp.title}
-                        onChange={(e) => { updateExperience(index, 'title', e.target.value); clearFieldError(`exp-${index}-title`); }}
+                        onChange={(e) => {
+                          updateExperience(index, "title", e.target.value);
+                          clearFieldError(`exp-${index}-title`);
+                        }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
-                          fieldErrors[`exp-${index}-title`] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                          fieldErrors[`exp-${index}-title`]
+                            ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                            : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         }`}
                         placeholder="e.g., Mathematics Teacher"
                       />
                     </div>
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-company`] ? 'text-red-600' : 'text-muted-foreground'}`}>
-                        School/Company {fieldErrors[`exp-${index}-company`] && <span className="font-normal">— required</span>}
+                      <label
+                        className={`block text-xs font-bold mb-1 ${
+                          fieldErrors[`exp-${index}-company`]
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        School/Company{" "}
+                        {fieldErrors[`exp-${index}-company`] && (
+                          <span className="font-normal">— required</span>
+                        )}
                       </label>
                       <input
                         type="text"
                         value={exp.company}
-                        onChange={(e) => { updateExperience(index, 'company', e.target.value); clearFieldError(`exp-${index}-company`); }}
+                        onChange={(e) => {
+                          updateExperience(index, "company", e.target.value);
+                          clearFieldError(`exp-${index}-company`);
+                        }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
-                          fieldErrors[`exp-${index}-company`] ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]' : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                          fieldErrors[`exp-${index}-company`]
+                            ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                            : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         }`}
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className={`block text-xs font-bold mb-1 ${fieldErrors[`exp-${index}-startDate`] ? 'text-red-600' : 'text-muted-foreground'}`}>
-                        Start Date {fieldErrors[`exp-${index}-startDate`] && <span className="font-normal">— required</span>}
+                      <label
+                        className={`block text-xs font-bold mb-1 ${
+                          fieldErrors[`exp-${index}-startDate`]
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        Start Date{" "}
+                        {fieldErrors[`exp-${index}-startDate`] && (
+                          <span className="font-normal">— required</span>
+                        )}
                       </label>
                       <input
                         type="date"
                         value={exp.startDate}
-                        onChange={(e) => { updateExperience(index, 'startDate', e.target.value); clearFieldError(`exp-${index}-startDate`); }}
+                        onChange={(e) => {
+                          updateExperience(index, "startDate", e.target.value);
+                          clearFieldError(`exp-${index}-startDate`);
+                        }}
                         className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
                           fieldErrors[`exp-${index}-startDate`]
-                            ? 'border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]'
-                            : 'border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]'
+                            ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                            : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         }`}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-1">End Date</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">
+                        End Date
+                      </label>
                       <input
                         type="date"
-                        value={exp.endDate || ''}
-                        onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
+                        value={exp.endDate || ""}
+                        onChange={(e) =>
+                          updateExperience(index, "endDate", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-1">Description</label>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      Description
+                    </label>
                     <textarea
                       rows={2}
-                      value={exp.description || ''}
-                      onChange={(e) => updateExperience(index, 'description', e.target.value)}
+                      value={exp.description || ""}
+                      onChange={(e) =>
+                        updateExperience(index, "description", e.target.value)
+                      }
                       className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     />
                   </div>
@@ -929,19 +1250,28 @@ export default function TeacherSetupPage() {
               ))}
 
               {experiences.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No experience added yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No experience added yet
+                </p>
               )}
             </div>
 
             {/* Section 8: References */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-foreground">References</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  References
+                </h2>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setReferences(prev => [...prev, { name: '', relationship: '', email: '', phone: '' }])}
+                  onClick={() =>
+                    setReferences((prev) => [
+                      ...prev,
+                      { name: "", relationship: "", email: "", phone: "" },
+                    ])
+                  }
                 >
                   <Plus size={16} />
                   Add
@@ -949,12 +1279,21 @@ export default function TeacherSetupPage() {
               </div>
 
               {references.map((ref, index) => (
-                <div key={index} className="border border-border rounded-lg p-4 space-y-3">
+                <div
+                  key={index}
+                  className="border border-border rounded-lg p-4 space-y-3"
+                >
                   <div className="flex justify-between items-start">
-                    <span className="text-sm font-bold text-muted-foreground">Reference #{index + 1}</span>
+                    <span className="text-sm font-bold text-muted-foreground">
+                      Reference #{index + 1}
+                    </span>
                     <button
                       type="button"
-                      onClick={() => setReferences(prev => prev.filter((_, i) => i !== index))}
+                      onClick={() =>
+                        setReferences((prev) =>
+                          prev.filter((_, i) => i !== index)
+                        )
+                      }
                       className="text-red-500 hover:text-red-700"
                     >
                       <Trash2 size={16} />
@@ -962,20 +1301,28 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-1">Name</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">
+                        Name
+                      </label>
                       <input
                         type="text"
                         value={ref.name}
-                        onChange={(e) => updateReference(index, 'name', e.target.value)}
+                        onChange={(e) =>
+                          updateReference(index, "name", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-1">Relationship</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">
+                        Relationship
+                      </label>
                       <input
                         type="text"
                         value={ref.relationship}
-                        onChange={(e) => updateReference(index, 'relationship', e.target.value)}
+                        onChange={(e) =>
+                          updateReference(index, "relationship", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         placeholder="e.g., Former Principal"
                       />
@@ -983,20 +1330,28 @@ export default function TeacherSetupPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-1">Email</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">
+                        Email
+                      </label>
                       <input
                         type="email"
                         value={ref.email}
-                        onChange={(e) => updateReference(index, 'email', e.target.value)}
+                        onChange={(e) =>
+                          updateReference(index, "email", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-muted-foreground mb-1">Phone</label>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1">
+                        Phone
+                      </label>
                       <input
                         type="tel"
                         value={ref.phone}
-                        onChange={(e) => updateReference(index, 'phone', e.target.value)}
+                        onChange={(e) =>
+                          updateReference(index, "phone", e.target.value)
+                        }
                         className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
@@ -1005,59 +1360,103 @@ export default function TeacherSetupPage() {
               ))}
 
               {references.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No references added yet</p>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No references added yet
+                </p>
               )}
             </div>
 
             {/* Section 8: Face Verification */}
             {(() => {
-              const selfieSummary = docSummary.find(d => d.type === 'selfie');
-              const selfieDocsOfType = documents.filter(d => d.documentType === 'selfie');
-              const canUploadSelfie = selfieSummary && !selfieSummary.hasApproved && !selfieSummary.hasPending;
+              const selfieSummary = docSummary.find((d) => d.type === "selfie");
+              const selfieDocsOfType = documents.filter(
+                (d) => d.documentType === "selfie"
+              );
+              const canUploadSelfie =
+                selfieSummary &&
+                !selfieSummary.hasApproved &&
+                !selfieSummary.hasPending;
 
               return (
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <ShieldCheck size={22} className="text-primary" />
                     <div>
-                      <h2 className="text-lg font-bold text-foreground">Face Verification</h2>
-                      <p className="text-sm text-muted-foreground">Take a live photo using your device camera to verify your identity</p>
+                      <h2 className="text-lg font-bold text-foreground">
+                        Face Verification
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        Take a live photo using your device camera to verify
+                        your identity
+                      </p>
                     </div>
                     {selfieSummary?.hasApproved && (
-                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
+                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+                        Approved
+                      </span>
                     )}
-                    {selfieSummary && !selfieSummary.hasApproved && selfieSummary.hasPending && (
-                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Pending Review</span>
-                    )}
-                    {selfieSummary && !selfieSummary.hasApproved && !selfieSummary.hasPending && selfieSummary.latestRejection && (
-                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
-                    )}
+                    {selfieSummary &&
+                      !selfieSummary.hasApproved &&
+                      selfieSummary.hasPending && (
+                        <span className="ml-auto px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">
+                          Pending Review
+                        </span>
+                      )}
+                    {selfieSummary &&
+                      !selfieSummary.hasApproved &&
+                      !selfieSummary.hasPending &&
+                      selfieSummary.latestRejection && (
+                        <span className="ml-auto px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
+                          Rejected
+                        </span>
+                      )}
                     {selfieSummary && !selfieSummary.latest && (
-                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not submitted</span>
+                      <span className="ml-auto px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">
+                        Not submitted
+                      </span>
                     )}
                   </div>
 
                   {/* Rejection reason */}
-                  {selfieSummary?.latestRejection?.rejectionReason && !selfieSummary.hasApproved && !selfieSummary.hasPending && (
-                    <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                      <span className="font-medium">Reason: </span>{selfieSummary.latestRejection.rejectionReason}
-                    </div>
-                  )}
+                  {selfieSummary?.latestRejection?.rejectionReason &&
+                    !selfieSummary.hasApproved &&
+                    !selfieSummary.hasPending && (
+                      <div className="p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                        <span className="font-medium">Reason: </span>
+                        {selfieSummary.latestRejection.rejectionReason}
+                      </div>
+                    )}
 
                   {/* Existing selfie docs */}
                   {selfieDocsOfType.length > 0 && (
                     <div className="space-y-1">
-                      {selfieDocsOfType.map(doc => (
-                        <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
-                          <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={(url, fn) => setLightbox({ src: url, fileName: fn })} />
-                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            doc.status === 'approved' ? 'bg-green-500' :
-                            doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
-                          }`} />
+                      {selfieDocsOfType.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm"
+                        >
+                          <SignedDocPreview
+                            fileUrl={doc.fileUrl}
+                            fileName={doc.fileName}
+                            onExpand={(url, fn) =>
+                              setLightbox({ src: url, fileName: fn })
+                            }
+                          />
+                          <span
+                            className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                              doc.status === "approved"
+                                ? "bg-green-500"
+                                : doc.status === "pending"
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                            }`}
+                          />
                           <span className="text-xs text-muted-foreground flex-1">
-                            {new Date(doc.createdAt).toLocaleDateString('en-ZA')}
+                            {new Date(doc.createdAt).toLocaleDateString(
+                              "en-ZA"
+                            )}
                           </span>
-                          {doc.status === 'pending' && (
+                          {doc.status === "pending" && (
                             <button
                               type="button"
                               onClick={async () => {
@@ -1081,12 +1480,17 @@ export default function TeacherSetupPage() {
                         src={pendingDocs.selfie.preview}
                         alt="Preview"
                         className="w-16 h-16 rounded-full object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => pendingDocs.selfie && setLightbox({ src: pendingDocs.selfie.preview })}
+                        onClick={() =>
+                          pendingDocs.selfie &&
+                          setLightbox({ src: pendingDocs.selfie.preview })
+                        }
                       />
-                      <span className="text-xs text-primary font-medium flex-1">Unsaved</span>
+                      <span className="text-xs text-primary font-medium flex-1">
+                        Unsaved
+                      </span>
                       <button
                         type="button"
-                        onClick={() => handleDocRemove('selfie')}
+                        onClick={() => handleDocRemove("selfie")}
                         className="text-red-500 hover:text-red-700 flex-shrink-0"
                       >
                         <X size={14} />
@@ -1113,160 +1517,266 @@ export default function TeacherSetupPage() {
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-foreground">Documents</h2>
               <p className="text-sm text-muted-foreground">
-                Upload the required documents below. Each document will be reviewed by an admin before your profile is verified.
+                Upload the required documents below. Each document will be
+                reviewed by an admin before your profile is verified.
               </p>
 
-              {docSummary.filter(d => d.type !== 'selfie').map(({ type, hasApproved, hasPending, latestRejection, latest }) => {
-                const labels: Record<string, { label: string; accept: string; description: string }> = {
-                  cv: { label: 'CV', accept: '.pdf,.doc,.docx', description: 'Your curriculum vitae' },
-                  qualification: { label: 'Qualifications', accept: '.pdf,.doc,.docx,.jpg,.jpeg,.png', description: 'Degrees, diplomas, certificates' },
-                  id_document: { label: 'ID / Passport / Driver\'s License', accept: '.pdf,.jpg,.jpeg,.png', description: 'Government-issued identification' },
-                  criminal_record: { label: 'Criminal Record Check', accept: '.pdf', description: 'Upload a Huru PDF or certified police clearance certificate' },
-                };
-                const config = labels[type];
-                if (!config) return null;
-                const canUpload = !hasApproved && !hasPending;
-                const docsOfType = documents.filter(d => d.documentType === type);
+              {docSummary
+                .filter((d) => d.type !== "selfie")
+                .map(
+                  ({
+                    type,
+                    hasApproved,
+                    hasPending,
+                    latestRejection,
+                    latest,
+                  }) => {
+                    const labels: Record<
+                      string,
+                      { label: string; accept: string; description: string }
+                    > = {
+                      cv: {
+                        label: "CV",
+                        accept: ".pdf,.doc,.docx",
+                        description: "Your curriculum vitae",
+                      },
+                      qualification: {
+                        label: "Qualifications",
+                        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
+                        description: "Degrees, diplomas, certificates",
+                      },
+                      id_document: {
+                        label: "ID / Passport / Driver's License",
+                        accept: ".pdf,.jpg,.jpeg,.png",
+                        description: "Government-issued identification",
+                      },
+                      criminal_record: {
+                        label: "Criminal Record Check",
+                        accept: ".pdf",
+                        description:
+                          "Upload a Huru PDF or certified police clearance certificate",
+                      },
+                    };
+                    const config = labels[type];
+                    if (!config) return null;
+                    const canUpload = !hasApproved && !hasPending;
+                    const docsOfType = documents.filter(
+                      (d) => d.documentType === type
+                    );
 
-                const isDraggingOver = draggingDocType === type;
+                    const isDraggingOver = draggingDocType === type;
 
-                return (
-                  <div
-                    key={type}
-                    className={`border-2 rounded-lg p-4 transition-colors ${
-                      isDraggingOver ? 'border-primary bg-primary/5' : 'border-border'
-                    }`}
-                    onDragOver={(e) => {
-                      if (!canUpload || pendingDocs[type]) return;
-                      e.preventDefault();
-                      setDraggingDocType(type);
-                    }}
-                    onDragLeave={() => setDraggingDocType(null)}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      setDraggingDocType(null);
-                      if (!canUpload || pendingDocs[type]) return;
-                      const file = e.dataTransfer.files?.[0];
-                      if (file) handleDocSelect(type as DocumentType, file);
-                    }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">{config.label}</h3>
-                        <p className="text-xs text-muted-foreground">{config.description}</p>
-                      </div>
-                      {hasApproved && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
-                      )}
-                      {!hasApproved && hasPending && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Pending Review</span>
-                      )}
-                      {!hasApproved && !hasPending && latestRejection && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
-                      )}
-                      {!latest && (
-                        <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not uploaded</span>
-                      )}
-                    </div>
-
-                    {/* Show rejection reason */}
-                    {latestRejection?.rejectionReason && !hasApproved && !hasPending && (
-                      <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                        <span className="font-medium">Reason: </span>{latestRejection.rejectionReason}
-                      </div>
-                    )}
-
-                    {/* Existing documents */}
-                    {docsOfType.length > 0 && (
-                      <div className="space-y-1 mb-3">
-                        {docsOfType.map(doc => (
-                          <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
-                            <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={(url, fn) => setLightbox({ src: url, fileName: fn })} />
-                            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                              doc.status === 'approved' ? 'bg-green-500' :
-                              doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
-                            }`} />
-                            <span className="text-xs text-muted-foreground flex-1">
-                              {new Date(doc.createdAt).toLocaleDateString('en-ZA')}
-                            </span>
-                            {doc.status === 'pending' && (
-                              <button
-                                type="button"
-                                onClick={async () => {
-                                  await deleteDocument(doc.id);
-                                  refetchDocs();
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                Remove
-                              </button>
-                            )}
+                    return (
+                      <div
+                        key={type}
+                        className={`border-2 rounded-lg p-4 transition-colors ${
+                          isDraggingOver
+                            ? "border-primary bg-primary/5"
+                            : "border-border"
+                        }`}
+                        onDragOver={(e) => {
+                          if (!canUpload || pendingDocs[type]) return;
+                          e.preventDefault();
+                          setDraggingDocType(type);
+                        }}
+                        onDragLeave={() => setDraggingDocType(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDraggingDocType(null);
+                          if (!canUpload || pendingDocs[type]) return;
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleDocSelect(type as DocumentType, file);
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h3 className="text-sm font-bold text-foreground">
+                              {config.label}
+                            </h3>
+                            <p className="text-xs text-muted-foreground">
+                              {config.description}
+                            </p>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                          {hasApproved && (
+                            <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+                              Approved
+                            </span>
+                          )}
+                          {!hasApproved && hasPending && (
+                            <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">
+                              Pending Review
+                            </span>
+                          )}
+                          {!hasApproved && !hasPending && latestRejection && (
+                            <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
+                              Rejected
+                            </span>
+                          )}
+                          {!latest && (
+                            <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">
+                              Not uploaded
+                            </span>
+                          )}
+                        </div>
 
-                    {/* Pending file preview */}
-                    {pendingDocs[type] && (
-                      <div className="flex items-center gap-3 p-2 bg-primary/5 border border-primary/20 rounded mb-3">
-                        {pendingDocs[type].file.type.startsWith('image/') ? (
-                          <img
-                            src={pendingDocs[type].preview}
-                            alt="Preview"
-                            className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => pendingDocs[type] && setLightbox({ src: pendingDocs[type].preview })}
-                          />
-                        ) : pendingDocs[type].file.type === 'application/pdf' ? (
-                          <button
-                            type="button"
-                            onClick={() => pendingDocs[type] && setLightbox({ src: pendingDocs[type].preview, fileName: pendingDocs[type].fileName })}
-                            className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
-                          >
-                            <FileText size={18} className="text-red-500" />
-                            <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
-                          </button>
-                        ) : (
-                          <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                            <FileText size={20} className="text-muted-foreground" />
+                        {/* Show rejection reason */}
+                        {latestRejection?.rejectionReason &&
+                          !hasApproved &&
+                          !hasPending && (
+                            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                              <span className="font-medium">Reason: </span>
+                              {latestRejection.rejectionReason}
+                            </div>
+                          )}
+
+                        {/* Existing documents */}
+                        {docsOfType.length > 0 && (
+                          <div className="space-y-1 mb-3">
+                            {docsOfType.map((doc) => (
+                              <div
+                                key={doc.id}
+                                className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm"
+                              >
+                                <SignedDocPreview
+                                  fileUrl={doc.fileUrl}
+                                  fileName={doc.fileName}
+                                  onExpand={(url, fn) =>
+                                    setLightbox({ src: url, fileName: fn })
+                                  }
+                                />
+                                <span
+                                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    doc.status === "approved"
+                                      ? "bg-green-500"
+                                      : doc.status === "pending"
+                                      ? "bg-yellow-500"
+                                      : "bg-red-500"
+                                  }`}
+                                />
+                                <span className="text-xs text-muted-foreground flex-1">
+                                  {new Date(doc.createdAt).toLocaleDateString(
+                                    "en-ZA"
+                                  )}
+                                </span>
+                                {doc.status === "pending" && (
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      await deleteDocument(doc.id);
+                                      refetchDocs();
+                                    }}
+                                    className="text-red-500 hover:text-red-700 text-xs"
+                                  >
+                                    Remove
+                                  </button>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         )}
-                        <span className="text-xs text-primary font-medium flex-1">Unsaved</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDocRemove(type)}
-                          className="text-red-500 hover:text-red-700 flex-shrink-0"
-                        >
-                          <X size={14} />
-                        </button>
+
+                        {/* Pending file preview */}
+                        {pendingDocs[type] && (
+                          <div className="flex items-center gap-3 p-2 bg-primary/5 border border-primary/20 rounded mb-3">
+                            {pendingDocs[type].file.type.startsWith(
+                              "image/"
+                            ) ? (
+                              <img
+                                src={pendingDocs[type].preview}
+                                alt="Preview"
+                                className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() =>
+                                  pendingDocs[type] &&
+                                  setLightbox({
+                                    src: pendingDocs[type].preview,
+                                  })
+                                }
+                              />
+                            ) : pendingDocs[type].file.type ===
+                              "application/pdf" ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  pendingDocs[type] &&
+                                  setLightbox({
+                                    src: pendingDocs[type].preview,
+                                    fileName: pendingDocs[type].fileName,
+                                  })
+                                }
+                                className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                              >
+                                <FileText size={18} className="text-red-500" />
+                                <span className="text-[9px] text-red-600 font-medium mt-0.5">
+                                  PDF
+                                </span>
+                              </button>
+                            ) : (
+                              <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                                <FileText
+                                  size={20}
+                                  className="text-muted-foreground"
+                                />
+                              </div>
+                            )}
+                            <span className="text-xs text-primary font-medium flex-1">
+                              Unsaved
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleDocRemove(type)}
+                              className="text-red-500 hover:text-red-700 flex-shrink-0"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Upload button */}
+                        {canUpload && !pendingDocs[type] && (
+                          <label
+                            className={`flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer w-full justify-center ${
+                              isDraggingOver
+                                ? "border-primary bg-primary/10"
+                                : "border-border hover:border-muted-foreground"
+                            }`}
+                          >
+                            <Plus
+                              size={20}
+                              className={
+                                isDraggingOver
+                                  ? "text-primary"
+                                  : "text-muted-foreground"
+                              }
+                            />
+                            <span
+                              className={`text-sm ${
+                                isDraggingOver
+                                  ? "text-primary font-medium"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              {isDraggingOver
+                                ? "Drop file here"
+                                : "Drag & drop or click to choose file"}
+                            </span>
+                            <input
+                              type="file"
+                              accept={config.accept}
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file)
+                                  handleDocSelect(type as DocumentType, file);
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                        )}
                       </div>
-                    )}
-
-                    {/* Upload button */}
-                    {canUpload && !pendingDocs[type] && (
-                      <label className={`flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer w-full justify-center ${
-                        isDraggingOver ? 'border-primary bg-primary/10' : 'border-border hover:border-muted-foreground'
-                      }`}>
-                        <Plus size={20} className={isDraggingOver ? 'text-primary' : 'text-muted-foreground'} />
-                        <span className={`text-sm ${isDraggingOver ? 'text-primary font-medium' : 'text-muted-foreground'}`}>
-                          {isDraggingOver ? 'Drop file here' : 'Drag & drop or click to choose file'}
-                        </span>
-                        <input
-                          type="file"
-                          accept={config.accept}
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleDocSelect(type as DocumentType, file);
-                            e.target.value = '';
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  }
+                )}
             </div>
-
           </form>
         </div>
       </div>
@@ -1274,72 +1784,100 @@ export default function TeacherSetupPage() {
       {/* Discord-style floating save bar */}
       <div
         className={`fixed bottom-0 left-0 md:left-64 right-0 z-50 transition-all duration-300 ${
-          hasChanges || saved ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          hasChanges || saved
+            ? "translate-y-0 opacity-100"
+            : "translate-y-full opacity-0 pointer-events-none"
         }`}
       >
         <div className="flex justify-center px-8 pb-6">
-          <div className={`w-full max-w-2xl rounded-lg shadow-lg px-6 py-3 flex items-center justify-between ${saved ? 'bg-green-50 border border-green-200 text-green-700' : formError ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-foreground text-white'}`}>
+          <div
+            className={`w-full max-w-2xl rounded-lg shadow-lg px-6 py-3 flex items-center justify-between ${
+              saved
+                ? "bg-green-50 border border-green-200 text-green-700"
+                : formError
+                ? "bg-red-50 border border-red-200 text-red-700"
+                : "bg-foreground text-white"
+            }`}
+          >
             <div className="flex-1 min-w-0">
               {saved ? (
-                <p className="text-sm font-medium">Profile saved successfully!</p>
+                <p className="text-sm font-medium">
+                  Profile saved successfully!
+                </p>
               ) : saving ? (
-                <p className="text-sm font-medium flex items-center gap-2"><Loader2 size={14} className="animate-spin" /> Saving your profile...</p>
+                <p className="text-sm font-medium flex items-center gap-2">
+                  <Loader2 size={14} className="animate-spin" /> Saving your
+                  profile...
+                </p>
               ) : formError ? (
                 <p className="text-sm font-medium">{formError}</p>
               ) : (
-                <p className="text-sm font-medium">Careful — you have unsaved changes!</p>
+                <p className="text-sm font-medium">
+                  Careful — you have unsaved changes!
+                </p>
               )}
             </div>
-            {!saved && <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  if (teacher) {
-                    setFirstName(teacher.firstName);
-                    setSurname(teacher.surname);
-                    setDescription(teacher.description || '');
-                    setDateOfBirth(teacher.dateOfBirth || '');
-                    setSelectedPhases(teacher.educationPhases);
-                    setSubjects(teacher.subjects || {});
-                    setSports(teacher.sports || {});
-                    setArtsCulture(teacher.artsCulture || {});
-                    setAddress(teacher.address || '');
-                    setDistanceRadius(teacher.distanceRadius || 50);
-                    setLocation(teacher.location || null);
-                    setIdNumber(teacher.idNumber || '');
-                    setPhoneNumber(teacher.phoneNumber || '');
-                    setProfilePicture(teacher.profilePicture ? [teacher.profilePicture] : []);
-                    setReferences(teacher.teacherReferences?.length > 0 ? [...teacher.teacherReferences] : []);
-                  }
-                  if (existingExperiences.length > 0) {
-                    setExperiences(existingExperiences);
-                  } else {
-                    setExperiences([]);
-                  }
-                  if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
-                  setPendingPicFile(null);
-                  setPendingPicPreview(null);
-                  setRemovedPic(false);
-                  Object.values(pendingDocs).forEach(p => URL.revokeObjectURL(p.preview));
-                  setPendingDocs({});
-                  setHasChanges(false);
-                  setFormError(null);
-                  setFieldErrors({});
-                }}
-                className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-              >
-                Reset
-              </button>
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => handleSubmit()}
-                disabled={saving}
-              >
-                {saving && <Loader2 size={14} className="animate-spin" />}
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>}
+            {!saved && (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (teacher) {
+                      setFirstName(teacher.firstName);
+                      setSurname(teacher.surname);
+                      setDescription(teacher.description || "");
+                      setDateOfBirth(teacher.dateOfBirth || "");
+                      setSelectedPhases(teacher.educationPhases);
+                      setSubjects(teacher.subjects || {});
+                      setSports(teacher.sports || {});
+                      setArtsCulture(teacher.artsCulture || {});
+                      setAddress(teacher.address || "");
+                      setDistanceRadius(teacher.distanceRadius || 50);
+                      setLocation(teacher.location || null);
+                      setIdNumber(teacher.idNumber || "");
+                      setPhoneNumber(teacher.phoneNumber || "");
+                      setProfilePicture(
+                        teacher.profilePicture ? [teacher.profilePicture] : []
+                      );
+                      setReferences(
+                        teacher.teacherReferences?.length > 0
+                          ? [...teacher.teacherReferences]
+                          : []
+                      );
+                    }
+                    if (existingExperiences.length > 0) {
+                      setExperiences(existingExperiences);
+                    } else {
+                      setExperiences([]);
+                    }
+                    if (pendingPicPreview)
+                      URL.revokeObjectURL(pendingPicPreview);
+                    setPendingPicFile(null);
+                    setPendingPicPreview(null);
+                    setRemovedPic(false);
+                    Object.values(pendingDocs).forEach((p) =>
+                      URL.revokeObjectURL(p.preview)
+                    );
+                    setPendingDocs({});
+                    setHasChanges(false);
+                    setFormError(null);
+                    setFieldErrors({});
+                  }}
+                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+                >
+                  Reset
+                </button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => handleSubmit()}
+                  disabled={saving}
+                >
+                  {saving && <Loader2 size={14} className="animate-spin" />}
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1349,7 +1887,7 @@ export default function TeacherSetupPage() {
         open={selfieModalOpen}
         onClose={() => setSelfieModalOpen(false)}
         onCapture={(file) => {
-          handleDocSelect('selfie', file);
+          handleDocSelect("selfie", file);
           setSelfieModalOpen(false);
         }}
       />

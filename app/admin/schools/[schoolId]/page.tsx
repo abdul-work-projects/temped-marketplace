@@ -1,16 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useAdminSchoolDetail } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import ImageLightbox from '@/components/shared/ImageLightbox';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useAdminSchoolDetail } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import dynamic from "next/dynamic";
+const ImageLightbox = dynamic(
+  () => import("@/components/shared/ImageLightbox"),
+  { ssr: false }
+);
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Loader2,
   ChevronLeft,
@@ -21,19 +25,25 @@ import {
   MapPin,
   Check,
   X as XIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
 function hasImageExtension(path?: string): boolean {
-  return /\.(jpg|jpeg|png|gif|webp)$/i.test(path || '');
+  return /\.(jpg|jpeg|png|gif|webp)$/i.test(path || "");
 }
 
 function hasPdfExtension(path?: string): boolean {
-  return /\.pdf$/i.test(path || '');
+  return /\.pdf$/i.test(path || "");
 }
 
 /** Thumbnail-only component — renders just the clickable preview square */
-function CertThumbnail({ url, onOpen }: { url?: string; onOpen: (src: string) => void }) {
-  const signedUrl = useSignedUrl('registration-certificates', url);
+function CertThumbnail({
+  url,
+  onOpen,
+}: {
+  url?: string;
+  onOpen: (src: string) => void;
+}) {
+  const signedUrl = useSignedUrl("registration-certificates", url);
 
   if (!signedUrl) {
     return (
@@ -82,33 +92,37 @@ function CertThumbnail({ url, onOpen }: { url?: string; onOpen: (src: string) =>
 
 export default function AdminSchoolDetail() {
   const { schoolId } = useParams() as { schoolId: string };
-  const { school, loading, updateSchool, reviewSchool } = useAdminSchoolDetail(schoolId);
-  const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
+  const { school, loading, updateSchool, reviewSchool } =
+    useAdminSchoolDetail(schoolId);
+  const profilePicUrl = useSignedUrl(
+    "profile-pictures",
+    school?.profilePicture
+  );
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [reviewing, setReviewing] = useState(false);
   const [showRejectInput, setShowRejectInput] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [editData, setEditData] = useState({
-    name: '',
-    description: '',
-    address: '',
-    district: '',
-    emis_number: '',
-    education_district: '',
+    name: "",
+    description: "",
+    address: "",
+    district: "",
+    emis_number: "",
+    education_district: "",
   });
 
   useEffect(() => {
     if (school) {
       setEditData({
-        name: school.name || '',
-        description: school.description || '',
-        address: school.address || '',
-        district: school.district || '',
-        emis_number: school.emisNumber || '',
-        education_district: school.educationDistrict || '',
+        name: school.name || "",
+        description: school.description || "",
+        address: school.address || "",
+        district: school.district || "",
+        emis_number: school.emisNumber || "",
+        education_district: school.educationDistrict || "",
       });
     }
   }, [school]);
@@ -133,8 +147,13 @@ export default function AdminSchoolDetail() {
       <div className="min-h-screen">
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center py-16">
-            <h2 className="text-xl font-bold text-foreground mb-2">School not found</h2>
-            <Link href="/admin/schools" className="text-primary hover:underline text-sm">
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              School not found
+            </h2>
+            <Link
+              href="/admin/schools"
+              className="text-primary hover:underline text-sm"
+            >
               Back to schools list
             </Link>
           </div>
@@ -172,34 +191,58 @@ export default function AdminSchoolDetail() {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground mb-1">{school.name}</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-1">
+                  {school.name}
+                </h1>
                 <p className="text-muted-foreground text-sm">{school.email}</p>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                  {school.emisNumber && <span className="text-xs text-muted-foreground">EMIS: {school.emisNumber}</span>}
+                  {school.emisNumber && (
+                    <span className="text-xs text-muted-foreground">
+                      EMIS: {school.emisNumber}
+                    </span>
+                  )}
                   {school.schoolType && (
-                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                    <Badge
+                      variant="secondary"
+                      className="bg-primary/10 text-primary"
+                    >
                       {school.schoolType}
                     </Badge>
                   )}
                   {school.ownershipType && (
-                    <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
+                    <Badge
+                      variant="outline"
+                      className="bg-muted text-muted-foreground border-border"
+                    >
                       {school.ownershipType}
                     </Badge>
                   )}
                   {school.curriculum && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">
+                    <Badge
+                      variant="secondary"
+                      className="bg-green-100 text-green-700"
+                    >
                       {school.curriculum}
                     </Badge>
                   )}
-                  <Badge className={
-                    school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                    school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                    school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700' :
-                    'bg-muted text-muted-foreground'
-                  }>
-                    {school.verificationStatus === 'approved' ? 'Verified' :
-                     school.verificationStatus === 'pending' ? 'Pending Verification' :
-                     school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                  <Badge
+                    className={
+                      school.verificationStatus === "approved"
+                        ? "bg-green-100 text-green-700"
+                        : school.verificationStatus === "pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : school.verificationStatus === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-muted text-muted-foreground"
+                    }
+                  >
+                    {school.verificationStatus === "approved"
+                      ? "Verified"
+                      : school.verificationStatus === "pending"
+                      ? "Pending Verification"
+                      : school.verificationStatus === "rejected"
+                      ? "Rejected"
+                      : "Unverified"}
                   </Badge>
                 </div>
               </div>
@@ -211,12 +254,12 @@ export default function AdminSchoolDetail() {
                   setIsEditing(false);
                   if (school) {
                     setEditData({
-                      name: school.name || '',
-                      description: school.description || '',
-                      address: school.address || '',
-                      district: school.district || '',
-                      emis_number: school.emisNumber || '',
-                      education_district: school.educationDistrict || '',
+                      name: school.name || "",
+                      description: school.description || "",
+                      address: school.address || "",
+                      district: school.district || "",
+                      emis_number: school.emisNumber || "",
+                      education_district: school.educationDistrict || "",
                     });
                   }
                 } else {
@@ -225,14 +268,16 @@ export default function AdminSchoolDetail() {
               }}
             >
               <Edit className="w-4 h-4" />
-              {isEditing ? 'Cancel' : 'Edit'}
+              {isEditing ? "Cancel" : "Edit"}
             </Button>
           </div>
 
           <div className="divide-y divide-border [&>*]:py-6">
-          {/* Editable Fields */}
-          <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">School Information</h2>
+            {/* Editable Fields */}
+            <div>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                School Information
+              </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -243,7 +288,9 @@ export default function AdminSchoolDetail() {
                     <Input
                       type="text"
                       value={editData.name}
-                      onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                      onChange={(e) =>
+                        setEditData({ ...editData, name: e.target.value })
+                      }
                     />
                   ) : (
                     <p className="text-sm text-foreground">{school.name}</p>
@@ -257,10 +304,17 @@ export default function AdminSchoolDetail() {
                     <Input
                       type="text"
                       value={editData.emis_number}
-                      onChange={(e) => setEditData({ ...editData, emis_number: e.target.value })}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          emis_number: e.target.value,
+                        })
+                      }
                     />
                   ) : (
-                    <p className="text-sm text-foreground">{school.emisNumber || 'Not provided'}</p>
+                    <p className="text-sm text-foreground">
+                      {school.emisNumber || "Not provided"}
+                    </p>
                   )}
                 </div>
               </div>
@@ -274,10 +328,14 @@ export default function AdminSchoolDetail() {
                     <Input
                       type="text"
                       value={editData.district}
-                      onChange={(e) => setEditData({ ...editData, district: e.target.value })}
+                      onChange={(e) =>
+                        setEditData({ ...editData, district: e.target.value })
+                      }
                     />
                   ) : (
-                    <p className="text-sm text-foreground">{school.district || 'Not provided'}</p>
+                    <p className="text-sm text-foreground">
+                      {school.district || "Not provided"}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -288,10 +346,17 @@ export default function AdminSchoolDetail() {
                     <Input
                       type="text"
                       value={editData.education_district}
-                      onChange={(e) => setEditData({ ...editData, education_district: e.target.value })}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          education_district: e.target.value,
+                        })
+                      }
                     />
                   ) : (
-                    <p className="text-sm text-foreground">{school.educationDistrict || 'Not provided'}</p>
+                    <p className="text-sm text-foreground">
+                      {school.educationDistrict || "Not provided"}
+                    </p>
                   )}
                 </div>
               </div>
@@ -304,7 +369,9 @@ export default function AdminSchoolDetail() {
                   <Input
                     type="text"
                     value={editData.address}
-                    onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                    onChange={(e) =>
+                      setEditData({ ...editData, address: e.target.value })
+                    }
                   />
                 ) : (
                   <p className="text-sm text-foreground flex items-center gap-1">
@@ -314,7 +381,7 @@ export default function AdminSchoolDetail() {
                         {school.address}
                       </>
                     ) : (
-                      'Not provided'
+                      "Not provided"
                     )}
                   </p>
                 )}
@@ -327,20 +394,21 @@ export default function AdminSchoolDetail() {
                 {isEditing ? (
                   <Textarea
                     value={editData.description}
-                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                    onChange={(e) =>
+                      setEditData({ ...editData, description: e.target.value })
+                    }
                     rows={4}
                     className="resize-none"
                   />
                 ) : (
-                  <p className="text-sm text-foreground">{school.description || 'No description provided'}</p>
+                  <p className="text-sm text-foreground">
+                    {school.description || "No description provided"}
+                  </p>
                 )}
               </div>
 
               {isEditing && (
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                >
+                <Button onClick={handleSave} disabled={saving}>
                   {saving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
@@ -349,81 +417,127 @@ export default function AdminSchoolDetail() {
                   Save Changes
                 </Button>
               )}
-          </div>
+            </div>
 
-          {/* Read-only Details */}
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">School Type</h3>
-                <p className="text-sm text-foreground font-medium">{school.schoolType || 'Not specified'}</p>
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Ownership</h3>
-                <p className="text-sm text-foreground font-medium">{school.ownershipType || 'Not specified'}</p>
-              </div>
-              <div>
-                <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">Curriculum</h3>
-                <p className="text-sm text-foreground font-medium">{school.curriculum || 'Not specified'}</p>
+            {/* Read-only Details */}
+            <div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                    School Type
+                  </h3>
+                  <p className="text-sm text-foreground font-medium">
+                    {school.schoolType || "Not specified"}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                    Ownership
+                  </h3>
+                  <p className="text-sm text-foreground font-medium">
+                    {school.ownershipType || "Not specified"}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase mb-2">
+                    Curriculum
+                  </h3>
+                  <p className="text-sm text-foreground font-medium">
+                    {school.curriculum || "Not specified"}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Documents & Verification */}
-          <div>
+            {/* Documents & Verification */}
+            <div>
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
                 Documents & Verification
               </h2>
 
               <div className="border border-border rounded-lg p-4">
-                <h3 className="text-sm font-bold text-foreground mb-3">Registration Certificate</h3>
+                <h3 className="text-sm font-bold text-foreground mb-3">
+                  Registration Certificate
+                </h3>
 
                 {!school.registrationCertificate ? (
-                  <p className="text-sm text-muted-foreground">Not uploaded yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Not uploaded yet
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {/* Document row — matches teacher pattern */}
                     <div className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
-                      <CertThumbnail url={school.registrationCertificate} onOpen={setLightboxSrc} />
+                      <CertThumbnail
+                        url={school.registrationCertificate}
+                        onOpen={setLightboxSrc}
+                      />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-foreground truncate">Registration Certificate</span>
-                          <Badge variant="outline" className={
-                            school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
-                            school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                            school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' :
-                            'bg-muted text-foreground border-border'
-                          }>
-                            {school.verificationStatus === 'approved' ? 'Approved' :
-                             school.verificationStatus === 'pending' ? 'Pending' :
-                             school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                          <span className="text-sm text-foreground truncate">
+                            Registration Certificate
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={
+                              school.verificationStatus === "approved"
+                                ? "bg-green-100 text-green-700 border-green-200"
+                                : school.verificationStatus === "pending"
+                                ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                : school.verificationStatus === "rejected"
+                                ? "bg-red-100 text-red-700 border-red-200"
+                                : "bg-muted text-foreground border-border"
+                            }
+                          >
+                            {school.verificationStatus === "approved"
+                              ? "Approved"
+                              : school.verificationStatus === "pending"
+                              ? "Pending"
+                              : school.verificationStatus === "rejected"
+                              ? "Rejected"
+                              : "Unverified"}
                           </Badge>
                         </div>
                         {school.verifiedAt && (
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            Reviewed {new Date(school.verifiedAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            Reviewed{" "}
+                            {new Date(school.verifiedAt).toLocaleDateString(
+                              "en-ZA",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              }
+                            )}
                           </p>
                         )}
-                        {school.verificationStatus === 'rejected' && school.rejectionReason && (
-                          <p className="text-xs text-red-600 mt-1">Reason: {school.rejectionReason}</p>
-                        )}
+                        {school.verificationStatus === "rejected" &&
+                          school.rejectionReason && (
+                            <p className="text-xs text-red-600 mt-1">
+                              Reason: {school.rejectionReason}
+                            </p>
+                          )}
                       </div>
 
                       {/* Inline action buttons — only when pending */}
-                      {school.verificationStatus === 'pending' && (
+                      {school.verificationStatus === "pending" && (
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <Button
                             size="sm"
                             onClick={async () => {
                               setReviewing(true);
-                              await reviewSchool(school.id, 'approved');
+                              await reviewSchool(school.id, "approved");
                               setReviewing(false);
                             }}
                             disabled={reviewing}
                             className="bg-green-600 hover:bg-green-700"
                           >
-                            {reviewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                            {reviewing ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
                             Approve
                           </Button>
                           <Button
@@ -440,42 +554,54 @@ export default function AdminSchoolDetail() {
                     </div>
 
                     {/* Inline rejection reason input */}
-                    {showRejectInput && school.verificationStatus === 'pending' && (
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          value={rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          placeholder="Reason for rejection (optional)..."
-                          className="flex-1"
-                        />
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={async () => {
-                            setReviewing(true);
-                            await reviewSchool(school.id, 'rejected', rejectionReason.trim() || undefined);
-                            setReviewing(false);
-                            setShowRejectInput(false);
-                            setRejectionReason('');
-                          }}
-                          disabled={reviewing}
-                        >
-                          {reviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Reject'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => { setShowRejectInput(false); setRejectionReason(''); }}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    )}
+                    {showRejectInput &&
+                      school.verificationStatus === "pending" && (
+                        <div className="flex gap-2">
+                          <Input
+                            type="text"
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Reason for rejection (optional)..."
+                            className="flex-1"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              setReviewing(true);
+                              await reviewSchool(
+                                school.id,
+                                "rejected",
+                                rejectionReason.trim() || undefined
+                              );
+                              setReviewing(false);
+                              setShowRejectInput(false);
+                              setRejectionReason("");
+                            }}
+                            disabled={reviewing}
+                          >
+                            {reviewing ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Confirm Reject"
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowRejectInput(false);
+                              setRejectionReason("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
                   </div>
                 )}
               </div>
-          </div>
+            </div>
           </div>
         </div>
       </div>

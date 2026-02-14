@@ -1,18 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import DashboardLayout from '@/components/shared/DashboardLayout';
-import { schoolSidebarLinks } from '@/components/shared/Sidebar';
-import { useAuth } from '@/lib/context/AuthContext';
-import { useSchoolProfile, useUpdateSchool } from '@/lib/hooks/useSchool';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { createClient } from '@/lib/supabase/client';
-import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
-import { SchoolType, OwnershipType, Curriculum } from '@/types';
-import { Loader2, Building2, Camera, X, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SELECT_CLASS } from '@/lib/utils';
-import ImageLightbox from '@/components/shared/ImageLightbox';
+import { useState, useEffect, useRef } from "react";
+import DashboardLayout from "@/components/shared/DashboardLayout";
+import { schoolSidebarLinks } from "@/components/shared/Sidebar";
+import { useAuth } from "@/lib/context/AuthContext";
+import { useSchoolProfile, useUpdateSchool } from "@/lib/hooks/useSchool";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { createClient } from "@/lib/supabase/client";
+import AddressAutocomplete from "@/components/shared/AddressAutocomplete";
+import { SchoolType, OwnershipType, Curriculum } from "@/types";
+import { Loader2, Building2, Camera, X, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SELECT_CLASS } from "@/lib/utils";
+import dynamic from "next/dynamic";
+const ImageLightbox = dynamic(
+  () => import("@/components/shared/ImageLightbox"),
+  { ssr: false }
+);
 
 export default function SchoolSetupPage() {
   const { user } = useAuth();
@@ -21,50 +25,76 @@ export default function SchoolSetupPage() {
   const supabaseRef = useRef(createClient());
 
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    emisNumber: '',
-    district: '',
-    schoolType: 'Secondary' as SchoolType,
-    ownershipType: 'Public' as OwnershipType,
-    educationDistrict: '',
-    curriculum: 'CAPS' as Curriculum,
-    address: '',
+    name: "",
+    description: "",
+    emisNumber: "",
+    district: "",
+    schoolType: "Secondary" as SchoolType,
+    ownershipType: "Public" as OwnershipType,
+    educationDistrict: "",
+    curriculum: "CAPS" as Curriculum,
+    address: "",
   });
 
   const [profilePicture, setProfilePicture] = useState<string[]>([]);
-  const [registrationCertificate, setRegistrationCertificate] = useState<string[]>([]);
+  const [registrationCertificate, setRegistrationCertificate] = useState<
+    string[]
+  >([]);
   const [saved, setSaved] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
 
   // Deferred profile picture upload
   const profilePicInputRef = useRef<HTMLInputElement>(null);
   const [draggingPic, setDraggingPic] = useState(false);
   const [pendingPicFile, setPendingPicFile] = useState<File | null>(null);
-  const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(null);
+  const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(
+    null
+  );
   const [removedPic, setRemovedPic] = useState(false);
 
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    src: string;
+    alt: string;
+    fileName?: string;
+  } | null>(null);
 
   // Deferred registration certificate upload
   const certInputRef = useRef<HTMLInputElement>(null);
   const [draggingCert, setDraggingCert] = useState(false);
   const [pendingCertFile, setPendingCertFile] = useState<File | null>(null);
-  const [pendingCertPreview, setPendingCertPreview] = useState<string | null>(null);
+  const [pendingCertPreview, setPendingCertPreview] = useState<string | null>(
+    null
+  );
   const [removedCert, setRemovedCert] = useState(false);
 
-  const profilePicUrl = useSignedUrl('profile-pictures', profilePicture[0]);
-  const displayPicUrl = pendingPicPreview || (removedPic ? null : profilePicUrl);
-  const hasPic = pendingPicFile ? true : (!removedPic && profilePicture.length > 0);
+  const profilePicUrl = useSignedUrl("profile-pictures", profilePicture[0]);
+  const displayPicUrl =
+    pendingPicPreview || (removedPic ? null : profilePicUrl);
+  const hasPic = pendingPicFile
+    ? true
+    : !removedPic && profilePicture.length > 0;
 
-  const certUrl = useSignedUrl('registration-certificates', registrationCertificate[0]);
-  const displayCertName = pendingCertFile?.name || (removedCert ? null : (registrationCertificate[0] ? 'Registration Certificate' : null));
-  const hasCert = pendingCertFile ? true : (!removedCert && registrationCertificate.length > 0);
+  const certUrl = useSignedUrl(
+    "registration-certificates",
+    registrationCertificate[0]
+  );
+  const displayCertName =
+    pendingCertFile?.name ||
+    (removedCert
+      ? null
+      : registrationCertificate[0]
+      ? "Registration Certificate"
+      : null);
+  const hasCert = pendingCertFile
+    ? true
+    : !removedCert && registrationCertificate.length > 0;
   const displayCertUrl = pendingCertPreview || (removedCert ? null : certUrl);
   const isCertImage = pendingCertFile
-    ? pendingCertFile.type.startsWith('image/')
-    : /\.(jpg|jpeg|png|gif|webp)$/i.test(registrationCertificate[0] || '');
+    ? pendingCertFile.type.startsWith("image/")
+    : /\.(jpg|jpeg|png|gif|webp)$/i.test(registrationCertificate[0] || "");
 
   const extractPath = (value: string, bucket: string) => {
     const marker = `/storage/v1/object/public/${bucket}/`;
@@ -105,18 +135,19 @@ export default function SchoolSetupPage() {
   useEffect(() => {
     if (school) {
       setFormData({
-        name: school.name || '',
-        description: school.description || '',
-        emisNumber: school.emisNumber || '',
-        district: school.district || '',
-        schoolType: school.schoolType || 'Secondary',
-        ownershipType: school.ownershipType || 'Public',
-        educationDistrict: school.educationDistrict || '',
-        curriculum: school.curriculum || 'CAPS',
-        address: school.address || '',
+        name: school.name || "",
+        description: school.description || "",
+        emisNumber: school.emisNumber || "",
+        district: school.district || "",
+        schoolType: school.schoolType || "Secondary",
+        ownershipType: school.ownershipType || "Public",
+        educationDistrict: school.educationDistrict || "",
+        curriculum: school.curriculum || "CAPS",
+        address: school.address || "",
       });
       if (school.profilePicture) setProfilePicture([school.profilePicture]);
-      if (school.registrationCertificate) setRegistrationCertificate([school.registrationCertificate]);
+      if (school.registrationCertificate)
+        setRegistrationCertificate([school.registrationCertificate]);
       if (school.location) setLocation(school.location);
     }
   }, [school]);
@@ -125,21 +156,28 @@ export default function SchoolSetupPage() {
   useEffect(() => {
     if (!school) return;
     const changed =
-      formData.name !== (school.name || '') ||
-      formData.description !== (school.description || '') ||
-      formData.emisNumber !== (school.emisNumber || '') ||
-      formData.district !== (school.district || '') ||
-      formData.schoolType !== (school.schoolType || 'Secondary') ||
-      formData.ownershipType !== (school.ownershipType || 'Public') ||
-      formData.educationDistrict !== (school.educationDistrict || '') ||
-      formData.curriculum !== (school.curriculum || 'CAPS') ||
-      formData.address !== (school.address || '') ||
+      formData.name !== (school.name || "") ||
+      formData.description !== (school.description || "") ||
+      formData.emisNumber !== (school.emisNumber || "") ||
+      formData.district !== (school.district || "") ||
+      formData.schoolType !== (school.schoolType || "Secondary") ||
+      formData.ownershipType !== (school.ownershipType || "Public") ||
+      formData.educationDistrict !== (school.educationDistrict || "") ||
+      formData.curriculum !== (school.curriculum || "CAPS") ||
+      formData.address !== (school.address || "") ||
       pendingPicFile !== null ||
       removedPic ||
       pendingCertFile !== null ||
       removedCert;
     setHasChanges(changed);
-  }, [school, formData, pendingPicFile, removedPic, pendingCertFile, removedCert]);
+  }, [
+    school,
+    formData,
+    pendingPicFile,
+    removedPic,
+    pendingCertFile,
+    removedCert,
+  ]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -149,21 +187,25 @@ export default function SchoolSetupPage() {
     let picPath = profilePicture[0] || null;
 
     if (removedPic && profilePicture[0]) {
-      const oldPath = extractPath(profilePicture[0], 'profile-pictures');
-      await supabaseRef.current.storage.from('profile-pictures').remove([oldPath]);
+      const oldPath = extractPath(profilePicture[0], "profile-pictures");
+      await supabaseRef.current.storage
+        .from("profile-pictures")
+        .remove([oldPath]);
       picPath = null;
     }
 
     if (pendingPicFile) {
       if (profilePicture[0]) {
-        const oldPath = extractPath(profilePicture[0], 'profile-pictures');
-        await supabaseRef.current.storage.from('profile-pictures').remove([oldPath]);
+        const oldPath = extractPath(profilePicture[0], "profile-pictures");
+        await supabaseRef.current.storage
+          .from("profile-pictures")
+          .remove([oldPath]);
       }
-      const ext = pendingPicFile.name.split('.').pop();
+      const ext = pendingPicFile.name.split(".").pop();
       const fileName = `${Date.now()}.${ext}`;
       const filePath = `${user?.id}/${fileName}`;
       const { error } = await supabaseRef.current.storage
-        .from('profile-pictures')
+        .from("profile-pictures")
         .upload(filePath, pendingPicFile);
       if (!error) {
         picPath = filePath;
@@ -174,21 +216,31 @@ export default function SchoolSetupPage() {
     let certPath = registrationCertificate[0] || null;
 
     if (removedCert && registrationCertificate[0]) {
-      const oldPath = extractPath(registrationCertificate[0], 'registration-certificates');
-      await supabaseRef.current.storage.from('registration-certificates').remove([oldPath]);
+      const oldPath = extractPath(
+        registrationCertificate[0],
+        "registration-certificates"
+      );
+      await supabaseRef.current.storage
+        .from("registration-certificates")
+        .remove([oldPath]);
       certPath = null;
     }
 
     if (pendingCertFile) {
       if (registrationCertificate[0]) {
-        const oldPath = extractPath(registrationCertificate[0], 'registration-certificates');
-        await supabaseRef.current.storage.from('registration-certificates').remove([oldPath]);
+        const oldPath = extractPath(
+          registrationCertificate[0],
+          "registration-certificates"
+        );
+        await supabaseRef.current.storage
+          .from("registration-certificates")
+          .remove([oldPath]);
       }
-      const ext = pendingCertFile.name.split('.').pop();
+      const ext = pendingCertFile.name.split(".").pop();
       const fileName = `cert-${Date.now()}.${ext}`;
       const filePath = `${user?.id}/${fileName}`;
       const { error } = await supabaseRef.current.storage
-        .from('registration-certificates')
+        .from("registration-certificates")
         .upload(filePath, pendingCertFile);
       if (!error) {
         certPath = filePath;
@@ -200,16 +252,16 @@ export default function SchoolSetupPage() {
     if (certPath) {
       // Certificate present — if previously rejected or unverified, set to pending
       const current = school.verificationStatus;
-      if (!current || current === 'unverified' || current === 'rejected') {
-        verificationStatus = 'pending';
+      if (!current || current === "unverified" || current === "rejected") {
+        verificationStatus = "pending";
       }
       // If re-uploading a new cert while pending/approved, reset to pending
       if (pendingCertFile) {
-        verificationStatus = 'pending';
+        verificationStatus = "pending";
       }
     } else {
       // Certificate removed
-      verificationStatus = 'unverified';
+      verificationStatus = "unverified";
     }
 
     const updates: Record<string, unknown> = {
@@ -229,7 +281,7 @@ export default function SchoolSetupPage() {
     if (verificationStatus !== undefined) {
       updates.verification_status = verificationStatus;
       // Clear rejection reason when re-submitting
-      if (verificationStatus === 'pending') {
+      if (verificationStatus === "pending") {
         updates.rejection_reason = null;
       }
     }
@@ -259,15 +311,15 @@ export default function SchoolSetupPage() {
   const handleReset = () => {
     if (school) {
       setFormData({
-        name: school.name || '',
-        description: school.description || '',
-        emisNumber: school.emisNumber || '',
-        district: school.district || '',
-        schoolType: school.schoolType || 'Secondary',
-        ownershipType: school.ownershipType || 'Public',
-        educationDistrict: school.educationDistrict || '',
-        curriculum: school.curriculum || 'CAPS',
-        address: school.address || '',
+        name: school.name || "",
+        description: school.description || "",
+        emisNumber: school.emisNumber || "",
+        district: school.district || "",
+        schoolType: school.schoolType || "Secondary",
+        ownershipType: school.ownershipType || "Public",
+        educationDistrict: school.educationDistrict || "",
+        curriculum: school.curriculum || "CAPS",
+        address: school.address || "",
       });
       if (school.location) setLocation(school.location);
     }
@@ -284,7 +336,10 @@ export default function SchoolSetupPage() {
 
   if (loading) {
     return (
-      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+      <DashboardLayout
+        sidebarLinks={schoolSidebarLinks}
+        requiredUserType="school"
+      >
         <div className="p-8 flex items-center justify-center">
           <Loader2 size={32} className="animate-spin text-muted-foreground" />
         </div>
@@ -293,11 +348,16 @@ export default function SchoolSetupPage() {
   }
 
   return (
-    <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+    <DashboardLayout
+      sidebarLinks={schoolSidebarLinks}
+      requiredUserType="school"
+    >
       <div className="p-8 pb-24">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">School Profile Setup</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              School Profile Setup
+            </h1>
             <p className="text-muted-foreground">
               Complete your school profile to start posting jobs
             </p>
@@ -305,7 +365,9 @@ export default function SchoolSetupPage() {
 
           {saved && (
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-green-700 font-medium">Profile saved successfully!</p>
+              <p className="text-green-700 font-medium">
+                Profile saved successfully!
+              </p>
             </div>
           )}
 
@@ -315,21 +377,29 @@ export default function SchoolSetupPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="divide-y divide-border [&>*]:pt-6 space-y-6">
+          <form
+            onSubmit={handleSubmit}
+            className="divide-y divide-border [&>*]:pt-6 space-y-6"
+          >
             {/* Profile Picture */}
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">Profile Picture</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                Profile Picture
+              </h2>
               <div
                 className={`flex flex-col sm:flex-row items-center gap-6 p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingPic ? 'border-primary bg-primary/5' : 'border-border'
+                  draggingPic ? "border-primary bg-primary/5" : "border-border"
                 }`}
-                onDragOver={(e) => { e.preventDefault(); setDraggingPic(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDraggingPic(true);
+                }}
                 onDragLeave={() => setDraggingPic(false)}
                 onDrop={(e) => {
                   e.preventDefault();
                   setDraggingPic(false);
                   const file = e.dataTransfer.files?.[0];
-                  if (file && file.type.startsWith('image/')) {
+                  if (file && file.type.startsWith("image/")) {
                     handleProfilePicSelect(file);
                   }
                 }}
@@ -345,7 +415,10 @@ export default function SchoolSetupPage() {
                         />
                       ) : (
                         <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center">
-                          <Loader2 size={24} className="animate-spin text-muted-foreground" />
+                          <Loader2
+                            size={24}
+                            className="animate-spin text-muted-foreground"
+                          />
                         </div>
                       )}
                       <button
@@ -369,9 +442,11 @@ export default function SchoolSetupPage() {
                     onClick={() => profilePicInputRef.current?.click()}
                   >
                     <Camera size={16} />
-                    {hasPic ? 'Change Photo' : 'Upload Photo'}
+                    {hasPic ? "Change Photo" : "Upload Photo"}
                   </Button>
-                  <p className="text-xs text-muted-foreground mt-2">Drag & drop or click to upload. JPG or PNG, max 5MB</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Drag & drop or click to upload. JPG or PNG, max 5MB
+                  </p>
                 </div>
                 <input
                   ref={profilePicInputRef}
@@ -381,7 +456,7 @@ export default function SchoolSetupPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleProfilePicSelect(file);
-                    e.target.value = '';
+                    e.target.value = "";
                   }}
                 />
               </div>
@@ -389,7 +464,9 @@ export default function SchoolSetupPage() {
 
             {/* School Information */}
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">School Information</h2>
+              <h2 className="text-lg font-bold text-foreground">
+                School Information
+              </h2>
 
               <div>
                 <label className="block text-sm font-bold text-foreground mb-2">
@@ -399,7 +476,9 @@ export default function SchoolSetupPage() {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                 />
               </div>
@@ -411,7 +490,9 @@ export default function SchoolSetupPage() {
                 <textarea
                   rows={4}
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell teachers about your school, its values, and environment..."
                 />
@@ -425,7 +506,9 @@ export default function SchoolSetupPage() {
                   <input
                     type="text"
                     value={formData.emisNumber}
-                    onChange={(e) => setFormData({ ...formData, emisNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, emisNumber: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   />
                 </div>
@@ -437,7 +520,9 @@ export default function SchoolSetupPage() {
                   <input
                     type="text"
                     value={formData.district}
-                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, district: e.target.value })
+                    }
                     className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="e.g., Cape Winelands"
                   />
@@ -452,7 +537,12 @@ export default function SchoolSetupPage() {
                   <select
                     required
                     value={formData.schoolType}
-                    onChange={(e) => setFormData({ ...formData, schoolType: e.target.value as SchoolType })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        schoolType: e.target.value as SchoolType,
+                      })
+                    }
                     className={SELECT_CLASS}
                   >
                     <option value="Primary">Primary</option>
@@ -469,7 +559,12 @@ export default function SchoolSetupPage() {
                   <select
                     required
                     value={formData.ownershipType}
-                    onChange={(e) => setFormData({ ...formData, ownershipType: e.target.value as OwnershipType })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        ownershipType: e.target.value as OwnershipType,
+                      })
+                    }
                     className={SELECT_CLASS}
                   >
                     <option value="Public">Public</option>
@@ -486,7 +581,12 @@ export default function SchoolSetupPage() {
                   <input
                     type="text"
                     value={formData.educationDistrict}
-                    onChange={(e) => setFormData({ ...formData, educationDistrict: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        educationDistrict: e.target.value,
+                      })
+                    }
                     className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="e.g., Metro East"
                   />
@@ -499,7 +599,12 @@ export default function SchoolSetupPage() {
                   <select
                     required
                     value={formData.curriculum}
-                    onChange={(e) => setFormData({ ...formData, curriculum: e.target.value as Curriculum })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        curriculum: e.target.value as Curriculum,
+                      })
+                    }
                     className={SELECT_CLASS}
                   >
                     <option value="CAPS">CAPS</option>
@@ -516,9 +621,11 @@ export default function SchoolSetupPage() {
                 </label>
                 <AddressAutocomplete
                   value={formData.address}
-                  onChange={(addr) => setFormData({ ...formData, address: addr })}
+                  onChange={(addr) =>
+                    setFormData({ ...formData, address: addr })
+                  }
                   onSelect={({ address: addr, lat, lng }) => {
-                    setFormData(prev => ({ ...prev, address: addr }));
+                    setFormData((prev) => ({ ...prev, address: addr }));
                     setLocation({ lat, lng });
                   }}
                   required
@@ -531,35 +638,53 @@ export default function SchoolSetupPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-foreground">Registration Certificate</h2>
-                  <p className="text-xs text-muted-foreground">Upload your school registration certificate for verification</p>
+                  <h2 className="text-lg font-bold text-foreground">
+                    Registration Certificate
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Upload your school registration certificate for verification
+                  </p>
                 </div>
-                {school?.verificationStatus === 'approved' && (
-                  <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
+                {school?.verificationStatus === "approved" && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">
+                    Approved
+                  </span>
                 )}
-                {school?.verificationStatus === 'pending' && (
-                  <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Pending Review</span>
+                {school?.verificationStatus === "pending" && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">
+                    Pending Review
+                  </span>
                 )}
-                {school?.verificationStatus === 'rejected' && (
-                  <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
+                {school?.verificationStatus === "rejected" && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
+                    Rejected
+                  </span>
                 )}
-                {(!school?.verificationStatus || school.verificationStatus === 'unverified') && (
-                  <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not uploaded</span>
+                {(!school?.verificationStatus ||
+                  school.verificationStatus === "unverified") && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">
+                    Not uploaded
+                  </span>
                 )}
               </div>
 
               {/* Rejection reason */}
-              {school?.verificationStatus === 'rejected' && school.rejectionReason && (
-                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                  <span className="font-medium">Reason: </span>{school.rejectionReason}
-                </div>
-              )}
+              {school?.verificationStatus === "rejected" &&
+                school.rejectionReason && (
+                  <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                    <span className="font-medium">Reason: </span>
+                    {school.rejectionReason}
+                  </div>
+                )}
 
               <div
                 className={`p-4 rounded-lg border-2 border-dashed transition-colors ${
-                  draggingCert ? 'border-primary bg-primary/5' : 'border-border'
+                  draggingCert ? "border-primary bg-primary/5" : "border-border"
                 }`}
-                onDragOver={(e) => { e.preventDefault(); setDraggingCert(true); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDraggingCert(true);
+                }}
                 onDragLeave={() => setDraggingCert(false)}
                 onDrop={(e) => {
                   e.preventDefault();
@@ -575,30 +700,55 @@ export default function SchoolSetupPage() {
                         src={displayCertUrl}
                         alt="Certificate"
                         className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
-                        onClick={() => displayCertUrl && setLightbox({ src: displayCertUrl, alt: 'Registration Certificate' })}
+                        onClick={() =>
+                          displayCertUrl &&
+                          setLightbox({
+                            src: displayCertUrl,
+                            alt: "Registration Certificate",
+                          })
+                        }
                       />
                     ) : displayCertUrl ? (
                       <button
                         type="button"
-                        onClick={() => setLightbox({ src: displayCertUrl, alt: 'Registration Certificate', fileName: pendingCertFile?.name || 'certificate.pdf' })}
+                        onClick={() =>
+                          setLightbox({
+                            src: displayCertUrl,
+                            alt: "Registration Certificate",
+                            fileName:
+                              pendingCertFile?.name || "certificate.pdf",
+                          })
+                        }
                         className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
                       >
                         <FileText size={20} className="text-red-500" />
-                        <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
+                        <span className="text-[9px] text-red-600 font-medium mt-0.5">
+                          PDF
+                        </span>
                       </button>
                     ) : (
                       <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+                        <Loader2
+                          size={16}
+                          className="animate-spin text-muted-foreground"
+                        />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
-                        {displayCertName || 'Certificate uploaded'}
+                        {displayCertName || "Certificate uploaded"}
                       </p>
                       {displayCertUrl && (
                         <button
                           type="button"
-                          onClick={() => setLightbox({ src: displayCertUrl, alt: 'Registration Certificate', fileName: pendingCertFile?.name || 'certificate.pdf' })}
+                          onClick={() =>
+                            setLightbox({
+                              src: displayCertUrl,
+                              alt: "Registration Certificate",
+                              fileName:
+                                pendingCertFile?.name || "certificate.pdf",
+                            })
+                          }
                           className="text-xs text-primary hover:underline"
                         >
                           Preview
@@ -622,7 +772,9 @@ export default function SchoolSetupPage() {
                     >
                       Upload Certificate
                     </Button>
-                    <p className="text-xs text-muted-foreground mt-2">Drag & drop or click. PDF, JPG, or PNG, max 10MB</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Drag & drop or click. PDF, JPG, or PNG, max 10MB
+                    </p>
                   </div>
                 )}
                 <input
@@ -633,7 +785,7 @@ export default function SchoolSetupPage() {
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) handleCertSelect(file);
-                    e.target.value = '';
+                    e.target.value = "";
                   }}
                 />
               </div>
@@ -645,32 +797,34 @@ export default function SchoolSetupPage() {
       {/* Floating save bar */}
       <div
         className={`fixed bottom-0 left-0 md:left-64 right-0 z-50 transition-all duration-300 ${
-          hasChanges ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'
+          hasChanges
+            ? "translate-y-0 opacity-100"
+            : "translate-y-full opacity-0 pointer-events-none"
         }`}
       >
         <div className="flex justify-center px-8 pb-6">
-            <div className="w-full max-w-2xl bg-foreground text-white rounded-lg shadow-lg px-6 py-3 flex items-center justify-between">
-              <p className="text-sm font-medium">
-                Careful — you have unsaved changes!
-              </p>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
-                >
-                  Reset
-                </button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => handleSubmit()}
-                  disabled={saving}
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
+          <div className="w-full max-w-2xl bg-foreground text-white rounded-lg shadow-lg px-6 py-3 flex items-center justify-between">
+            <p className="text-sm font-medium">
+              Careful — you have unsaved changes!
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-sm font-medium text-gray-300 hover:text-white transition-colors"
+              >
+                Reset
+              </button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => handleSubmit()}
+                disabled={saving}
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
+          </div>
         </div>
       </div>
       {lightbox && (
