@@ -2,16 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Briefcase, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function MarketingHeader() {
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const isTeacherPage = pathname === '/teacher-home' || pathname === '/';
-  const isSchoolPage = pathname === '/school-home';
 
   return (
     <header className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
@@ -24,30 +19,6 @@ export default function MarketingHeader() {
             </div>
             <span className="text-2xl font-bold text-foreground">TempEd</span>
           </Link>
-
-          {/* Navigation Toggle — desktop */}
-          <div className="hidden md:flex items-center gap-1 bg-muted rounded-full p-1">
-            <Link
-              href="/teacher-home"
-              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                isTeacherPage
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              For Teachers
-            </Link>
-            <Link
-              href="/school-home"
-              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                isSchoolPage
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              For Schools
-            </Link>
-          </div>
 
           {/* Auth Buttons — desktop */}
           <div className="hidden md:flex items-center gap-3">
@@ -68,33 +39,9 @@ export default function MarketingHeader() {
           </button>
         </div>
 
-        {/* Mobile dropdown */}
+        {/* Mobile dropdown — auth buttons only */}
         {menuOpen && (
-          <div className="md:hidden border-t border-border py-4 space-y-4">
-            <div className="flex items-center gap-1 bg-muted rounded-full p-1 w-fit mx-auto">
-              <Link
-                href="/teacher-home"
-                onClick={() => setMenuOpen(false)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  isTeacherPage
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                For Teachers
-              </Link>
-              <Link
-                href="/school-home"
-                onClick={() => setMenuOpen(false)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                  isSchoolPage
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                For Schools
-              </Link>
-            </div>
+          <div className="md:hidden border-t border-border py-4">
             <div className="flex flex-col gap-2 px-2">
               <Button variant="ghost" size="sm" asChild className="w-full justify-center">
                 <Link href="/auth/login" onClick={() => setMenuOpen(false)}>Log In</Link>

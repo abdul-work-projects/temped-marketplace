@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import MarketingHeader from '@/components/marketing/Header';
-import MarketingFooter from '@/components/marketing/Footer';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import MarketingHeader from "@/components/marketing/Header";
+import MarketingFooter from "@/components/marketing/Footer";
 import {
   ChevronDown,
   MapPin,
@@ -14,99 +15,93 @@ import {
   GraduationCap,
   Users,
   Award,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-
-const STATS = [
-  { value: '500+', label: 'Teachers' },
-  { value: '200+', label: 'Schools' },
-  { value: '1,000+', label: 'Placements' },
-  { value: 'Free', label: 'To Use' },
-];
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const BENEFITS = [
   {
     icon: <Clock size={24} />,
-    title: 'Flexible Placements',
+    title: "Flexible Placements",
     description:
-      'Find short-term, permanent, or coaching positions that fit your schedule and expertise.',
-    color: 'bg-blue-100 text-blue-600',
+      "Find short-term, permanent, or coaching positions that fit your schedule and expertise.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <Shield size={24} />,
-    title: 'Verified Schools',
+    title: "Verified Schools",
     description:
-      'All schools on our platform are verified with valid EMIS numbers and registration certificates.',
-    color: 'bg-green-100 text-green-600',
+      "All schools on our platform are verified with valid EMIS numbers and registration certificates.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <Briefcase size={24} />,
-    title: 'Easy Applications',
+    title: "Easy Applications",
     description:
-      'Apply to multiple positions with a single profile. Track all your applications in one place.',
-    color: 'bg-purple-100 text-purple-600',
+      "Apply to multiple positions with a single profile. Track all your applications in one place.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <MapPin size={24} />,
-    title: 'Distance Matching',
+    title: "Distance Matching",
     description:
-      'See jobs within your preferred distance radius. No more commuting surprises.',
-    color: 'bg-orange-100 text-orange-600',
+      "See jobs within your preferred distance radius. No more commuting surprises.",
+    color: "bg-primary/10 text-primary",
   },
 ];
 
 const STEPS = [
   {
-    number: '1',
-    title: 'Sign Up',
+    number: "1",
+    title: "Sign Up",
     description:
       'Create your free account in minutes. Choose "Teacher" as your account type.',
   },
   {
-    number: '2',
-    title: 'Complete Your Profile',
+    number: "2",
+    title: "Complete Your Profile",
     description:
-      'Add your qualifications, experience, subjects, and upload your documents for verification.',
+      "Add your qualifications, experience, subjects, and upload your documents for verification.",
   },
   {
-    number: '3',
-    title: 'Get Matched',
+    number: "3",
+    title: "Get Matched",
     description:
-      'Browse available positions matched to your subjects and location. Apply with one click.',
+      "Browse available positions matched to your subjects and location. Apply with one click.",
   },
 ];
 
 const FAQS = [
   {
-    question: 'How much does it cost to use TempEd?',
+    question: "How much does it cost to use TempEd?",
     answer:
-      'TempEd is completely free for teachers. Create your profile, browse jobs, and apply at no cost.',
+      "TempEd is currently free for teachers. Create your profile, browse jobs, and apply at no cost.",
   },
   {
-    question: 'What documents do I need to upload?',
+    question: "What documents do I need to upload?",
     answer:
-      'You will need your CV, academic qualifications (degrees/diplomas), a copy of your ID or passport, and a criminal record check. These documents help schools verify your credentials.',
+      "You will need your CV, academic qualifications (degrees/diplomas), a copy of your ID or passport, and a criminal record check. These documents help schools verify your credentials.",
   },
   {
-    question: 'How does the matching work?',
+    question: "How does the matching work?",
     answer:
-      'Jobs are matched based on your selected subjects, education phases, and distance from the school. You set your preferred distance radius, and we show you relevant opportunities within that range.',
+      "Jobs are matched based on your selected subjects, education phases, and distance from the school. You set your preferred distance radius, and we show you relevant opportunities within that range.",
   },
   {
-    question: 'Can I apply for permanent positions?',
+    question: "Can I apply for permanent positions?",
     answer:
-      'Yes! Schools post permanent, temporary, invigilator, and coaching positions. You can filter by job type to find what suits you best.',
+      "Yes! Schools post permanent, temporary, invigilator, and coaching positions. You can filter by job type to find what suits you best.",
   },
   {
-    question: 'How long does verification take?',
+    question: "How long does verification take?",
     answer:
-      'Once you upload all required documents, our admin team reviews them within 2-3 business days. Verified profiles are prioritised by schools.',
+      "Once you upload all required documents, our admin team reviews them within 24–48 hours, with most reviews completed in under 24 hours. Verified profiles are prioritised by schools.",
   },
 ];
 
 export default function TeacherHomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const pathname = usePathname();
+  const isTeacherPage = pathname === "/teacher-home" || pathname === "/";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -118,9 +113,24 @@ export default function TeacherHomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left */}
             <div>
-              <Badge variant="secondary" className="mb-6">
-                For Teachers
-              </Badge>
+              <div className="mb-6 flex items-center gap-1 bg-muted rounded-full p-1 w-fit">
+                <Link
+                  href="/teacher-home"
+                  className={`px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm font-medium rounded-full transition-colors ${
+                    isTeacherPage
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  For Teachers
+                </Link>
+                <Link
+                  href="/school-home"
+                  className="px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm font-medium rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  For Schools
+                </Link>
+              </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 Find Your Next Teaching Opportunity
               </h1>
@@ -131,14 +141,14 @@ export default function TeacherHomePage() {
               </p>
               <div className="flex items-center gap-4 mb-6">
                 <Button size="lg" asChild>
-                  <Link href="/auth/signup">Get Started Free</Link>
+                  <Link href="/auth/signup">Get Started</Link>
                 </Button>
                 <Button variant="outline" size="lg" asChild>
                   <Link href="/auth/login">Log In</Link>
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                No credit card required. Free for teachers, always.
+                Currently free for teachers.
               </p>
             </div>
 
@@ -164,24 +174,6 @@ export default function TeacherHomePage() {
         </div>
       </section>
 
-      {/* Stats Row */}
-      <section className="py-12 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-4xl font-bold text-foreground">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Benefits Grid */}
       <section className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -189,13 +181,14 @@ export default function TeacherHomePage() {
             Why Teachers Choose TempEd
           </h2>
           <p className="text-muted-foreground mb-12 max-w-2xl">
-            Everything you need to find and land your next teaching position, in one platform.
+            Everything you need to find and land your next teaching position, in
+            one platform.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {BENEFITS.map((benefit) => (
               <div key={benefit.title} className="flex gap-5">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${benefit.color}`}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${benefit.color}`}
                 >
                   {benefit.icon}
                 </div>
@@ -275,9 +268,7 @@ export default function TeacherHomePage() {
             {FAQS.map((faq, index) => (
               <div key={index}>
                 <button
-                  onClick={() =>
-                    setOpenFaq(openFaq === index ? null : index)
-                  }
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   className="flex items-center justify-between w-full py-5 text-left gap-4"
                 >
                   <span className="font-medium text-foreground">
@@ -285,8 +276,8 @@ export default function TeacherHomePage() {
                   </span>
                   <ChevronDown
                     size={20}
-                    className={`text-muted-foreground flex-shrink-0 transition-transform ${
-                      openFaq === index ? 'rotate-180' : ''
+                    className={`text-muted-foreground shrink-0 transition-transform ${
+                      openFaq === index ? "rotate-180" : ""
                     }`}
                   />
                 </button>
@@ -310,8 +301,8 @@ export default function TeacherHomePage() {
             Ready to find your next opportunity?
           </h2>
           <p className="text-primary-foreground/80 text-lg mb-8">
-            Join hundreds of teachers already using TempEd to find placements
-            across South Africa.
+            Create your profile and start applying to teaching positions
+            across South Africa today.
           </p>
           <Button
             size="lg"
@@ -319,7 +310,7 @@ export default function TeacherHomePage() {
             className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
             asChild
           >
-            <Link href="/auth/signup">Get Started Free</Link>
+            <Link href="/auth/signup">Get Started</Link>
           </Button>
         </div>
       </section>

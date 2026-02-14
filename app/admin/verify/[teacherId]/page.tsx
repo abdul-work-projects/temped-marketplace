@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { useAdminTeacherDetail } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { isTeacherVerified, getVerificationSummary } from '@/lib/utils/verification';
-import { DocumentType, TeacherDocument } from '@/types';
-import dynamic from 'next/dynamic';
-const ImageLightbox = dynamic(() => import('@/components/shared/ImageLightbox'), { ssr: false });
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useAdminTeacherDetail } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import {
+  isTeacherVerified,
+  getVerificationSummary,
+} from "@/lib/utils/verification";
+import { DocumentType, TeacherDocument } from "@/types";
+import dynamic from "next/dynamic";
+const ImageLightbox = dynamic(
+  () => import("@/components/shared/ImageLightbox"),
+  { ssr: false }
+);
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Loader2,
   ChevronLeft,
@@ -24,50 +30,61 @@ import {
   Check,
   AlertCircle,
   Camera,
-} from 'lucide-react';
+} from "lucide-react";
 
 const ORDERED_DOCUMENT_TYPES: DocumentType[] = [
-  'selfie',
-  'id_document',
-  'cv',
-  'qualification',
-  'criminal_record',
+  "selfie",
+  "id_document",
+  "cv",
+  "qualification",
+  "criminal_record",
 ];
 
 const DOC_LABELS: Record<DocumentType, string> = {
-  cv: 'CV / Resume',
-  qualification: 'Qualifications',
-  id_document: 'ID / Passport / Driver\'s License',
-  criminal_record: 'Criminal Record Check',
-  selfie: 'Face Verification Selfie',
+  cv: "CV / Resume",
+  qualification: "Qualifications",
+  id_document: "ID / Passport / Driver's License",
+  criminal_record: "Criminal Record Check",
+  selfie: "Face Verification Selfie",
 };
 
-const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+const IMAGE_EXTENSIONS = [
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".svg",
+];
 
 function hasImageExtension(fileName?: string, fileUrl?: string): boolean {
-  const name = (fileName || fileUrl || '').toLowerCase();
-  return IMAGE_EXTENSIONS.some(ext => name.endsWith(ext));
+  const name = (fileName || fileUrl || "").toLowerCase();
+  return IMAGE_EXTENSIONS.some((ext) => name.endsWith(ext));
 }
 
 function DocStatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
-    pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    approved: 'bg-green-100 text-green-700 border-green-200',
-    rejected: 'bg-red-100 text-red-700 border-red-200',
+    pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    approved: "bg-green-100 text-green-700 border-green-200",
+    rejected: "bg-red-100 text-red-700 border-red-200",
   };
 
   return (
-    <Badge variant="outline" className={styles[status] || 'bg-muted text-foreground border-border'}>
+    <Badge
+      variant="outline"
+      className={styles[status] || "bg-muted text-foreground border-border"}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );
 }
 
-const PDF_EXTENSIONS = ['.pdf'];
+const PDF_EXTENSIONS = [".pdf"];
 
 function hasPdfExtension(fileName?: string, fileUrl?: string): boolean {
-  const name = (fileName || fileUrl || '').toLowerCase();
-  return PDF_EXTENSIONS.some(ext => name.endsWith(ext));
+  const name = (fileName || fileUrl || "").toLowerCase();
+  return PDF_EXTENSIONS.some((ext) => name.endsWith(ext));
 }
 
 /** Small thumbnail for inline document display */
@@ -78,7 +95,7 @@ function DocThumbnail({
   doc: TeacherDocument;
   onOpenLightbox: (src: string, alt: string, fileName?: string) => void;
 }) {
-  const signedUrl = useSignedUrl('documents', doc.fileUrl);
+  const signedUrl = useSignedUrl("documents", doc.fileUrl);
 
   if (hasImageExtension(doc.fileName, doc.fileUrl) && signedUrl) {
     return (
@@ -86,7 +103,13 @@ function DocThumbnail({
         src={signedUrl}
         alt={doc.fileName || DOC_LABELS[doc.documentType]}
         className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
-        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+        onClick={() =>
+          onOpenLightbox(
+            signedUrl,
+            doc.fileName || DOC_LABELS[doc.documentType],
+            doc.fileName
+          )
+        }
       />
     );
   }
@@ -94,7 +117,13 @@ function DocThumbnail({
   if (hasPdfExtension(doc.fileName, doc.fileUrl) && signedUrl) {
     return (
       <button
-        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName || 'document.pdf')}
+        onClick={() =>
+          onOpenLightbox(
+            signedUrl,
+            doc.fileName || DOC_LABELS[doc.documentType],
+            doc.fileName || "document.pdf"
+          )
+        }
         className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
       >
         <FileText className="w-6 h-6 text-red-500" />
@@ -106,11 +135,19 @@ function DocThumbnail({
   if (signedUrl) {
     return (
       <button
-        onClick={() => onOpenLightbox(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+        onClick={() =>
+          onOpenLightbox(
+            signedUrl,
+            doc.fileName || DOC_LABELS[doc.documentType],
+            doc.fileName
+          )
+        }
         className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
       >
         <FileText className="w-6 h-6 text-muted-foreground" />
-        <span className="text-[10px] text-muted-foreground truncate max-w-[72px]">{doc.fileName || 'View'}</span>
+        <span className="text-[10px] text-muted-foreground truncate max-w-[72px]">
+          {doc.fileName || "View"}
+        </span>
       </button>
     );
   }
@@ -123,13 +160,21 @@ function DocThumbnail({
 }
 
 /** Side-by-side image used inside the comparison modal */
-function CompareImage({ doc, label }: { doc: TeacherDocument | undefined; label: string }) {
-  const signedUrl = useSignedUrl('documents', doc?.fileUrl);
+function CompareImage({
+  doc,
+  label,
+}: {
+  doc: TeacherDocument | undefined;
+  label: string;
+}) {
+  const signedUrl = useSignedUrl("documents", doc?.fileUrl);
 
   if (!doc) {
     return (
       <div className="flex-1">
-        <p className="text-xs font-bold text-muted-foreground uppercase mb-2">{label}</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase mb-2">
+          {label}
+        </p>
         <div className="h-96 flex items-center justify-center bg-muted rounded-lg border border-border">
           <p className="text-sm text-muted-foreground">Not uploaded</p>
         </div>
@@ -140,7 +185,9 @@ function CompareImage({ doc, label }: { doc: TeacherDocument | undefined; label:
   return (
     <div className="flex-1">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-bold text-muted-foreground uppercase">{label}</p>
+        <p className="text-xs font-bold text-muted-foreground uppercase">
+          {label}
+        </p>
         <DocStatusBadge status={doc.status} />
       </div>
       {signedUrl ? (
@@ -155,7 +202,11 @@ function CompareImage({ doc, label }: { doc: TeacherDocument | undefined; label:
         </div>
       )}
       <p className="text-xs text-muted-foreground mt-2">
-        {new Date(doc.createdAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}
+        {new Date(doc.createdAt).toLocaleDateString("en-ZA", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
       </p>
     </div>
   );
@@ -163,32 +214,45 @@ function CompareImage({ doc, label }: { doc: TeacherDocument | undefined; label:
 
 export default function AdminVerifyTeacherDetail() {
   const { teacherId } = useParams() as { teacherId: string };
-  const { teacher, documents, loading, reviewDocument } = useAdminTeacherDetail(teacherId);
+  const { teacher, documents, loading, reviewDocument } =
+    useAdminTeacherDetail(teacherId);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectInput, setShowRejectInput] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    src: string;
+    alt: string;
+    fileName?: string;
+  } | null>(null);
   const [showCompareModal, setShowCompareModal] = useState(false);
 
-  const profilePicUrl = useSignedUrl('profile-pictures', teacher?.profilePicture);
+  const profilePicUrl = useSignedUrl(
+    "profile-pictures",
+    teacher?.profilePicture
+  );
   const verified = teacher ? isTeacherVerified(documents) : false;
   const summary = getVerificationSummary(documents);
 
   // Find best doc for comparison: prefer latest pending, fall back to latest of any status
-  const selfieDoc = documents.find(d => d.documentType === 'selfie' && d.status === 'pending')
-    || documents.find(d => d.documentType === 'selfie');
-  const idDoc = documents.find(d => d.documentType === 'id_document' && d.status === 'pending')
-    || documents.find(d => d.documentType === 'id_document');
+  const selfieDoc =
+    documents.find(
+      (d) => d.documentType === "selfie" && d.status === "pending"
+    ) || documents.find((d) => d.documentType === "selfie");
+  const idDoc =
+    documents.find(
+      (d) => d.documentType === "id_document" && d.status === "pending"
+    ) || documents.find((d) => d.documentType === "id_document");
   const canCompare = selfieDoc || idDoc;
 
-  const openLightbox = (src: string, alt: string, fileName?: string) => setLightbox({ src, alt, fileName });
+  const openLightbox = (src: string, alt: string, fileName?: string) =>
+    setLightbox({ src, alt, fileName });
   const closeLightbox = () => setLightbox(null);
 
   const handleApprove = async (docId: string) => {
     setActionLoading(true);
     setReviewingId(docId);
-    await reviewDocument(docId, 'approved');
+    await reviewDocument(docId, "approved");
     setReviewingId(null);
     setActionLoading(false);
   };
@@ -196,10 +260,10 @@ export default function AdminVerifyTeacherDetail() {
   const handleReject = async (docId: string) => {
     setActionLoading(true);
     setReviewingId(docId);
-    await reviewDocument(docId, 'rejected', rejectionReason || undefined);
+    await reviewDocument(docId, "rejected", rejectionReason || undefined);
     setReviewingId(null);
     setShowRejectInput(null);
-    setRejectionReason('');
+    setRejectionReason("");
     setActionLoading(false);
   };
 
@@ -216,8 +280,13 @@ export default function AdminVerifyTeacherDetail() {
       <div className="min-h-screen">
         <div className="p-8">
           <div className="max-w-4xl mx-auto text-center py-16">
-            <h2 className="text-xl font-bold text-foreground mb-2">Teacher not found</h2>
-            <Link href="/admin/verify" className="text-primary hover:underline text-sm">
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              Teacher not found
+            </h2>
+            <Link
+              href="/admin/verify"
+              className="text-primary hover:underline text-sm"
+            >
               Back to verification list
             </Link>
           </div>
@@ -227,10 +296,10 @@ export default function AdminVerifyTeacherDetail() {
   }
 
   const renderActionButtons = (doc: TeacherDocument) => {
-    if (doc.status !== 'pending') return null;
+    if (doc.status !== "pending") return null;
 
     return (
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           size="sm"
           onClick={() => handleApprove(doc.id)}
@@ -247,7 +316,9 @@ export default function AdminVerifyTeacherDetail() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setShowRejectInput(showRejectInput === doc.id ? null : doc.id)}
+          onClick={() =>
+            setShowRejectInput(showRejectInput === doc.id ? null : doc.id)
+          }
           className="text-red-600 border-red-300 hover:bg-red-50"
         >
           <X className="w-3 h-3" />
@@ -278,13 +349,16 @@ export default function AdminVerifyTeacherDetail() {
           {actionLoading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
-            'Confirm Reject'
+            "Confirm Reject"
           )}
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => { setShowRejectInput(null); setRejectionReason(''); }}
+          onClick={() => {
+            setShowRejectInput(null);
+            setRejectionReason("");
+          }}
         >
           Cancel
         </Button>
@@ -325,7 +399,10 @@ export default function AdminVerifyTeacherDetail() {
                   {teacher.firstName} {teacher.surname}
                 </h1>
                 {verified && (
-                  <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
+                  <Badge
+                    className="bg-green-100 text-green-800 border-green-200"
+                    variant="outline"
+                  >
                     <ShieldCheck className="w-3 h-3" />
                     Verified
                   </Badge>
@@ -335,21 +412,30 @@ export default function AdminVerifyTeacherDetail() {
               <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                 {teacher.address && <span>{teacher.address}</span>}
                 {teacher.dateOfBirth && (
-                  <span>DOB: {new Date(teacher.dateOfBirth).toLocaleDateString('en-ZA')}</span>
+                  <span>
+                    DOB:{" "}
+                    {new Date(teacher.dateOfBirth).toLocaleDateString("en-ZA")}
+                  </span>
                 )}
                 {teacher.idNumber && <span>ID: {teacher.idNumber}</span>}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Profile Completeness</p>
-              <p className="text-2xl font-bold text-foreground">{teacher.profileCompleteness}%</p>
+              <p className="text-sm text-muted-foreground">
+                Profile Completeness
+              </p>
+              <p className="text-2xl font-bold text-foreground">
+                {teacher.profileCompleteness}%
+              </p>
             </div>
           </div>
 
           {/* Verification Checklist */}
           <Card className="mb-6">
             <CardContent className="p-6">
-              <h2 className="text-lg font-bold text-foreground mb-4">Verification Checklist</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                Verification Checklist
+              </h2>
               {verified ? (
                 <div className="p-4 bg-green-50 border border-green-200 rounded-lg mb-4">
                   <div className="flex items-center gap-2 text-green-700 font-bold">
@@ -367,11 +453,22 @@ export default function AdminVerifyTeacherDetail() {
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 {summary.map(({ type, hasApproved, hasPending }) => (
-                  <div key={type} className="flex items-center gap-2 p-2 border border-border rounded-lg">
-                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                      hasApproved ? 'bg-green-500' : hasPending ? 'bg-yellow-500' : 'bg-gray-300'
-                    }`} />
-                    <span className="text-xs font-medium text-muted-foreground truncate">{DOC_LABELS[type]}</span>
+                  <div
+                    key={type}
+                    className="flex items-center gap-2 p-2 border border-border rounded-lg"
+                  >
+                    <div
+                      className={`w-3 h-3 rounded-full shrink-0 ${
+                        hasApproved
+                          ? "bg-green-500"
+                          : hasPending
+                          ? "bg-yellow-500"
+                          : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs font-medium text-muted-foreground truncate">
+                      {DOC_LABELS[type]}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -398,17 +495,23 @@ export default function AdminVerifyTeacherDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No education phases specified</p>
+                <p className="text-sm text-muted-foreground">
+                  No education phases specified
+                </p>
               )}
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">Subjects</h2>
+              <h2 className="text-lg font-bold text-foreground mb-4">
+                Subjects
+              </h2>
               {Object.keys(teacher.subjects).length > 0 ? (
                 <div className="space-y-2">
                   {Object.entries(teacher.subjects).map(([phase, subjects]) => (
                     <div key={phase}>
-                      <p className="text-xs font-bold text-muted-foreground uppercase mb-1">{phase}</p>
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-1">
+                        {phase}
+                      </p>
                       <div className="flex flex-wrap gap-1">
                         {subjects.map((subject) => (
                           <Badge
@@ -424,7 +527,9 @@ export default function AdminVerifyTeacherDetail() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No subjects specified</p>
+                <p className="text-sm text-muted-foreground">
+                  No subjects specified
+                </p>
               )}
             </div>
           </div>
@@ -451,33 +556,62 @@ export default function AdminVerifyTeacherDetail() {
 
               {/* All documents grouped by type */}
               <div className="space-y-6">
-                {ORDERED_DOCUMENT_TYPES.map(type => {
-                  const docsOfType = documents.filter(d => d.documentType === type);
+                {ORDERED_DOCUMENT_TYPES.map((type) => {
+                  const docsOfType = documents.filter(
+                    (d) => d.documentType === type
+                  );
 
                   return (
-                    <div key={type} className="border border-border rounded-lg p-4">
-                      <h3 className="text-sm font-bold text-foreground mb-3">{DOC_LABELS[type]}</h3>
+                    <div
+                      key={type}
+                      className="border border-border rounded-lg p-4"
+                    >
+                      <h3 className="text-sm font-bold text-foreground mb-3">
+                        {DOC_LABELS[type]}
+                      </h3>
 
                       {docsOfType.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Not uploaded yet</p>
+                        <p className="text-sm text-muted-foreground">
+                          Not uploaded yet
+                        </p>
                       ) : (
                         <div className="space-y-2">
-                          {docsOfType.map(doc => (
-                            <div key={doc.id} className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
-                              <DocThumbnail doc={doc} onOpenLightbox={openLightbox} />
+                          {docsOfType.map((doc) => (
+                            <div
+                              key={doc.id}
+                              className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg"
+                            >
+                              <DocThumbnail
+                                doc={doc}
+                                onOpenLightbox={openLightbox}
+                              />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm text-foreground truncate">
-                                    {doc.fileName || DOC_LABELS[doc.documentType]}
+                                    {doc.fileName ||
+                                      DOC_LABELS[doc.documentType]}
                                   </span>
                                   <DocStatusBadge status={doc.status} />
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                  Uploaded {new Date(doc.createdAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                  {doc.reviewedAt && ` · Reviewed ${new Date(doc.reviewedAt).toLocaleDateString('en-ZA')}`}
+                                  Uploaded{" "}
+                                  {new Date(doc.createdAt).toLocaleDateString(
+                                    "en-ZA",
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    }
+                                  )}
+                                  {doc.reviewedAt &&
+                                    ` · Reviewed ${new Date(
+                                      doc.reviewedAt
+                                    ).toLocaleDateString("en-ZA")}`}
                                 </p>
                                 {doc.rejectionReason && (
-                                  <p className="text-xs text-red-600 mt-1">Reason: {doc.rejectionReason}</p>
+                                  <p className="text-xs text-red-600 mt-1">
+                                    Reason: {doc.rejectionReason}
+                                  </p>
                                 )}
                               </div>
                               {renderActionButtons(doc)}
@@ -485,7 +619,7 @@ export default function AdminVerifyTeacherDetail() {
                           ))}
 
                           {/* Inline rejection reason input */}
-                          {docsOfType.map(doc => renderRejectInput(doc.id))}
+                          {docsOfType.map((doc) => renderRejectInput(doc.id))}
                         </div>
                       )}
                     </div>
@@ -496,23 +630,33 @@ export default function AdminVerifyTeacherDetail() {
           </Card>
 
           {/* References */}
-          {teacher.teacherReferences && teacher.teacherReferences.length > 0 && (
-            <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">References</h2>
-              <div className="space-y-3">
-                {teacher.teacherReferences.map((ref, index) => (
-                  <div key={index} className="p-3 bg-muted/50 border border-border rounded-lg">
-                    <p className="text-sm font-medium text-foreground">{ref.name}</p>
-                    <p className="text-xs text-muted-foreground">{ref.relationship}</p>
-                    <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
-                      <span>{ref.email}</span>
-                      <span>{ref.phone}</span>
+          {teacher.teacherReferences &&
+            teacher.teacherReferences.length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-4">
+                  References
+                </h2>
+                <div className="space-y-3">
+                  {teacher.teacherReferences.map((ref, index) => (
+                    <div
+                      key={index}
+                      className="p-3 bg-muted/50 border border-border rounded-lg"
+                    >
+                      <p className="text-sm font-medium text-foreground">
+                        {ref.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {ref.relationship}
+                      </p>
+                      <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                        <span>{ref.email}</span>
+                        <span>{ref.phone}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 

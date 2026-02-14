@@ -127,26 +127,24 @@ export default function TeacherApplicationsPage() {
 
   return (
     <DashboardLayout sidebarLinks={teacherSidebarLinks} requiredUserType="teacher">
-      <div className="p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-1">My Applications</h1>
-              <p className="text-muted-foreground text-sm">
-                Track your job applications and their status
-              </p>
-            </div>
-            <div className="flex items-center gap-6">
-              <div className="text-right">
+      <div className="py-8 px-4 sm:px-6 lg:px-12">
+        <div className="max-w-6xl">
+          <div className="mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">My Applications</h1>
+            <p className="text-muted-foreground text-sm">
+              Track your job applications and their status
+            </p>
+            <div className="flex items-center gap-6 mt-4">
+              <div>
                 <p className="text-xs font-bold text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold text-foreground">{loading ? '...' : applications.length}</p>
               </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-muted-foreground flex items-center justify-end gap-1"><Star size={12} className="text-yellow-500" />Shortlisted</p>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground flex items-center gap-1"><Star size={12} className="text-yellow-500" />Shortlisted</p>
                 <p className="text-2xl font-bold text-foreground">{loading ? '...' : shortlistedCount}</p>
               </div>
-              <div className="text-right">
-                <p className="text-xs font-bold text-muted-foreground flex items-center justify-end gap-1"><CheckCircle size={12} className="text-green-500" />Hired</p>
+              <div>
+                <p className="text-xs font-bold text-muted-foreground flex items-center gap-1"><CheckCircle size={12} className="text-green-500" />Hired</p>
                 <p className="text-2xl font-bold text-foreground">{loading ? '...' : applications.filter((a) => a.status === 'Hired').length}</p>
               </div>
             </div>

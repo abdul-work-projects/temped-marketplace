@@ -1,15 +1,21 @@
-import Link from 'next/link';
-import { Job, School } from '@/types';
-import { MapPin, Calendar, Clock, AlertCircle, ChevronRight } from 'lucide-react';
-import { calculateDistance, formatDistance } from '@/lib/utils/distance';
-import { format } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+import Link from "next/link";
+import { Job, School } from "@/types";
+import {
+  MapPin,
+  Calendar,
+  Clock,
+  AlertCircle,
+  ChevronRight,
+} from "lucide-react";
+import { calculateDistance, formatDistance } from "@/lib/utils/distance";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 const JOB_TYPE_COLORS: Record<string, string> = {
-  Permanent: 'bg-green-100 text-green-700',
-  Temporary: 'bg-blue-100 text-blue-700',
-  Invigilator: 'bg-orange-100 text-orange-700',
-  Coach: 'bg-teal-100 text-teal-700',
+  Permanent: "bg-green-100 text-green-700",
+  Temporary: "bg-blue-100 text-blue-700",
+  Invigilator: "bg-orange-100 text-orange-700",
+  Coach: "bg-teal-100 text-teal-700",
 };
 
 interface JobCardProps {
@@ -19,7 +25,7 @@ interface JobCardProps {
   onApply?: (jobId: string) => void;
   applied?: boolean;
   linkPrefix?: string;
-  variant?: 'card' | 'list';
+  variant?: "card" | "list";
 }
 
 export default function JobCard({
@@ -28,38 +34,52 @@ export default function JobCard({
   teacherLocation,
   onApply,
   applied,
-  linkPrefix = '/teacher',
-  variant = 'card',
+  linkPrefix = "/teacher",
+  variant = "card",
 }: JobCardProps) {
-  const distance = teacherLocation && school.location
-    ? calculateDistance(
-        teacherLocation.lat,
-        teacherLocation.lng,
-        school.location.lat,
-        school.location.lng
-      )
+  const distance =
+    teacherLocation && school.location
+      ? calculateDistance(
+          teacherLocation.lat,
+          teacherLocation.lng,
+          school.location.lat,
+          school.location.lng
+        )
+      : null;
+
+  const isUrgent = job.tags.includes("Urgent");
+  const startDate = format(new Date(job.startDate), "MMM d, yyyy");
+  const endDate = job.endDate
+    ? format(new Date(job.endDate), "MMM d, yyyy")
     : null;
+  const deadline = format(new Date(job.applicationDeadline), "MMM d, yyyy");
 
-  const isUrgent = job.tags.includes('Urgent');
-  const startDate = format(new Date(job.startDate), 'MMM d, yyyy');
-  const endDate = job.endDate ? format(new Date(job.endDate), 'MMM d, yyyy') : null;
-  const deadline = format(new Date(job.applicationDeadline), 'MMM d, yyyy');
-
-  if (variant === 'list') {
+  if (variant === "list") {
     return (
-      <Link href={`${linkPrefix}/jobs/${job.id}`} className="block hover:bg-muted/50 transition-colors">
+      <Link
+        href={`${linkPrefix}/jobs/${job.id}`}
+        className="block hover:bg-muted/50 transition-colors"
+      >
         <div className="py-4 px-5">
           {/* Title */}
           <div className="flex items-center justify-between gap-2 mb-1">
             <h3 className="text-sm font-bold text-foreground">{job.title}</h3>
-            <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" />
+            <ChevronRight
+              size={16}
+              className="text-muted-foreground shrink-0"
+            />
           </div>
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
             <Badge variant="outline">{job.educationPhase}</Badge>
             <Badge variant="outline">{job.subject}</Badge>
             {job.jobType && (
-              <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>
+              <Badge
+                className={
+                  JOB_TYPE_COLORS[job.jobType] ||
+                  "bg-muted text-muted-foreground"
+                }
+              >
                 {job.jobType}
               </Badge>
             )}
@@ -67,7 +87,10 @@ export default function JobCard({
               <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
             )}
             {isUrgent && (
-              <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
+              <Badge className="bg-red-100 text-red-700 border-red-200">
+                <AlertCircle size={12} />
+                URGENT
+              </Badge>
             )}
           </div>
           {/* Bottom row: school · distance · dates */}
@@ -85,7 +108,8 @@ export default function JobCard({
             <span className="text-muted-foreground/50">&middot;</span>
             <span className="inline-flex items-center gap-0.5">
               <Calendar size={12} />
-              {startDate}{endDate ? ` – ${endDate}` : ' – Ongoing'}
+              {startDate}
+              {endDate ? ` – ${endDate}` : " – Ongoing"}
             </span>
           </div>
         </div>
@@ -116,10 +140,20 @@ export default function JobCard({
                 <Badge className="bg-purple-100 text-purple-700">Applied</Badge>
               )}
               {job.jobType && (
-                <Badge className={JOB_TYPE_COLORS[job.jobType] || 'bg-muted text-muted-foreground'}>{job.jobType}</Badge>
+                <Badge
+                  className={
+                    JOB_TYPE_COLORS[job.jobType] ||
+                    "bg-muted text-muted-foreground"
+                  }
+                >
+                  {job.jobType}
+                </Badge>
               )}
               {isUrgent && (
-                <Badge className="bg-red-100 text-red-700 border-red-200"><AlertCircle size={12} />URGENT</Badge>
+                <Badge className="bg-red-100 text-red-700 border-red-200">
+                  <AlertCircle size={12} />
+                  URGENT
+                </Badge>
               )}
             </div>
           </div>
@@ -135,13 +169,18 @@ export default function JobCard({
           )}
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{job.description}</p>
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+            {job.description}
+          </p>
 
           {/* Date Info */}
           <div className="space-y-2 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar size={14} />
-              <span>{startDate}{endDate ? ` - ${endDate}` : ' - Ongoing'}</span>
+              <span>
+                {startDate}
+                {endDate ? ` - ${endDate}` : " - Ongoing"}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Clock size={14} />
@@ -153,14 +192,18 @@ export default function JobCard({
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <Badge variant="outline">{job.educationPhase}</Badge>
             <Badge variant="outline">{job.subject}</Badge>
-            {job.tags.filter(t => t !== 'Urgent').map(tag => (
-              <Badge key={tag} variant="secondary">{tag}</Badge>
-            ))}
+            {job.tags
+              .filter((t) => t !== "Urgent")
+              .map((tag) => (
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
+              ))}
           </div>
 
           {/* View Details Button */}
           <div className="w-full py-2.5 px-4 font-bold transition-colors bg-primary text-primary-foreground hover:bg-primary/90 text-center mt-auto rounded-md">
-            {applied ? 'View Application' : 'View Details'}
+            {applied ? "View Application" : "View Details"}
           </div>
         </div>
       </div>

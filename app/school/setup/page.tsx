@@ -548,7 +548,6 @@ export default function SchoolSetupPage() {
                     <option value="Primary">Primary</option>
                     <option value="Secondary">Secondary</option>
                     <option value="Pre-primary">Pre-primary</option>
-                    <option value="Combined">Combined</option>
                   </select>
                 </div>
 
@@ -699,7 +698,7 @@ export default function SchoolSetupPage() {
                       <img
                         src={displayCertUrl}
                         alt="Certificate"
-                        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                        className="w-16 h-16 rounded object-cover border border-border shrink-0 cursor-pointer hover:border-primary transition-colors"
                         onClick={() =>
                           displayCertUrl &&
                           setLightbox({
@@ -719,7 +718,7 @@ export default function SchoolSetupPage() {
                               pendingCertFile?.name || "certificate.pdf",
                           })
                         }
-                        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary transition-colors"
                       >
                         <FileText size={20} className="text-red-500" />
                         <span className="text-[9px] text-red-600 font-medium mt-0.5">
@@ -727,7 +726,7 @@ export default function SchoolSetupPage() {
                         </span>
                       </button>
                     ) : (
-                      <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                      <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center shrink-0">
                         <Loader2
                           size={16}
                           className="animate-spin text-muted-foreground"
@@ -758,7 +757,7 @@ export default function SchoolSetupPage() {
                     <button
                       type="button"
                       onClick={handleRemoveCert}
-                      className="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors flex-shrink-0"
+                      className="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors shrink-0"
                     >
                       <X size={16} />
                     </button>

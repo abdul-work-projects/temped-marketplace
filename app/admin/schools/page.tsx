@@ -1,21 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { useAdminSearchSchools } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Loader2, Search, Eye, School, Building2, X as XIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useAdminSearchSchools } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Loader2,
+  Search,
+  Eye,
+  School,
+  Building2,
+  X as XIcon,
+} from "lucide-react";
 
 function SchoolAvatar({ profilePicture }: { profilePicture?: string }) {
-  const url = useSignedUrl('profile-pictures', profilePicture);
+  const url = useSignedUrl("profile-pictures", profilePicture);
   return (
-    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
       {url ? (
-        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <Building2 className="w-4 h-4 text-muted-foreground" />
       )}
@@ -25,7 +37,7 @@ function SchoolAvatar({ profilePicture }: { profilePicture?: string }) {
 
 export default function AdminSchools() {
   const { schools, loading, searchSchools } = useAdminSearchSchools();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -51,7 +63,9 @@ export default function AdminSchools() {
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Schools</h1>
-            <p className="text-muted-foreground">Search and manage school accounts</p>
+            <p className="text-muted-foreground">
+              Search and manage school accounts
+            </p>
           </div>
 
           {/* Search Bar */}
@@ -66,7 +80,7 @@ export default function AdminSchools() {
             />
             {query && (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => setQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
               >
                 <XIcon className="w-4 h-4" />
@@ -83,9 +97,13 @@ export default function AdminSchools() {
             <Card>
               <CardContent className="p-12 text-center">
                 <School className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No schools found</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No schools found
+                </h3>
                 <p className="text-muted-foreground">
-                  {query ? 'No schools match your search query.' : 'No schools registered yet.'}
+                  {query
+                    ? "No schools match your search query."
+                    : "No schools registered yet."}
                 </p>
               </CardContent>
             </Card>
@@ -109,17 +127,26 @@ export default function AdminSchools() {
                 >
                   <div className="col-span-1 flex items-center gap-2">
                     <SchoolAvatar profilePicture={school.profilePicture} />
-                    <p className="text-sm font-medium text-foreground truncate">{school.name}</p>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {school.name}
+                    </p>
                   </div>
                   <div className="col-span-1">
-                    <p className="text-sm text-muted-foreground truncate">{school.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {school.email}
+                    </p>
                   </div>
                   <div className="col-span-1">
-                    <p className="text-sm text-muted-foreground">{school.emisNumber || '-'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {school.emisNumber || "-"}
+                    </p>
                   </div>
                   <div className="col-span-1">
                     {school.schoolType ? (
-                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      <Badge
+                        variant="secondary"
+                        className="bg-primary/10 text-primary"
+                      >
                         {school.schoolType}
                       </Badge>
                     ) : (
@@ -127,15 +154,24 @@ export default function AdminSchools() {
                     )}
                   </div>
                   <div className="col-span-1">
-                    <Badge className={
-                      school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                      school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                      school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-muted text-muted-foreground'
-                    }>
-                      {school.verificationStatus === 'approved' ? 'Approved' :
-                       school.verificationStatus === 'pending' ? 'Pending' :
-                       school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                    <Badge
+                      className={
+                        school.verificationStatus === "approved"
+                          ? "bg-green-100 text-green-700"
+                          : school.verificationStatus === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : school.verificationStatus === "rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-muted text-muted-foreground"
+                      }
+                    >
+                      {school.verificationStatus === "approved"
+                        ? "Approved"
+                        : school.verificationStatus === "pending"
+                        ? "Pending"
+                        : school.verificationStatus === "rejected"
+                        ? "Rejected"
+                        : "Unverified"}
                     </Badge>
                   </div>
                   <div className="col-span-1">

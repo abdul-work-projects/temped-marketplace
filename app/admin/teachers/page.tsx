@@ -1,22 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { useAdminSearchTeachers } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { isTeacherVerified } from '@/lib/utils/verification';
-import { Loader2, Search, Eye, GraduationCap, ShieldCheck, User, X as XIcon } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useAdminSearchTeachers } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { isTeacherVerified } from "@/lib/utils/verification";
+import {
+  Loader2,
+  Search,
+  Eye,
+  GraduationCap,
+  ShieldCheck,
+  User,
+  X as XIcon,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function TeacherAvatar({ profilePicture }: { profilePicture?: string }) {
-  const url = useSignedUrl('profile-pictures', profilePicture);
+  const url = useSignedUrl("profile-pictures", profilePicture);
   return (
-    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
       {url ? (
-        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <User className="w-4 h-4 text-muted-foreground" />
       )}
@@ -26,7 +39,7 @@ function TeacherAvatar({ profilePicture }: { profilePicture?: string }) {
 
 export default function AdminTeachers() {
   const { teachers, loading, searchTeachers } = useAdminSearchTeachers();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -51,8 +64,12 @@ export default function AdminTeachers() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Teachers</h1>
-            <p className="text-muted-foreground">Search and manage teacher accounts</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Teachers
+            </h1>
+            <p className="text-muted-foreground">
+              Search and manage teacher accounts
+            </p>
           </div>
 
           {/* Search Bar */}
@@ -67,7 +84,7 @@ export default function AdminTeachers() {
             />
             {query && (
               <button
-                onClick={() => setQuery('')}
+                onClick={() => setQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
               >
                 <XIcon className="w-4 h-4" />
@@ -84,9 +101,13 @@ export default function AdminTeachers() {
             <Card>
               <CardContent className="p-12 text-center">
                 <GraduationCap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No teachers found</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  No teachers found
+                </h3>
                 <p className="text-muted-foreground">
-                  {query ? 'No teachers match your search query.' : 'No teachers registered yet.'}
+                  {query
+                    ? "No teachers match your search query."
+                    : "No teachers registered yet."}
                 </p>
               </CardContent>
             </Card>
@@ -114,7 +135,9 @@ export default function AdminTeachers() {
                     </p>
                   </div>
                   <div className="col-span-1">
-                    <p className="text-sm text-muted-foreground truncate">{teacher.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {teacher.email}
+                    </p>
                   </div>
                   <div className="col-span-1">
                     {isTeacherVerified(teacher.documents) ? (
@@ -136,7 +159,9 @@ export default function AdminTeachers() {
                           style={{ width: `${teacher.profileCompleteness}%` }}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground">{teacher.profileCompleteness}%</span>
+                      <span className="text-xs text-muted-foreground">
+                        {teacher.profileCompleteness}%
+                      </span>
                     </div>
                   </div>
                   <div className="col-span-1">

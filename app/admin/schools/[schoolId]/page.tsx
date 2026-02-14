@@ -272,7 +272,7 @@ export default function AdminSchoolDetail() {
             </Button>
           </div>
 
-          <div className="divide-y divide-border [&>*]:py-6">
+          <div className="divide-y divide-border *:py-6">
             {/* Editable Fields */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-4">
@@ -522,7 +522,7 @@ export default function AdminSchoolDetail() {
 
                       {/* Inline action buttons — only when pending */}
                       {school.verificationStatus === "pending" && (
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Button
                             size="sm"
                             onClick={async () => {

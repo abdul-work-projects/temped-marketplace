@@ -340,7 +340,7 @@ export type Database = {
     };
     Enums: {
       user_type: 'teacher' | 'school' | 'admin';
-      school_type: 'Primary' | 'Secondary' | 'Pre-primary' | 'Combined';
+      school_type: 'Primary' | 'Secondary' | 'Pre-primary';
       ownership_type: 'Public' | 'Private';
       curriculum_type: 'CAPS' | 'Cambridge' | 'IEB' | 'Other';
       job_type: 'Permanent' | 'Temporary' | 'Invigilator' | 'Coach';

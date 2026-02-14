@@ -62,19 +62,19 @@ export default function DashboardLayout({
       />
       <div className="flex-1 flex flex-col overflow-auto">
         {/* Mobile top bar */}
-        <div className="sticky top-0 z-40 md:hidden bg-card border-b border-border px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Briefcase size={16} className="text-white" />
-            </div>
-            <span className="text-xl font-bold text-foreground">TempEd</span>
-          </Link>
+        <div className="sticky top-0 z-40 md:hidden bg-card border-b border-border px-4 h-14 flex items-center">
           <button
             onClick={() => setSidebarOpen(true)}
             className="w-9 h-9 flex items-center justify-center rounded-md text-foreground hover:bg-muted transition-colors"
           >
             <Menu size={22} />
           </button>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <Briefcase size={16} className="text-white" />
+            </div>
+            <span className="text-xl font-bold text-foreground">TempEd</span>
+          </Link>
         </div>
         <main className="flex-1">
           {children}

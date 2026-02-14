@@ -215,7 +215,14 @@ export function useAdminTestimonials(statusFilter: string) {
         .eq('id', id);
 
       if (!error) {
-        await fetchTestimonials();
+        setTestimonials(prev => {
+          // If we're filtering by a specific status, remove the item since it no longer matches
+          if (statusFilter !== 'all') {
+            return prev.filter(t => t.id !== id);
+          }
+          // Otherwise update it in place
+          return prev.map(t => t.id === id ? { ...t, status: status as AdminTestimonial['status'] } : t);
+        });
       }
       return { success: !error };
     } catch {
@@ -223,7 +230,28 @@ export function useAdminTestimonials(statusFilter: string) {
     }
   };
 
-  return { testimonials, loading, updateTestimonialStatus, refetch: fetchTestimonials };
+  const bulkUpdateStatus = async (ids: string[], status: string) => {
+    try {
+      const { error } = await supabaseRef.current
+        .from('testimonials')
+        .update({ status })
+        .in('id', ids);
+
+      if (!error) {
+        setTestimonials(prev => {
+          if (statusFilter !== 'all') {
+            return prev.filter(t => !ids.includes(t.id));
+          }
+          return prev.map(t => ids.includes(t.id) ? { ...t, status: status as AdminTestimonial['status'] } : t);
+        });
+      }
+      return { success: !error };
+    } catch {
+      return { success: false };
+    }
+  };
+
+  return { testimonials, loading, updateTestimonialStatus, bulkUpdateStatus, refetch: fetchTestimonials };
 }
 
 function mapDocumentRow(row: Record<string, unknown>): TeacherDocument {

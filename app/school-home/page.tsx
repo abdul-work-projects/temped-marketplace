@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import MarketingHeader from '@/components/marketing/Header';
-import MarketingFooter from '@/components/marketing/Footer';
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import MarketingHeader from "@/components/marketing/Header";
+import MarketingFooter from "@/components/marketing/Footer";
 import {
   ChevronDown,
   ShieldCheck,
@@ -14,99 +15,93 @@ import {
   ClipboardList,
   UserCheck,
   GraduationCap,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-
-const STATS = [
-  { value: '500+', label: 'Teachers' },
-  { value: '200+', label: 'Schools' },
-  { value: '1,000+', label: 'Placements' },
-  { value: 'Free', label: 'To Use' },
-];
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const BENEFITS = [
   {
     icon: <ShieldCheck size={24} />,
-    title: 'Verified Teachers',
+    title: "Verified Teachers",
     description:
-      'All teachers go through document verification including qualifications, ID, and criminal record checks.',
-    color: 'bg-green-100 text-green-600',
+      "All teachers go through document verification including qualifications, ID, and criminal record checks.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <Zap size={24} />,
-    title: 'Fast Hiring',
+    title: "Fast Hiring",
     description:
-      'Post a job and receive applications from qualified teachers within hours. Fill urgent positions quickly.',
-    color: 'bg-yellow-100 text-yellow-600',
+      "Post a job and receive applications from qualified teachers within hours. Fill urgent positions quickly.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <Layers size={24} />,
-    title: 'Flexible Job Types',
+    title: "Flexible Job Types",
     description:
-      'Post permanent, temporary, invigilator, or coaching positions. Reach the right candidates for every need.',
-    color: 'bg-purple-100 text-purple-600',
+      "Post permanent, temporary, invigilator, or coaching positions. Reach the right candidates for every need.",
+    color: "bg-primary/10 text-primary",
   },
   {
     icon: <Target size={24} />,
-    title: 'Subject Matching',
+    title: "Subject Matching",
     description:
-      'Our platform automatically matches your job postings with teachers qualified in the specific subjects you need.',
-    color: 'bg-blue-100 text-blue-600',
+      "Our platform automatically matches your job postings with teachers qualified in the specific subjects you need.",
+    color: "bg-primary/10 text-primary",
   },
 ];
 
 const STEPS = [
   {
-    number: '1',
-    title: 'Post a Job',
+    number: "1",
+    title: "Post a Job",
     description:
-      'Create a detailed job listing specifying the subject, education phase, job type, and required qualifications.',
+      "Create a detailed job listing specifying the subject, education phase, job type, and required qualifications.",
   },
   {
-    number: '2',
-    title: 'Review Applicants',
+    number: "2",
+    title: "Review Applicants",
     description:
-      'View teacher profiles, qualifications, and experience. Shortlist your top candidates and track progress.',
+      "View teacher profiles, qualifications, and experience. Shortlist your top candidates and track progress.",
   },
   {
-    number: '3',
-    title: 'Hire',
+    number: "3",
+    title: "Hire",
     description:
-      'Contact your preferred candidates directly. Update the job status as you move through the hiring process.',
+      "Contact your preferred candidates directly. Update the job status as you move through the hiring process.",
   },
 ];
 
 const FAQS = [
   {
-    question: 'How much does it cost for schools?',
+    question: "How much does it cost for schools?",
     answer:
-      'TempEd is free to use during our launch period. Post unlimited jobs and connect with verified teachers at no cost.',
+      "TempEd is currently free to use. Post unlimited jobs and connect with verified teachers at no cost.",
   },
   {
-    question: 'What information do I need to get started?',
+    question: "What information do I need to get started?",
     answer:
-      'You will need your school name, EMIS number, and email address to create an account. You can then add your school description, address, and registration certificate.',
+      "You will need your school name, EMIS number, and email address to create an account. You can then add your school description, address, and registration certificate.",
   },
   {
-    question: 'How are teachers verified?',
+    question: "How are teachers verified?",
     answer:
-      'Teachers upload their qualifications, ID documents, and criminal record checks. Our admin team reviews these documents and marks verified teachers with a badge on their profile.',
+      "Teachers upload their qualifications, ID documents, and criminal record checks. Our admin team reviews these documents and marks verified teachers with a badge on their profile.",
   },
   {
-    question: 'Can I post urgent positions?',
+    question: "Can I post urgent positions?",
     answer:
       'Yes! You can add an "Urgent" tag to any job posting to highlight time-sensitive positions. These appear prominently in teacher job feeds.',
   },
   {
-    question: 'How do I manage applications?',
+    question: "How do I manage applications?",
     answer:
-      'Each job posting has an applicants view where you can see all applications, shortlist candidates, update statuses, and contact teachers directly through the platform.',
+      "Each job posting has an applicants view where you can see all applications, shortlist candidates, update statuses, and contact teachers directly through the platform.",
   },
 ];
 
 export default function SchoolHomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const pathname = usePathname();
+  const isSchoolPage = pathname === "/school-home";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -118,16 +113,31 @@ export default function SchoolHomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left */}
             <div>
-              <Badge variant="secondary" className="mb-6">
-                For Schools
-              </Badge>
+              <div className="mb-6 flex items-center gap-1 bg-muted rounded-full p-1 w-fit">
+                <Link
+                  href="/teacher-home"
+                  className="px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm font-medium rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  For Teachers
+                </Link>
+                <Link
+                  href="/school-home"
+                  className={`px-3 py-1 text-xs sm:px-4 sm:py-1.5 sm:text-sm font-medium rounded-full transition-colors ${
+                    isSchoolPage
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  For Schools
+                </Link>
+              </div>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6">
                 Find Qualified Teachers for Your School
               </h1>
               <p className="text-lg text-muted-foreground mb-8 max-w-xl">
-                TempEd helps schools across South Africa find verified, qualified
-                teachers for permanent, temporary, and coaching positions. Post a
-                job and start receiving applications today.
+                TempEd helps schools across South Africa find verified,
+                qualified teachers for permanent, temporary, and coaching
+                positions. Post a job and start receiving applications today.
               </p>
               <div className="flex items-center gap-4 mb-6">
                 <Button size="lg" asChild>
@@ -138,7 +148,7 @@ export default function SchoolHomePage() {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground">
-                Free during launch. No hidden fees.
+                Currently free to use. No hidden fees.
               </p>
             </div>
 
@@ -167,24 +177,6 @@ export default function SchoolHomePage() {
         </div>
       </section>
 
-      {/* Stats Row */}
-      <section className="py-12 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-4xl font-bold text-foreground">
-                  {stat.value}
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Benefits Grid */}
       <section className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -199,7 +191,7 @@ export default function SchoolHomePage() {
             {BENEFITS.map((benefit) => (
               <div key={benefit.title} className="flex gap-5">
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${benefit.color}`}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${benefit.color}`}
                 >
                   {benefit.icon}
                 </div>
@@ -248,10 +240,10 @@ export default function SchoolHomePage() {
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-bold mb-6">About TempEd</h2>
           <p className="text-background/70 text-lg mb-4">
-            TempEd was built to address the challenge schools face when they need
-            qualified educators quickly. Whether it&apos;s a maternity leave
-            replacement, exam invigilation, sports coaching, or a permanent hire,
-            our platform connects you with vetted professionals.
+            TempEd was built to address the challenge schools face when they
+            need qualified educators quickly. Whether it&apos;s a maternity
+            leave replacement, exam invigilation, sports coaching, or a
+            permanent hire, our platform connects you with vetted professionals.
           </p>
           <p className="text-background/70 text-lg mb-8">
             Every teacher on TempEd goes through a verification process, giving
@@ -278,9 +270,7 @@ export default function SchoolHomePage() {
             {FAQS.map((faq, index) => (
               <div key={index}>
                 <button
-                  onClick={() =>
-                    setOpenFaq(openFaq === index ? null : index)
-                  }
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   className="flex items-center justify-between w-full py-5 text-left gap-4"
                 >
                   <span className="font-medium text-foreground">
@@ -288,8 +278,8 @@ export default function SchoolHomePage() {
                   </span>
                   <ChevronDown
                     size={20}
-                    className={`text-muted-foreground flex-shrink-0 transition-transform ${
-                      openFaq === index ? 'rotate-180' : ''
+                    className={`text-muted-foreground shrink-0 transition-transform ${
+                      openFaq === index ? "rotate-180" : ""
                     }`}
                   />
                 </button>
@@ -313,8 +303,8 @@ export default function SchoolHomePage() {
             Ready to find your next hire?
           </h2>
           <p className="text-primary-foreground/80 text-lg mb-8">
-            Join hundreds of schools already using TempEd to find qualified
-            teachers across South Africa.
+            Post a job and start connecting with verified teachers
+            across South Africa today.
           </p>
           <Button
             size="lg"

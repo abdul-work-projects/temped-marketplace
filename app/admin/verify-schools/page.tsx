@@ -1,19 +1,24 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useUnverifiedSchools } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { Loader2, ShieldCheck, Eye, Building2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { useUnverifiedSchools } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { Loader2, ShieldCheck, Eye, Building2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function SchoolAvatar({ profilePicture }: { profilePicture?: string }) {
-  const url = useSignedUrl('profile-pictures', profilePicture);
+  const url = useSignedUrl("profile-pictures", profilePicture);
   return (
-    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
       {url ? (
-        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <Building2 className="w-4 h-4 text-muted-foreground" />
       )}
@@ -29,8 +34,12 @@ export default function AdminVerifySchools() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Verify Schools</h1>
-            <p className="text-muted-foreground">Review and verify school registration certificates</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Verify Schools
+            </h1>
+            <p className="text-muted-foreground">
+              Review and verify school registration certificates
+            </p>
           </div>
 
           {loading ? (
@@ -41,8 +50,12 @@ export default function AdminVerifySchools() {
             <Card>
               <CardContent className="p-12 text-center">
                 <ShieldCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">All caught up!</h3>
-                <p className="text-muted-foreground">There are no schools pending verification at the moment.</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  All caught up!
+                </h3>
+                <p className="text-muted-foreground">
+                  There are no schools pending verification at the moment.
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -65,19 +78,29 @@ export default function AdminVerifySchools() {
                   <div className="col-span-1 flex items-center gap-2">
                     <SchoolAvatar profilePicture={school.profilePicture} />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{school.name}</p>
-                      <p className="text-xs text-muted-foreground md:hidden truncate">{school.email}</p>
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {school.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground md:hidden truncate">
+                        {school.email}
+                      </p>
                     </div>
                   </div>
                   <div className="col-span-1 hidden md:block">
-                    <p className="text-sm text-muted-foreground truncate">{school.email}</p>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {school.email}
+                    </p>
                   </div>
                   <div className="col-span-1">
-                    <p className="text-sm text-muted-foreground">{school.emisNumber || '-'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {school.emisNumber || "-"}
+                    </p>
                   </div>
                   <div className="col-span-1">
                     {school.registrationCertificate ? (
-                      <Badge className="bg-yellow-100 text-yellow-700">Pending Review</Badge>
+                      <Badge className="bg-yellow-100 text-yellow-700">
+                        Pending Review
+                      </Badge>
                     ) : (
                       <Badge variant="secondary">Not Uploaded</Badge>
                     )}

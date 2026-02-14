@@ -181,7 +181,7 @@ export default function TeacherProfilePage() {
         <div className="max-w-3xl">
           {/* Header Section */}
           <div className="flex flex-col sm:flex-row items-start gap-6 mb-6">
-            <div className="relative flex-shrink-0">
+            <div className="relative shrink-0">
               <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {profilePicUrl ? (
                   <img
@@ -238,12 +238,7 @@ export default function TeacherProfilePage() {
                 </p>
               )}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="flex-shrink-0"
-            >
+            <Button variant="ghost" size="icon" asChild className="shrink-0">
               <Link href="/teacher/setup">
                 <Pencil size={18} />
               </Link>
@@ -276,7 +271,7 @@ export default function TeacherProfilePage() {
             )}
           </div>
 
-          <div className="divide-y divide-border [&>*]:py-6">
+          <div className="divide-y divide-border *:py-6">
             {/* Description */}
             {teacher.description && (
               <div>

@@ -1,20 +1,25 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useUnverifiedTeachers } from '@/lib/hooks/useAdmin';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { getPendingCount } from '@/lib/utils/verification';
-import { Loader2, ShieldCheck, Eye, FileText, User } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { useUnverifiedTeachers } from "@/lib/hooks/useAdmin";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { getPendingCount } from "@/lib/utils/verification";
+import { Loader2, ShieldCheck, Eye, FileText, User } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function TeacherAvatar({ profilePicture }: { profilePicture?: string }) {
-  const url = useSignedUrl('profile-pictures', profilePicture);
+  const url = useSignedUrl("profile-pictures", profilePicture);
   return (
-    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
       {url ? (
-        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img
+          src={url}
+          alt=""
+          className="w-full h-full object-cover"
+          referrerPolicy="no-referrer"
+        />
       ) : (
         <User className="w-4 h-4 text-muted-foreground" />
       )}
@@ -30,8 +35,12 @@ export default function AdminVerifyTeachers() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Verify Teachers</h1>
-            <p className="text-muted-foreground">Review and verify teacher profiles and documents</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Verify Teachers
+            </h1>
+            <p className="text-muted-foreground">
+              Review and verify teacher profiles and documents
+            </p>
           </div>
 
           {loading ? (
@@ -42,8 +51,12 @@ export default function AdminVerifyTeachers() {
             <Card>
               <CardContent className="p-12 text-center">
                 <ShieldCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">All caught up!</h3>
-                <p className="text-muted-foreground">There are no unverified teachers at the moment.</p>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  All caught up!
+                </h3>
+                <p className="text-muted-foreground">
+                  There are no unverified teachers at the moment.
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -74,11 +87,15 @@ export default function AdminVerifyTeachers() {
                         <p className="text-sm font-medium text-foreground truncate">
                           {teacher.firstName} {teacher.surname}
                         </p>
-                        <p className="text-xs text-muted-foreground md:hidden truncate">{teacher.email}</p>
+                        <p className="text-xs text-muted-foreground md:hidden truncate">
+                          {teacher.email}
+                        </p>
                       </div>
                     </div>
                     <div className="col-span-1 hidden md:block">
-                      <p className="text-sm text-muted-foreground truncate">{teacher.email}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {teacher.email}
+                      </p>
                     </div>
                     <div className="col-span-1">
                       {pendingDocs > 0 ? (
@@ -86,9 +103,7 @@ export default function AdminVerifyTeachers() {
                           {pendingDocs} pending
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">
-                          Incomplete
-                        </Badge>
+                        <Badge variant="secondary">Incomplete</Badge>
                       )}
                     </div>
                     <div className="col-span-1">
@@ -99,7 +114,9 @@ export default function AdminVerifyTeachers() {
                             style={{ width: `${teacher.profileCompleteness}%` }}
                           />
                         </div>
-                        <span className="text-xs text-muted-foreground">{teacher.profileCompleteness}%</span>
+                        <span className="text-xs text-muted-foreground">
+                          {teacher.profileCompleteness}%
+                        </span>
                       </div>
                     </div>
                     <div className="col-span-1">

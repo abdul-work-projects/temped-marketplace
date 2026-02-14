@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Upload, X, FileText, Loader2 } from 'lucide-react';
+import { useState, useRef, useCallback } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Upload, X, FileText, Loader2 } from "lucide-react";
 
 interface FileUploadProps {
   bucket: string;
@@ -19,7 +19,7 @@ interface FileUploadProps {
 export default function FileUpload({
   bucket,
   folder,
-  accept = '*',
+  accept = "*",
   maxFiles = 1,
   maxSizeBytes = 10 * 1024 * 1024,
   label,
@@ -56,7 +56,11 @@ export default function FileUpload({
 
     for (const file of filesToUpload) {
       if (file.size > maxSizeBytes) {
-        setError(`File "${file.name}" exceeds ${Math.round(maxSizeBytes / 1024 / 1024)}MB limit`);
+        setError(
+          `File "${file.name}" exceeds ${Math.round(
+            maxSizeBytes / 1024 / 1024
+          )}MB limit`
+        );
         return;
       }
     }
@@ -69,8 +73,10 @@ export default function FileUpload({
 
     for (let i = 0; i < filesToUpload.length; i++) {
       const file = filesToUpload[i];
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -99,35 +105,40 @@ export default function FileUpload({
     const storagePath = idx !== -1 ? url.substring(idx + marker.length) : url;
     await supabase.storage.from(bucket).remove([storagePath]);
 
-    const newFiles = existingFiles.filter(f => f !== url);
+    const newFiles = existingFiles.filter((f) => f !== url);
     onRemove?.(url);
     onUploadComplete(newFiles);
   };
 
   const getFileName = (url: string) => {
-    const parts = url.split('/');
+    const parts = url.split("/");
     const name = parts[parts.length - 1];
     // Remove timestamp prefix
-    return name.replace(/^\d+-[a-z0-9]+\./, '.');
+    return name.replace(/^\d+-[a-z0-9]+\./, ".");
   };
 
   return (
     <div>
-      <label className="block text-sm font-bold text-foreground mb-2">{label}</label>
+      <label className="block text-sm font-bold text-foreground mb-2">
+        {label}
+      </label>
 
       {/* Existing files */}
       {existingFiles.length > 0 && (
         <div className="space-y-2 mb-3">
           {existingFiles.map((url) => (
-            <div key={url} className="flex items-center gap-2 p-2 bg-muted/50 rounded border border-border">
-              <FileText size={16} className="text-muted-foreground flex-shrink-0" />
+            <div
+              key={url}
+              className="flex items-center gap-2 p-2 bg-muted/50 rounded border border-border"
+            >
+              <FileText size={16} className="text-muted-foreground shrink-0" />
               <span className="text-sm text-muted-foreground truncate flex-1">
                 {getFileName(url)}
               </span>
               <button
                 type="button"
                 onClick={() => handleRemove(url)}
-                className="text-red-500 hover:text-red-700 flex-shrink-0"
+                className="text-red-500 hover:text-red-700 shrink-0"
               >
                 <X size={16} />
               </button>
@@ -146,8 +157,13 @@ export default function FileUpload({
         >
           {uploading ? (
             <div className="flex flex-col items-center gap-2">
-              <Loader2 size={24} className="animate-spin text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Uploading... {progress}%</p>
+              <Loader2
+                size={24}
+                className="animate-spin text-muted-foreground"
+              />
+              <p className="text-sm text-muted-foreground">
+                Uploading... {progress}%
+              </p>
               <div className="w-full max-w-xs bg-muted rounded-full h-2">
                 <div
                   className="bg-primary h-2 rounded-full transition-all"
@@ -163,7 +179,8 @@ export default function FileUpload({
               </p>
               <p className="text-xs text-muted-foreground">
                 Max {Math.round(maxSizeBytes / 1024 / 1024)}MB per file
-                {maxFiles > 1 && ` · ${maxFiles - existingFiles.length} file(s) remaining`}
+                {maxFiles > 1 &&
+                  ` · ${maxFiles - existingFiles.length} file(s) remaining`}
               </p>
             </div>
           )}
@@ -177,16 +194,14 @@ export default function FileUpload({
               if (e.target.files) {
                 handleFiles(Array.from(e.target.files));
               }
-              e.target.value = '';
+              e.target.value = "";
             }}
             className="hidden"
           />
         </div>
       )}
 
-      {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }

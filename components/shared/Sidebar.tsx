@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/context/AuthContext';
-import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { createClient } from '@/lib/supabase/client';
+import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/context/AuthContext";
+import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { createClient } from "@/lib/supabase/client";
 import {
   User,
   Settings,
@@ -21,7 +21,7 @@ import {
   PlusCircle,
   X,
   Tag,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface SidebarLink {
   label: string;
@@ -37,7 +37,7 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const PP_CACHE_KEY = 'sidebar-profile-pic-path';
+const PP_CACHE_KEY = "sidebar-profile-pic-path";
 
 function getCachedPath(userId: string): string | undefined {
   try {
@@ -45,28 +45,41 @@ function getCachedPath(userId: string): string | undefined {
     if (!raw) return undefined;
     const parsed = JSON.parse(raw);
     if (parsed.userId === userId) return parsed.path;
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return undefined;
 }
 
 function setCachedPath(userId: string, path: string) {
-  try { sessionStorage.setItem(PP_CACHE_KEY, JSON.stringify({ userId, path })); } catch { /* ignore */ }
+  try {
+    sessionStorage.setItem(PP_CACHE_KEY, JSON.stringify({ userId, path }));
+  } catch {
+    /* ignore */
+  }
 }
 
 function useProfilePicturePath(): string | undefined {
   const { user } = useAuth();
   const supabaseRef = useRef(createClient());
-  const [path, setPath] = useState<string | undefined>(() => user ? getCachedPath(user.id) : undefined);
+  const [path, setPath] = useState<string | undefined>(() =>
+    user ? getCachedPath(user.id) : undefined
+  );
 
   const fetchPath = useCallback(async () => {
     if (!user) return;
-    const table = user.type === 'teacher' ? 'teachers' : user.type === 'school' ? 'schools' : null;
+    const table =
+      user.type === "teacher"
+        ? "teachers"
+        : user.type === "school"
+        ? "schools"
+        : null;
     if (!table) return;
 
     const { data } = await supabaseRef.current
       .from(table)
-      .select('profile_picture')
-      .eq('user_id', user.id)
+      .select("profile_picture")
+      .eq("user_id", user.id)
       .single();
 
     if (data?.profile_picture) {
@@ -75,17 +88,24 @@ function useProfilePicturePath(): string | undefined {
     }
   }, [user]);
 
-  useEffect(() => { fetchPath(); }, [fetchPath]);
+  useEffect(() => {
+    fetchPath();
+  }, [fetchPath]);
 
   return path;
 }
 
-export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarProps) {
+export default function Sidebar({
+  links,
+  userEmail,
+  isOpen,
+  onClose,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
   const profilePicPath = useProfilePicturePath();
-  const profilePicUrl = useSignedUrl('profile-pictures', profilePicPath);
+  const profilePicUrl = useSignedUrl("profile-pictures", profilePicPath);
 
   // Auto-close mobile drawer on route change
   useEffect(() => {
@@ -94,7 +114,7 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
 
   const handleLogout = async () => {
     await logout();
-    router.push('/auth/login');
+    router.push("/auth/login");
   };
 
   const sidebarContent = (
@@ -105,9 +125,7 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
           <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
             <Briefcase size={18} className="text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">
-            TempEd
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">TempEd</h1>
         </Link>
         {/* Close button — mobile only */}
         <button
@@ -121,15 +139,16 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {links.map((link) => {
-          const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+          const isActive =
+            pathname === link.href || pathname.startsWith(link.href + "/");
           return (
             <Link
               key={link.href}
               href={link.href}
               className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'text-primary bg-primary/5'
-                  : 'text-foreground hover:text-primary hover:bg-muted/50'
+                  ? "text-primary bg-primary/5"
+                  : "text-foreground hover:text-primary hover:bg-muted/50"
               }`}
             >
               {link.icon}
@@ -149,15 +168,22 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
         {userEmail && (
           <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-foreground flex items-center justify-center text-white text-sm font-bold overflow-hidden flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-foreground flex items-center justify-center text-white text-sm font-bold overflow-hidden shrink-0">
                 {profilePicUrl ? (
-                  <img src={profilePicUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <img
+                    src={profilePicUrl}
+                    alt=""
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
                 ) : (
                   userEmail[0].toUpperCase()
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground truncate font-medium">{userEmail}</p>
+                <p className="text-sm text-foreground truncate font-medium">
+                  {userEmail}
+                </p>
               </div>
             </div>
           </div>
@@ -185,10 +211,7 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
       {isOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={onClose}
-          />
+          <div className="absolute inset-0 bg-black/50" onClick={onClose} />
           {/* Drawer */}
           <aside className="relative w-64 h-full bg-card flex flex-col shadow-xl animate-in slide-in-from-left duration-200">
             {sidebarContent}
@@ -202,23 +225,23 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
 // Predefined sidebar links for teachers
 export const teacherSidebarLinks: SidebarLink[] = [
   {
-    label: 'My Profile',
-    href: '/teacher/profile',
+    label: "My Profile",
+    href: "/teacher/profile",
     icon: <User size={20} />,
   },
   {
-    label: 'Profile Setup',
-    href: '/teacher/setup',
+    label: "Profile Setup",
+    href: "/teacher/setup",
     icon: <Settings size={20} />,
   },
   {
-    label: 'Available Jobs',
-    href: '/teacher/dashboard',
+    label: "Available Jobs",
+    href: "/teacher/dashboard",
     icon: <Briefcase size={20} />,
   },
   {
-    label: 'Jobs Applied',
-    href: '/teacher/applications',
+    label: "Jobs Applied",
+    href: "/teacher/applications",
     icon: <FileText size={20} />,
   },
 ];
@@ -226,23 +249,23 @@ export const teacherSidebarLinks: SidebarLink[] = [
 // Predefined sidebar links for schools
 export const schoolSidebarLinks: SidebarLink[] = [
   {
-    label: 'My Profile',
-    href: '/school/profile',
+    label: "My Profile",
+    href: "/school/profile",
     icon: <User size={20} />,
   },
   {
-    label: 'Profile Setup',
-    href: '/school/setup',
+    label: "Profile Setup",
+    href: "/school/setup",
     icon: <Settings size={20} />,
   },
   {
-    label: 'Job Postings',
-    href: '/school/dashboard',
+    label: "Job Postings",
+    href: "/school/dashboard",
     icon: <Briefcase size={20} />,
   },
   {
-    label: 'Post New Job',
-    href: '/school/post-job',
+    label: "Post New Job",
+    href: "/school/post-job",
     icon: <PlusCircle size={20} />,
   },
 ];
@@ -250,38 +273,38 @@ export const schoolSidebarLinks: SidebarLink[] = [
 // Predefined sidebar links for admins
 export const adminSidebarLinks: SidebarLink[] = [
   {
-    label: 'Dashboard',
-    href: '/admin/dashboard',
+    label: "Dashboard",
+    href: "/admin/dashboard",
     icon: <LayoutDashboard size={20} />,
   },
   {
-    label: 'Testimonials',
-    href: '/admin/testimonials',
+    label: "Testimonials",
+    href: "/admin/testimonials",
     icon: <MessageSquare size={20} />,
   },
   {
-    label: 'Verify Teachers',
-    href: '/admin/verify',
+    label: "Verify Teachers",
+    href: "/admin/verify",
     icon: <ShieldCheck size={20} />,
   },
   {
-    label: 'Verify Schools',
-    href: '/admin/verify-schools',
+    label: "Verify Schools",
+    href: "/admin/verify-schools",
     icon: <ShieldCheck size={20} />,
   },
   {
-    label: 'Teachers',
-    href: '/admin/teachers',
+    label: "Teachers",
+    href: "/admin/teachers",
     icon: <GraduationCap size={20} />,
   },
   {
-    label: 'Schools',
-    href: '/admin/schools',
+    label: "Schools",
+    href: "/admin/schools",
     icon: <School size={20} />,
   },
   {
-    label: 'Tags',
-    href: '/admin/tags',
+    label: "Tags",
+    href: "/admin/tags",
     icon: <Tag size={20} />,
   },
 ];

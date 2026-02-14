@@ -84,7 +84,7 @@ function SignedDocPreview({
       <img
         src={url}
         alt="Document"
-        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+        className="w-16 h-16 rounded object-cover border border-border shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onError={() => setImgError(true)}
         onClick={() => onExpand?.(url, fileName)}
       />
@@ -93,7 +93,7 @@ function SignedDocPreview({
 
   if (isImage && !url && !imgError) {
     return (
-      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center flex-shrink-0">
+      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center shrink-0">
         <Loader2 size={16} className="animate-spin text-muted-foreground" />
       </div>
     );
@@ -104,7 +104,7 @@ function SignedDocPreview({
       <button
         type="button"
         onClick={() => onExpand?.(url, fileName || "document.pdf")}
-        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary transition-colors"
       >
         <FileText size={18} className="text-red-500" />
         <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
@@ -114,14 +114,14 @@ function SignedDocPreview({
 
   if (isPdf && !url) {
     return (
-      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center flex-shrink-0">
+      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center shrink-0">
         <Loader2 size={16} className="animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+    <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center shrink-0">
       <FileText size={20} className="text-muted-foreground" />
     </div>
   );
@@ -938,7 +938,7 @@ export default function TeacherSetupPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-5 h-5 border-2 rounded flex items-center justify-center flex-shrink-0 ${
+                          className={`w-5 h-5 border-2 rounded flex items-center justify-center shrink-0 ${
                             isSelected
                               ? "bg-primary border-primary"
                               : "border-muted-foreground"
@@ -1443,7 +1443,7 @@ export default function TeacherSetupPage() {
                             }
                           />
                           <span
-                            className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                            className={`w-2 h-2 rounded-full shrink-0 ${
                               doc.status === "approved"
                                 ? "bg-green-500"
                                 : doc.status === "pending"
@@ -1479,7 +1479,7 @@ export default function TeacherSetupPage() {
                       <img
                         src={pendingDocs.selfie.preview}
                         alt="Preview"
-                        className="w-16 h-16 rounded-full object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        className="w-16 h-16 rounded-full object-cover border border-border shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() =>
                           pendingDocs.selfie &&
                           setLightbox({ src: pendingDocs.selfie.preview })
@@ -1491,7 +1491,7 @@ export default function TeacherSetupPage() {
                       <button
                         type="button"
                         onClick={() => handleDocRemove("selfie")}
-                        className="text-red-500 hover:text-red-700 flex-shrink-0"
+                        className="text-red-500 hover:text-red-700 shrink-0"
                       >
                         <X size={14} />
                       </button>
@@ -1645,7 +1645,7 @@ export default function TeacherSetupPage() {
                                   }
                                 />
                                 <span
-                                  className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                  className={`w-2 h-2 rounded-full shrink-0 ${
                                     doc.status === "approved"
                                       ? "bg-green-500"
                                       : doc.status === "pending"
@@ -1684,7 +1684,7 @@ export default function TeacherSetupPage() {
                               <img
                                 src={pendingDocs[type].preview}
                                 alt="Preview"
-                                className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                className="w-16 h-16 rounded object-cover border border-border shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() =>
                                   pendingDocs[type] &&
                                   setLightbox({
@@ -1703,7 +1703,7 @@ export default function TeacherSetupPage() {
                                     fileName: pendingDocs[type].fileName,
                                   })
                                 }
-                                className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                                className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center shrink-0 cursor-pointer hover:border-primary transition-colors"
                               >
                                 <FileText size={18} className="text-red-500" />
                                 <span className="text-[9px] text-red-600 font-medium mt-0.5">
@@ -1711,7 +1711,7 @@ export default function TeacherSetupPage() {
                                 </span>
                               </button>
                             ) : (
-                              <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                              <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center shrink-0">
                                 <FileText
                                   size={20}
                                   className="text-muted-foreground"
@@ -1724,7 +1724,7 @@ export default function TeacherSetupPage() {
                             <button
                               type="button"
                               onClick={() => handleDocRemove(type)}
-                              className="text-red-500 hover:text-red-700 flex-shrink-0"
+                              className="text-red-500 hover:text-red-700 shrink-0"
                             >
                               <X size={14} />
                             </button>

@@ -2,7 +2,7 @@ export type UserType = 'teacher' | 'school' | 'admin';
 
 export type EducationPhase = 'Foundation Phase' | 'Primary' | 'Secondary' | 'Tertiary';
 
-export type SchoolType = 'Primary' | 'Secondary' | 'Pre-primary' | 'Combined';
+export type SchoolType = 'Primary' | 'Secondary' | 'Pre-primary';
 
 export type OwnershipType = 'Public' | 'Private';
 

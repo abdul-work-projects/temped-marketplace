@@ -289,7 +289,7 @@ export default function AdminTeacherDetail() {
             </Button>
           </div>
 
-          <div className="divide-y divide-border [&>*]:py-6">
+          <div className="divide-y divide-border *:py-6">
             {/* Editable Fields */}
             <div>
               <h2 className="text-lg font-bold text-foreground mb-4">
