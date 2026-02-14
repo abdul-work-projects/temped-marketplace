@@ -776,18 +776,18 @@ export default function TeacherSetupPage() {
 
               <div>
                 <label className="block text-sm font-bold text-foreground mb-2">
-                  Short Description (up to 500 words)
+                  Short Description
                 </label>
                 <textarea
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  maxLength={3000}
+                  maxLength={500}
                   className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell schools about yourself, your teaching philosophy, and experience..."
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {description.split(/\s+/).filter(Boolean).length}/500 words
+                  {description.length}/500
                 </p>
               </div>
 

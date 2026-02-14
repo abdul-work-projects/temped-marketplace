@@ -493,9 +493,13 @@ export default function SchoolSetupPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
+                  maxLength={500}
                   className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell teachers about your school, its values, and environment..."
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {formData.description.length}/500
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
