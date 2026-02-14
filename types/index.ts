@@ -132,6 +132,7 @@ export interface Application {
   teacherId: string;
   status: ApplicationStatus;
   shortlisted: boolean;
+  coverLetter?: string;
   appliedAt: string;
 }
 

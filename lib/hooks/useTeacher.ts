@@ -204,6 +204,7 @@ export function useTeacherApplications(teacherId: string | undefined) {
     teacherId: string;
     status: string;
     shortlisted: boolean;
+    coverLetter?: string;
     appliedAt: string;
     job?: {
       id: string;
@@ -255,6 +256,7 @@ export function useTeacherApplications(teacherId: string | undefined) {
               teacherId: a.teacher_id as string,
               status: a.status as string,
               shortlisted: a.shortlisted as boolean,
+              coverLetter: (a.cover_letter as string) || undefined,
               appliedAt: a.applied_at as string,
               job: job ? {
                 id: job.id as string,

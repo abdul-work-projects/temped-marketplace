@@ -150,7 +150,7 @@ export function useApplyToJob() {
   const [applying, setApplying] = useState(false);
   const supabaseRef = useRef(createClient());
 
-  const apply = async (jobId: string, teacherId: string) => {
+  const apply = async (jobId: string, teacherId: string, coverLetter?: string) => {
     setApplying(true);
     try {
       const { error } = await supabaseRef.current
@@ -159,6 +159,7 @@ export function useApplyToJob() {
           job_id: jobId,
           teacher_id: teacherId,
           status: 'Applied',
+          cover_letter: coverLetter || null,
         });
 
       return { success: !error, error: error?.message };

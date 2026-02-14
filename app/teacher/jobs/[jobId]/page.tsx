@@ -22,7 +22,9 @@ import {
   Briefcase,
   GraduationCap,
   Loader2,
+  X,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,33 @@ export default function JobDetailPage() {
   const { withdraw, withdrawing } = useWithdrawApplication();
   const verified = isTeacherVerified(documents);
 
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelVisible, setPanelVisible] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
+
+  // Animate panel open/close
+  const openPanel = () => {
+    setPanelOpen(true);
+    requestAnimationFrame(() => setPanelVisible(true));
+  };
+  const closePanel = () => {
+    if (applying) return;
+    setPanelVisible(false);
+    setTimeout(() => {
+      setPanelOpen(false);
+    }, 300);
+  };
+
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    if (panelOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [panelOpen]);
+
   const loading = jobLoading || teacherLoading;
 
   const distance =
@@ -73,10 +102,15 @@ export default function JobDetailPage() {
         )
       : null;
 
-  const handleApply = async () => {
+  const handleApply = async (withCoverLetter?: string) => {
     if (!teacher) return;
-    const result = await apply(jobId, teacher.id);
+    const result = await apply(jobId, teacher.id, withCoverLetter);
     if (result.success) {
+      setPanelVisible(false);
+      setTimeout(() => {
+        setPanelOpen(false);
+        setCoverLetter("");
+      }, 300);
       refetchCheck();
     }
   };
@@ -330,25 +364,104 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 <Button
-                  onClick={handleApply}
-                  disabled={applying}
+                  onClick={openPanel}
                   className="flex-1 py-3"
                   size="lg"
                 >
-                  {applying ? (
-                    <>
-                      <Loader2 size={20} className="animate-spin" />
-                      Applying...
-                    </>
-                  ) : (
-                    "Apply for this Position"
-                  )}
+                  Apply for this Position
                 </Button>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Apply Slide-over Panel */}
+      {panelOpen && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div
+            className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ${
+              panelVisible ? "opacity-100" : "opacity-0"
+            }`}
+            onClick={closePanel}
+          />
+
+          {/* Panel */}
+          <div
+            className={`fixed inset-y-0 right-0 w-full sm:max-w-2xl flex flex-col bg-background shadow-xl transition-transform duration-300 ease-out ${
+              panelVisible ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0">
+              <div>
+                <h2 className="text-base font-bold text-foreground">
+                  {job.title}
+                </h2>
+                <p className="text-sm text-muted-foreground">{school.name}</p>
+              </div>
+              <button
+                onClick={closePanel}
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Body — textarea fills all available space */}
+            <div className="flex-1 flex flex-col px-6 pt-4 pb-2 min-h-0">
+              <p className="text-sm text-muted-foreground mb-2">
+                Cover letter <span className="text-muted-foreground/60">(optional)</span>
+              </p>
+              <textarea
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                placeholder="Tell the school why you're a great fit for this position..."
+                className="w-full flex-1 px-4 py-3 border border-border rounded-lg text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                maxLength={1000}
+                autoFocus
+              />
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-xs text-muted-foreground">
+                  {coverLetter.length}/1000
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleApply()}
+                    disabled={applying}
+                    size="sm"
+                  >
+                    {applying && !coverLetter.trim() ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      "Skip & Apply"
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => handleApply(coverLetter.trim())}
+                    disabled={applying || !coverLetter.trim()}
+                    size="sm"
+                  >
+                    {applying && coverLetter.trim() ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Applying...
+                      </>
+                    ) : (
+                      "Submit Application"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

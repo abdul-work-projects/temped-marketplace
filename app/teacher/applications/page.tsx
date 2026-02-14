@@ -10,7 +10,7 @@ import { useTeacherProfile, useTeacherApplications } from '@/lib/hooks/useTeache
 import { useCreateTestimonial, useMyTestimonials } from '@/lib/hooks/useTestimonials';
 import { format } from 'date-fns';
 import { calculateDistance, formatDistance } from '@/lib/utils/distance';
-import { Briefcase, MapPin, Star, CheckCircle, Loader2, MessageSquare, Pencil, Trash2, Clock, Check, XCircle } from 'lucide-react';
+import { Briefcase, MapPin, Star, CheckCircle, Loader2, MessageSquare, Pencil, Trash2, Clock, Check, XCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -91,6 +91,7 @@ export default function TeacherApplicationsPage() {
   const { applications, loading: appsLoading } = useTeacherApplications(teacher?.id);
   const { createTestimonial, updateTestimonial, deleteTestimonial, submitting } = useCreateTestimonial();
   const { testimonials: myReviews, refetch: refetchMyReviews } = useMyTestimonials(user?.id);
+  const [expandedCoverLetters, setExpandedCoverLetters] = useState<Set<string>>(new Set());
   const [reviewTarget, setReviewTarget] = useState<{ schoolUserId: string; schoolName: string; existingId?: string; existingComment?: string } | null>(null);
 
   const loading = teacherLoading || appsLoading;
@@ -253,6 +254,42 @@ export default function TeacherApplicationsPage() {
                           {format(new Date(job.startDate), 'MMM d, yyyy')}
                         </div>
                       </div>
+
+                      {application.coverLetter && (
+                        <div className="mt-3 border border-border rounded-lg p-3 bg-muted/30">
+                          <button
+                            onClick={() => {
+                              setExpandedCoverLetters((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(application.id)) {
+                                  next.delete(application.id);
+                                } else {
+                                  next.add(application.id);
+                                }
+                                return next;
+                              });
+                            }}
+                            className="flex items-center gap-2 text-sm font-medium text-foreground w-full"
+                          >
+                            <FileText size={14} className="text-muted-foreground" />
+                            Your Cover Letter
+                            {expandedCoverLetters.has(application.id) ? (
+                              <ChevronUp size={14} className="ml-auto text-muted-foreground" />
+                            ) : (
+                              <ChevronDown size={14} className="ml-auto text-muted-foreground" />
+                            )}
+                          </button>
+                          <p
+                            className={`text-sm text-muted-foreground mt-2 whitespace-pre-wrap ${
+                              expandedCoverLetters.has(application.id)
+                                ? ''
+                                : 'line-clamp-2'
+                            }`}
+                          >
+                            {application.coverLetter}
+                          </p>
+                        </div>
+                      )}
 
                       {/* Existing Review */}
                       {displayStatus === 'Hired' && existingReview && (

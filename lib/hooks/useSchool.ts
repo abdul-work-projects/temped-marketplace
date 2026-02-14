@@ -250,6 +250,7 @@ export function useJobApplicants(jobId: string | undefined) {
               teacherId: row.teacher_id as string,
               status: row.status as Application['status'],
               shortlisted: (row.shortlisted as boolean) || false,
+              coverLetter: (row.cover_letter as string) || undefined,
               appliedAt: row.applied_at as string,
             },
             teacher: mapTeacherRow(t),

@@ -34,6 +34,9 @@ import {
   Clock,
   Check,
   XCircle,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
@@ -136,6 +139,7 @@ export default function JobApplicantsPage() {
     teacherName: string;
   } | null>(null);
   const [hiring, setHiring] = useState(false);
+  const [expandedCoverLetters, setExpandedCoverLetters] = useState<Set<string>>(new Set());
   const [reviewTarget, setReviewTarget] = useState<{
     teacherUserId: string;
     teacherName: string;
@@ -460,6 +464,42 @@ export default function JobApplicantsPage() {
                           <p className="text-muted-foreground mb-4 line-clamp-2">
                             {teacher.description}
                           </p>
+                        )}
+
+                        {application.coverLetter && (
+                          <div className="border border-border rounded-lg p-3 bg-muted/30 mb-4">
+                            <button
+                              onClick={() => {
+                                setExpandedCoverLetters((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(application.id)) {
+                                    next.delete(application.id);
+                                  } else {
+                                    next.add(application.id);
+                                  }
+                                  return next;
+                                });
+                              }}
+                              className="flex items-center gap-2 text-sm font-medium text-foreground w-full"
+                            >
+                              <FileText size={14} className="text-muted-foreground" />
+                              Cover Letter
+                              {expandedCoverLetters.has(application.id) ? (
+                                <ChevronUp size={14} className="ml-auto text-muted-foreground" />
+                              ) : (
+                                <ChevronDown size={14} className="ml-auto text-muted-foreground" />
+                              )}
+                            </button>
+                            <p
+                              className={`text-sm text-muted-foreground mt-2 whitespace-pre-wrap ${
+                                expandedCoverLetters.has(application.id)
+                                  ? ""
+                                  : "line-clamp-3"
+                              }`}
+                            >
+                              {application.coverLetter}
+                            </p>
+                          </div>
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">

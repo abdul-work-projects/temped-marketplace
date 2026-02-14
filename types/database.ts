@@ -251,6 +251,7 @@ export type Database = {
           teacher_id: string;
           status: 'Applied' | 'In Progress' | 'Hired' | 'Closed';
           shortlisted: boolean;
+          cover_letter: string | null;
           applied_at: string;
         };
         Insert: {
@@ -259,6 +260,7 @@ export type Database = {
           teacher_id: string;
           status?: 'Applied' | 'In Progress' | 'Hired' | 'Closed';
           shortlisted?: boolean;
+          cover_letter?: string | null;
           applied_at?: string;
         };
         Update: {
@@ -267,6 +269,7 @@ export type Database = {
           teacher_id?: string;
           status?: 'Applied' | 'In Progress' | 'Hired' | 'Closed';
           shortlisted?: boolean;
+          cover_letter?: string | null;
           applied_at?: string;
         };
       };
