@@ -1,26 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useCreateJob } from '@/lib/hooks/useSchool';
-import { EducationPhase, JobType } from '@/types';
+import { EducationPhase, JobType, SchoolType } from '@/types';
 import { subjectsByPhase } from '@/lib/data/subjects';
 import TagInput from '@/components/shared/TagInput';
-import { Loader2 } from 'lucide-react';
+import { useTags } from '@/lib/hooks/useTags';
+import { Loader2, ShieldAlert } from 'lucide-react';
 import { SELECT_CLASS } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
+function getDefaultPhase(schoolType?: SchoolType): EducationPhase {
+  switch (schoolType) {
+    case 'Pre-primary': return 'Foundation Phase';
+    case 'Primary': return 'Primary';
+    case 'Secondary': return 'Secondary';
+    default: return 'Foundation Phase';
+  }
+}
+
 export default function PostJobPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { school } = useSchoolProfile(user?.id);
   const { createJob, creating } = useCreateJob();
+  const { tags: availableTags, loading: tagsLoading } = useTags();
+  const phaseInitialized = useRef(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -34,6 +47,14 @@ export default function PostJobPage() {
     requiredQualifications: '',
     tags: [] as string[],
   });
+
+  // Auto-fill education phase from school type (once)
+  useEffect(() => {
+    if (school && !phaseInitialized.current) {
+      phaseInitialized.current = true;
+      setFormData(prev => ({ ...prev, educationPhase: getDefaultPhase(school.schoolType) }));
+    }
+  }, [school]);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +74,7 @@ export default function PostJobPage() {
       education_phase: formData.educationPhase,
       job_type: formData.jobType,
       start_date: formData.startDate,
-      end_date: formData.endDate,
+      end_date: formData.endDate || null,
       application_deadline: formData.applicationDeadline,
       required_qualifications: formData.requiredQualifications,
       tags,
@@ -65,6 +86,32 @@ export default function PostJobPage() {
       router.push('/school/dashboard');
     }
   };
+
+  // Block posting if not verified
+  if (school && school.verificationStatus !== 'approved') {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center py-16">
+              <ShieldAlert className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-foreground mb-2">Verification Required</h2>
+              <p className="text-muted-foreground mb-4">
+                {school.verificationStatus === 'rejected'
+                  ? `Your verification was rejected${school.rejectionReason ? `: ${school.rejectionReason}` : ''}. Please re-upload your registration certificate.`
+                  : school.verificationStatus === 'pending'
+                  ? "Your school is currently under review. You'll be able to post jobs once verified."
+                  : 'Please upload your registration certificate in your profile setup to get verified.'}
+              </p>
+              <Button asChild>
+                <Link href="/school/setup">Go to Profile Setup</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
@@ -166,7 +213,10 @@ export default function PostJobPage() {
                   <select
                     required
                     value={formData.jobType}
-                    onChange={(e) => setFormData({ ...formData, jobType: e.target.value as JobType })}
+                    onChange={(e) => {
+                      const jt = e.target.value as JobType;
+                      setFormData({ ...formData, jobType: jt, ...(jt === 'Permanent' ? { endDate: '' } : {}) });
+                    }}
                     className={SELECT_CLASS}
                   >
                     <option value="Permanent">Permanent</option>
@@ -176,7 +226,7 @@ export default function PostJobPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className={`grid grid-cols-1 sm:grid-cols-2 ${formData.jobType !== 'Permanent' ? 'lg:grid-cols-3' : ''} gap-4`}>
                   <div>
                     <Label className="mb-2 font-bold">
                       Start Date *
@@ -189,17 +239,19 @@ export default function PostJobPage() {
                     />
                   </div>
 
-                  <div>
-                    <Label className="mb-2 font-bold">
-                      End Date *
-                    </Label>
-                    <Input
-                      type="date"
-                      required
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    />
-                  </div>
+                  {formData.jobType !== 'Permanent' && (
+                    <div>
+                      <Label className="mb-2 font-bold">
+                        End Date *
+                      </Label>
+                      <Input
+                        type="date"
+                        required
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <Label className="mb-2 font-bold">
@@ -234,7 +286,8 @@ export default function PostJobPage() {
                   <TagInput
                     value={formData.tags}
                     onChange={(tags) => setFormData({ ...formData, tags })}
-                    placeholder="e.g., Urgent, CAPS, Grade 10"
+                    availableTags={availableTags.map(t => t.name)}
+                    loading={tagsLoading}
                   />
                 </div>
 

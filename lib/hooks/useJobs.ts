@@ -40,6 +40,10 @@ function mapSchoolRow(row: Record<string, unknown>): School {
     address: row.address as string | undefined,
     location: row.location as { lat: number; lng: number } | undefined,
     registrationCertificate: row.registration_certificate as string | undefined,
+    verificationStatus: row.verification_status as School['verificationStatus'],
+    verifiedBy: row.verified_by as string | undefined,
+    verifiedAt: row.verified_at as string | undefined,
+    rejectionReason: row.rejection_reason as string | undefined,
     createdAt: row.created_at as string,
   };
 }

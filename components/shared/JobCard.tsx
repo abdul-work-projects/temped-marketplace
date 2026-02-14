@@ -42,7 +42,7 @@ export default function JobCard({
 
   const isUrgent = job.tags.includes('Urgent');
   const startDate = format(new Date(job.startDate), 'MMM d, yyyy');
-  const endDate = format(new Date(job.endDate), 'MMM d, yyyy');
+  const endDate = job.endDate ? format(new Date(job.endDate), 'MMM d, yyyy') : null;
   const deadline = format(new Date(job.applicationDeadline), 'MMM d, yyyy');
 
   if (variant === 'list') {
@@ -85,7 +85,7 @@ export default function JobCard({
             <span className="text-muted-foreground/50">&middot;</span>
             <span className="inline-flex items-center gap-0.5">
               <Calendar size={12} />
-              {startDate} – {endDate}
+              {startDate}{endDate ? ` – ${endDate}` : ' – Ongoing'}
             </span>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function JobCard({
           <div className="space-y-2 mb-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar size={14} />
-              <span>{startDate} - {endDate}</span>
+              <span>{startDate}{endDate ? ` - ${endDate}` : ' - Ongoing'}</span>
             </div>
             <div className="flex items-center gap-2">
               <Clock size={14} />

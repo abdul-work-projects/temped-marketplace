@@ -59,6 +59,7 @@ export interface Teacher {
   idNumber?: string;
   sports: Record<string, string[]>;
   artsCulture: Record<string, string[]>;
+  phoneNumber?: string;
   teacherReferences: Reference[];
   experience?: Experience[];
   profileCompleteness: number;
@@ -101,6 +102,10 @@ export interface School {
     lng: number;
   };
   registrationCertificate?: string;
+  verificationStatus?: 'unverified' | 'pending' | 'approved' | 'rejected';
+  verifiedBy?: string;
+  verifiedAt?: string;
+  rejectionReason?: string;
   createdAt: string;
 }
 
@@ -111,7 +116,7 @@ export interface Job {
   description: string;
   subject: string;
   startDate: string;
-  endDate: string;
+  endDate?: string;
   applicationDeadline: string;
   requiredQualifications: string;
   educationPhase: EducationPhase;

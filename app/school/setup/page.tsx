@@ -9,9 +9,10 @@ import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { createClient } from '@/lib/supabase/client';
 import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { SchoolType, OwnershipType, Curriculum } from '@/types';
-import { Loader2, Building2, Camera, X } from 'lucide-react';
+import { Loader2, Building2, Camera, X, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SELECT_CLASS } from '@/lib/utils';
+import ImageLightbox from '@/components/shared/ImageLightbox';
 
 export default function SchoolSetupPage() {
   const { user } = useAuth();
@@ -43,6 +44,8 @@ export default function SchoolSetupPage() {
   const [pendingPicFile, setPendingPicFile] = useState<File | null>(null);
   const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(null);
   const [removedPic, setRemovedPic] = useState(false);
+
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
 
   // Deferred registration certificate upload
   const certInputRef = useRef<HTMLInputElement>(null);
@@ -192,6 +195,23 @@ export default function SchoolSetupPage() {
       }
     }
 
+    // Determine verification_status based on certificate state
+    let verificationStatus: string | undefined;
+    if (certPath) {
+      // Certificate present — if previously rejected or unverified, set to pending
+      const current = school.verificationStatus;
+      if (!current || current === 'unverified' || current === 'rejected') {
+        verificationStatus = 'pending';
+      }
+      // If re-uploading a new cert while pending/approved, reset to pending
+      if (pendingCertFile) {
+        verificationStatus = 'pending';
+      }
+    } else {
+      // Certificate removed
+      verificationStatus = 'unverified';
+    }
+
     const updates: Record<string, unknown> = {
       name: formData.name,
       description: formData.description,
@@ -205,6 +225,14 @@ export default function SchoolSetupPage() {
       profile_picture: picPath,
       registration_certificate: certPath,
     };
+
+    if (verificationStatus !== undefined) {
+      updates.verification_status = verificationStatus;
+      // Clear rejection reason when re-submitting
+      if (verificationStatus === 'pending') {
+        updates.rejection_reason = null;
+      }
+    }
 
     if (location) {
       updates.location = location;
@@ -501,7 +529,32 @@ export default function SchoolSetupPage() {
 
             {/* Registration Certificate */}
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-4">Registration Certificate</h2>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-foreground">Registration Certificate</h2>
+                  <p className="text-xs text-muted-foreground">Upload your school registration certificate for verification</p>
+                </div>
+                {school?.verificationStatus === 'approved' && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-green-700 bg-green-100 rounded-full">Approved</span>
+                )}
+                {school?.verificationStatus === 'pending' && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-yellow-700 bg-yellow-100 rounded-full">Pending Review</span>
+                )}
+                {school?.verificationStatus === 'rejected' && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">Rejected</span>
+                )}
+                {(!school?.verificationStatus || school.verificationStatus === 'unverified') && (
+                  <span className="px-2 py-0.5 text-xs font-bold text-muted-foreground bg-muted rounded-full">Not uploaded</span>
+                )}
+              </div>
+
+              {/* Rejection reason */}
+              {school?.verificationStatus === 'rejected' && school.rejectionReason && (
+                <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                  <span className="font-medium">Reason: </span>{school.rejectionReason}
+                </div>
+              )}
+
               <div
                 className={`p-4 rounded-lg border-2 border-dashed transition-colors ${
                   draggingCert ? 'border-primary bg-primary/5' : 'border-border'
@@ -521,23 +574,35 @@ export default function SchoolSetupPage() {
                       <img
                         src={displayCertUrl}
                         alt="Certificate"
-                        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0"
+                        className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                        onClick={() => displayCertUrl && setLightbox({ src: displayCertUrl, alt: 'Registration Certificate' })}
                       />
+                    ) : displayCertUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ src: displayCertUrl, alt: 'Registration Certificate', fileName: pendingCertFile?.name || 'certificate.pdf' })}
+                        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                      >
+                        <FileText size={20} className="text-red-500" />
+                        <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
+                      </button>
                     ) : (
-                      <div className="w-12 h-12 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
+                      <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                        <Loader2 size={16} className="animate-spin text-muted-foreground" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
                         {displayCertName || 'Certificate uploaded'}
                       </p>
-                      {!pendingCertFile && certUrl && (
-                        <a href={certUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
-                          View current file
-                        </a>
+                      {displayCertUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setLightbox({ src: displayCertUrl, alt: 'Registration Certificate', fileName: pendingCertFile?.name || 'certificate.pdf' })}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Preview
+                        </button>
                       )}
                     </div>
                     <button
@@ -608,6 +673,15 @@ export default function SchoolSetupPage() {
             </div>
         </div>
       </div>
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          alt={lightbox.alt}
+          fileName={lightbox.fileName}
+          open={true}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

@@ -17,10 +17,13 @@ import AddressAutocomplete from '@/components/shared/AddressAutocomplete';
 import { Plus, Trash2, Loader2, ChevronDown, User, Camera, X, FileText, ShieldCheck, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import SelfieCapture from '@/components/shared/SelfieCapture';
+import ImageLightbox from '@/components/shared/ImageLightbox';
 
-function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fileName?: string; onExpand?: (url: string) => void }) {
+function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fileName?: string; onExpand?: (url: string, fileName?: string) => void }) {
   const url = useSignedUrl('documents', fileUrl);
-  const isImage = fileName ? /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName) : /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl);
+  const name = fileName || fileUrl || '';
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
+  const isPdf = /\.pdf$/i.test(name);
   const [imgError, setImgError] = useState(false);
 
   if (isImage && url && !imgError) {
@@ -30,12 +33,33 @@ function SignedDocPreview({ fileUrl, fileName, onExpand }: { fileUrl: string; fi
         alt="Document"
         className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
         onError={() => setImgError(true)}
-        onClick={() => onExpand?.(url)}
+        onClick={() => onExpand?.(url, fileName)}
       />
     );
   }
 
   if (isImage && !url && !imgError) {
+    return (
+      <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center flex-shrink-0">
+        <Loader2 size={16} className="animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isPdf && url) {
+    return (
+      <button
+        type="button"
+        onClick={() => onExpand?.(url, fileName || 'document.pdf')}
+        className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+      >
+        <FileText size={18} className="text-red-500" />
+        <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
+      </button>
+    );
+  }
+
+  if (isPdf && !url) {
     return (
       <div className="w-16 h-16 rounded bg-muted/50 border border-border flex items-center justify-center flex-shrink-0">
         <Loader2 size={16} className="animate-spin text-muted-foreground" />
@@ -78,6 +102,7 @@ export default function TeacherSetupPage() {
   const [distanceRadius, setDistanceRadius] = useState(50);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [idNumber, setIdNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [profilePicture, setProfilePicture] = useState<string[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
@@ -94,7 +119,7 @@ export default function TeacherSetupPage() {
   const [pendingPicPreview, setPendingPicPreview] = useState<string | null>(null);
   const [removedPic, setRemovedPic] = useState(false);
   const [pendingDocs, setPendingDocs] = useState<Partial<Record<DocumentType, { file: File; preview: string; fileName: string }>>>({});
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; fileName?: string } | null>(null);
   const [selfieModalOpen, setSelfieModalOpen] = useState(false);
   const [draggingDocType, setDraggingDocType] = useState<string | null>(null);
 
@@ -162,6 +187,7 @@ export default function TeacherSetupPage() {
       setDistanceRadius(teacher.distanceRadius || 50);
       setLocation(teacher.location || null);
       setIdNumber(teacher.idNumber || '');
+      setPhoneNumber(teacher.phoneNumber || '');
       setProfilePicture(teacher.profilePicture ? [teacher.profilePicture] : []);
       if (teacher.teacherReferences?.length > 0) {
         setReferences([...teacher.teacherReferences]);
@@ -187,13 +213,14 @@ export default function TeacherSetupPage() {
       (address || '') !== (teacher.address || '') ||
       distanceRadius !== (teacher.distanceRadius || 50) ||
       (idNumber || '') !== (teacher.idNumber || '') ||
+      (phoneNumber || '') !== (teacher.phoneNumber || '') ||
       pendingPicFile !== null ||
       removedPic ||
       Object.keys(pendingDocs).length > 0 ||
       JSON.stringify(references) !== JSON.stringify(teacher.teacherReferences || []) ||
       JSON.stringify(experiences) !== JSON.stringify(existingExperiences);
     setHasChanges(changed);
-  }, [teacher, existingExperiences, firstName, surname, description, dateOfBirth, selectedPhases, subjects, sports, artsCulture, address, distanceRadius, idNumber, pendingPicFile, removedPic, pendingDocs, references, experiences]);
+  }, [teacher, existingExperiences, firstName, surname, description, dateOfBirth, selectedPhases, subjects, sports, artsCulture, address, distanceRadius, idNumber, phoneNumber, pendingPicFile, removedPic, pendingDocs, references, experiences]);
 
   const docSummary = getVerificationSummary(documents);
 
@@ -206,12 +233,12 @@ export default function TeacherSetupPage() {
       Object.values(subjects).some(s => s.length > 0),
       address,
       idNumber,
+      phoneNumber,
       hasPic,
       // Check each required doc type has at least one upload (saved or pending)
       ...REQUIRED_DOCUMENT_TYPES.map(type =>
         documents.some(d => d.documentType === type) || !!pendingDocs[type]
       ),
-      experiences.length > 0,
       references.some(r => r.name && r.email),
     ];
     const completed = fields.filter(Boolean).length;
@@ -377,6 +404,7 @@ export default function TeacherSetupPage() {
       location: location,
       distance_radius: distanceRadius,
       id_number: idNumber || null,
+      phone_number: phoneNumber || null,
       profile_picture: picPath,
       teacher_references: references.filter(r => r.name || r.email),
       profile_completeness: completeness,
@@ -593,6 +621,17 @@ export default function TeacherSetupPage() {
                     placeholder="South African ID number"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-foreground mb-2">Phone Number</label>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  placeholder="e.g., 071 234 5678"
+                />
               </div>
 
               <div>
@@ -1010,7 +1049,7 @@ export default function TeacherSetupPage() {
                     <div className="space-y-1">
                       {selfieDocsOfType.map(doc => (
                         <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
-                          <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={setLightboxUrl} />
+                          <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={(url, fn) => setLightbox({ src: url, fileName: fn })} />
                           <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                             doc.status === 'approved' ? 'bg-green-500' :
                             doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
@@ -1042,7 +1081,7 @@ export default function TeacherSetupPage() {
                         src={pendingDocs.selfie.preview}
                         alt="Preview"
                         className="w-16 h-16 rounded-full object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => setLightboxUrl(pendingDocs.selfie?.preview ?? null)}
+                        onClick={() => pendingDocs.selfie && setLightbox({ src: pendingDocs.selfie.preview })}
                       />
                       <span className="text-xs text-primary font-medium flex-1">Unsaved</span>
                       <button
@@ -1082,7 +1121,7 @@ export default function TeacherSetupPage() {
                   cv: { label: 'CV', accept: '.pdf,.doc,.docx', description: 'Your curriculum vitae' },
                   qualification: { label: 'Qualifications', accept: '.pdf,.doc,.docx,.jpg,.jpeg,.png', description: 'Degrees, diplomas, certificates' },
                   id_document: { label: 'ID / Passport / Driver\'s License', accept: '.pdf,.jpg,.jpeg,.png', description: 'Government-issued identification' },
-                  criminal_record: { label: 'Criminal Record Check', accept: '.pdf', description: 'Police clearance certificate' },
+                  criminal_record: { label: 'Criminal Record Check', accept: '.pdf', description: 'Upload a Huru PDF or certified police clearance certificate' },
                 };
                 const config = labels[type];
                 if (!config) return null;
@@ -1142,7 +1181,7 @@ export default function TeacherSetupPage() {
                       <div className="space-y-1 mb-3">
                         {docsOfType.map(doc => (
                           <div key={doc.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
-                            <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={setLightboxUrl} />
+                            <SignedDocPreview fileUrl={doc.fileUrl} fileName={doc.fileName} onExpand={(url, fn) => setLightbox({ src: url, fileName: fn })} />
                             <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
                               doc.status === 'approved' ? 'bg-green-500' :
                               doc.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
@@ -1175,8 +1214,17 @@ export default function TeacherSetupPage() {
                             src={pendingDocs[type].preview}
                             alt="Preview"
                             className="w-16 h-16 rounded object-cover border border-border flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => setLightboxUrl(pendingDocs[type]?.preview ?? null)}
+                            onClick={() => pendingDocs[type] && setLightbox({ src: pendingDocs[type].preview })}
                           />
+                        ) : pendingDocs[type].file.type === 'application/pdf' ? (
+                          <button
+                            type="button"
+                            onClick={() => pendingDocs[type] && setLightbox({ src: pendingDocs[type].preview, fileName: pendingDocs[type].fileName })}
+                            className="w-16 h-16 rounded bg-red-50 border border-border flex flex-col items-center justify-center flex-shrink-0 cursor-pointer hover:border-primary transition-colors"
+                          >
+                            <FileText size={18} className="text-red-500" />
+                            <span className="text-[9px] text-red-600 font-medium mt-0.5">PDF</span>
+                          </button>
                         ) : (
                           <div className="w-16 h-16 rounded bg-muted border border-border flex items-center justify-center flex-shrink-0">
                             <FileText size={20} className="text-muted-foreground" />
@@ -1259,6 +1307,7 @@ export default function TeacherSetupPage() {
                     setDistanceRadius(teacher.distanceRadius || 50);
                     setLocation(teacher.location || null);
                     setIdNumber(teacher.idNumber || '');
+                    setPhoneNumber(teacher.phoneNumber || '');
                     setProfilePicture(teacher.profilePicture ? [teacher.profilePicture] : []);
                     setReferences(teacher.teacherReferences?.length > 0 ? [...teacher.teacherReferences] : []);
                   }
@@ -1305,26 +1354,14 @@ export default function TeacherSetupPage() {
         }}
       />
 
-      {/* Image lightbox */}
-      {lightboxUrl && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-8"
-          onClick={() => setLightboxUrl(null)}
-        >
-          <button
-            type="button"
-            onClick={() => setLightboxUrl(null)}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-          >
-            <X size={24} className="text-white" />
-          </button>
-          <img
-            src={lightboxUrl}
-            alt="Document preview"
-            className="max-w-full max-h-full object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+      {/* Document lightbox (images + PDFs) */}
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          fileName={lightbox.fileName}
+          open={true}
+          onClose={() => setLightbox(null)}
+        />
       )}
     </DashboardLayout>
   );

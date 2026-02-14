@@ -61,6 +61,30 @@ export function useAdminStats() {
   return { stats, loading };
 }
 
+export function useAdminPendingCounts() {
+  const [pendingTeachers, setPendingTeachers] = useState(0);
+  const [pendingSchools, setPendingSchools] = useState(0);
+  const supabaseRef = useRef(createClient());
+
+  useEffect(() => {
+    const fetch = async () => {
+      try {
+        const [docsRes, schoolsRes] = await Promise.all([
+          supabaseRef.current.from('teacher_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabaseRef.current.from('schools').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending'),
+        ]);
+        setPendingTeachers(docsRes.count || 0);
+        setPendingSchools(schoolsRes.count || 0);
+      } catch {
+        // prevent loading stuck
+      }
+    };
+    fetch();
+  }, []);
+
+  return { pendingTeachers, pendingSchools };
+}
+
 export interface TestimonialProfileInfo {
   name: string;
   profileUrl: string;
@@ -436,8 +460,43 @@ function mapSchoolRow(row: Record<string, unknown>): School {
     address: row.address as string | undefined,
     location: row.location as { lat: number; lng: number } | undefined,
     registrationCertificate: row.registration_certificate as string | undefined,
+    verificationStatus: row.verification_status as School['verificationStatus'],
+    verifiedBy: row.verified_by as string | undefined,
+    verifiedAt: row.verified_at as string | undefined,
+    rejectionReason: row.rejection_reason as string | undefined,
     createdAt: row.created_at as string,
   };
+}
+
+export function useUnverifiedSchools() {
+  const [schools, setSchools] = useState<School[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabaseRef = useRef(createClient());
+
+  const fetchSchools = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabaseRef.current
+        .from('schools')
+        .select('*')
+        .eq('verification_status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        setSchools(data.map(mapSchoolRow));
+      }
+    } catch {
+      // prevent loading stuck
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchools();
+  }, [fetchSchools]);
+
+  return { schools, loading, refetch: fetchSchools };
 }
 
 export function useAdminSearchSchools() {
@@ -540,5 +599,27 @@ export function useAdminSchoolDetail(schoolId: string | undefined) {
     }
   };
 
-  return { school, loading, updateSchool, refetch: fetchSchool };
+  const reviewSchool = async (id: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
+    try {
+      const { data: { user } } = await supabaseRef.current.auth.getUser();
+      const { error } = await supabaseRef.current
+        .from('schools')
+        .update({
+          verification_status: status,
+          verified_by: user?.id || null,
+          verified_at: new Date().toISOString(),
+          rejection_reason: rejectionReason || null,
+        })
+        .eq('id', id);
+
+      if (!error) {
+        await fetchSchool();
+      }
+      return { success: !error };
+    } catch {
+      return { success: false };
+    }
+  };
+
+  return { school, loading, updateSchool, reviewSchool, refetch: fetchSchool };
 }

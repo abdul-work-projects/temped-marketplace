@@ -2,11 +2,25 @@
 
 import Link from 'next/link';
 import { useUnverifiedTeachers } from '@/lib/hooks/useAdmin';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { getPendingCount } from '@/lib/utils/verification';
-import { Loader2, ShieldCheck, Eye, FileText } from 'lucide-react';
+import { Loader2, ShieldCheck, Eye, FileText, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+
+function TeacherAvatar({ profilePicture }: { profilePicture?: string }) {
+  const url = useSignedUrl('profile-pictures', profilePicture);
+  return (
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+      {url ? (
+        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+      ) : (
+        <User className="w-4 h-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+}
 
 export default function AdminVerifyTeachers() {
   const { teachers, loading } = useUnverifiedTeachers();
@@ -54,11 +68,14 @@ export default function AdminVerifyTeachers() {
                     key={teacher.id}
                     className="grid grid-cols-1 md:grid-cols-6 gap-4 px-6 py-4 border-b border-border items-center hover:bg-muted/50 transition-colors"
                   >
-                    <div className="col-span-1">
-                      <p className="text-sm font-medium text-foreground">
-                        {teacher.firstName} {teacher.surname}
-                      </p>
-                      <p className="text-xs text-muted-foreground md:hidden">{teacher.email}</p>
+                    <div className="col-span-1 flex items-center gap-2">
+                      <TeacherAvatar profilePicture={teacher.profilePicture} />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {teacher.firstName} {teacher.surname}
+                        </p>
+                        <p className="text-xs text-muted-foreground md:hidden truncate">{teacher.email}</p>
+                      </div>
                     </div>
                     <div className="col-span-1 hidden md:block">
                       <p className="text-sm text-muted-foreground truncate">{teacher.email}</p>

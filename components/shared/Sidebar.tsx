@@ -20,12 +20,14 @@ import {
   School,
   PlusCircle,
   X,
+  Tag,
 } from 'lucide-react';
 
 interface SidebarLink {
   label: string;
   href: string;
   icon: React.ReactNode;
+  badge?: number;
 }
 
 interface SidebarProps {
@@ -131,7 +133,12 @@ export default function Sidebar({ links, userEmail, isOpen, onClose }: SidebarPr
               }`}
             >
               {link.icon}
-              <span>{link.label}</span>
+              <span className="flex-1">{link.label}</span>
+              {link.badge != null && link.badge > 0 && (
+                <span className="ml-auto min-w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[11px] font-bold px-1.5">
+                  {link.badge}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -258,6 +265,11 @@ export const adminSidebarLinks: SidebarLink[] = [
     icon: <ShieldCheck size={20} />,
   },
   {
+    label: 'Verify Schools',
+    href: '/admin/verify-schools',
+    icon: <ShieldCheck size={20} />,
+  },
+  {
     label: 'Teachers',
     href: '/admin/teachers',
     icon: <GraduationCap size={20} />,
@@ -266,5 +278,10 @@ export const adminSidebarLinks: SidebarLink[] = [
     label: 'Schools',
     href: '/admin/schools',
     icon: <School size={20} />,
+  },
+  {
+    label: 'Tags',
+    href: '/admin/tags',
+    icon: <Tag size={20} />,
   },
 ];

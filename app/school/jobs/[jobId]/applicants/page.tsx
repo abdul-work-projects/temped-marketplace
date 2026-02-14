@@ -69,7 +69,7 @@ export default function JobApplicantsPage() {
   const { updateJob } = useUpdateJob();
   const { createTestimonial, updateTestimonial, deleteTestimonial, submitting: reviewSubmitting } = useCreateTestimonial();
   const { testimonials: myReviews, refetch: refetchMyReviews } = useMyTestimonials(user?.id);
-  const [contactTeacher, setContactTeacher] = useState<{ name: string; email: string } | null>(null);
+  const [contactTeacher, setContactTeacher] = useState<{ name: string; email: string; phone?: string } | null>(null);
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
   const [hireConfirm, setHireConfirm] = useState<{ applicationId: string; teacherName: string } | null>(null);
   const [hiring, setHiring] = useState(false);
@@ -193,7 +193,7 @@ export default function JobApplicantsPage() {
                     <span>{job.educationPhase}</span>
                     <span>-</span>
                     <span>
-                      {format(new Date(job.startDate), 'MMM d')} - {format(new Date(job.endDate), 'MMM d, yyyy')}
+                      {format(new Date(job.startDate), 'MMM d')}{job.endDate ? ` - ${format(new Date(job.endDate), 'MMM d, yyyy')}` : ' - Ongoing'}
                     </span>
                   </div>
                 </div>
@@ -369,23 +369,25 @@ export default function JobApplicantsPage() {
                                     <span className="text-sm font-bold text-foreground">Your Review</span>
                                     <ReviewStatusBadge status={existingReview.status} />
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <button
-                                      onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}`, existingId: existingReview.id, existingComment: existingReview.comment })}
-                                      className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded"
-                                      title="Edit review"
-                                    >
-                                      <Pencil size={14} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteReview(existingReview.id)}
-                                      disabled={reviewSubmitting}
-                                      className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
-                                      title="Delete review"
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
-                                  </div>
+                                  {existingReview.status !== 'approved' && (
+                                    <div className="flex items-center gap-1">
+                                      <button
+                                        onClick={() => setReviewTarget({ teacherUserId: teacher.userId, teacherName: `${teacher.firstName} ${teacher.surname}`, existingId: existingReview.id, existingComment: existingReview.comment })}
+                                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded"
+                                        title="Edit review"
+                                      >
+                                        <Pencil size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteReview(existingReview.id)}
+                                        disabled={reviewSubmitting}
+                                        className="p-1.5 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                                        title="Delete review"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-3">{existingReview.comment}</p>
                             </div>
@@ -423,7 +425,7 @@ export default function JobApplicantsPage() {
                             )}
 
                             <Button
-                              onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email })}
+                              onClick={() => setContactTeacher({ name: `${teacher.firstName} ${teacher.surname}`, email: teacher.email, phone: teacher.phoneNumber })}
                             >
                               <Mail size={16} />
                               Contact
@@ -451,6 +453,7 @@ export default function JobApplicantsPage() {
           onClose={() => setContactTeacher(null)}
           name={contactTeacher.name}
           email={contactTeacher.email}
+          phone={contactTeacher.phone}
         />
       )}
 

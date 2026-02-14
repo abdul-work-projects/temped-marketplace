@@ -4,8 +4,9 @@ import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
-import { useTeacherProfile } from '@/lib/hooks/useTeacher';
+import { useTeacherProfile, useTeacherDocuments } from '@/lib/hooks/useTeacher';
 import { useJobDetail, useCheckApplication, useApplyToJob, useWithdrawApplication } from '@/lib/hooks/useJobs';
+import { isTeacherVerified } from '@/lib/utils/verification';
 import { calculateDistance, formatDistance } from '@/lib/utils/distance';
 import { MapPin, Calendar, Clock, ArrowLeft, AlertCircle, Briefcase, GraduationCap, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -35,10 +36,12 @@ export default function JobDetailPage() {
   const { user } = useAuth();
 
   const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
+  const { documents } = useTeacherDocuments(teacher?.id);
   const { job, school, loading: jobLoading } = useJobDetail(jobId);
   const { applied, loading: checkLoading, refetch: refetchCheck } = useCheckApplication(jobId, teacher?.id);
   const { apply, applying } = useApplyToJob();
   const { withdraw, withdrawing } = useWithdrawApplication();
+  const verified = isTeacherVerified(documents);
 
   const loading = jobLoading || teacherLoading;
 
@@ -95,7 +98,7 @@ export default function JobDetailPage() {
 
   const isUrgent = job.tags.includes('Urgent');
   const startDate = format(new Date(job.startDate), 'MMM d, yyyy');
-  const endDate = format(new Date(job.endDate), 'MMM d, yyyy');
+  const endDate = job.endDate ? format(new Date(job.endDate), 'MMM d, yyyy') : null;
   const deadline = format(new Date(job.applicationDeadline), 'MMM d, yyyy');
 
   return (
@@ -156,7 +159,7 @@ export default function JobDetailPage() {
                   )}
                   <div className="flex items-center gap-1.5">
                     <Calendar size={16} />
-                    <span>{startDate} - {endDate}</span>
+                    <span>{startDate}{endDate ? ` - ${endDate}` : ' - Ongoing'}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Clock size={16} />
@@ -261,6 +264,17 @@ export default function JobDetailPage() {
                     <Button asChild className="w-full" size="lg">
                       <Link href="/teacher/setup">
                         Complete Your Profile
+                      </Link>
+                    </Button>
+                  </div>
+                ) : teacher && !verified ? (
+                  <div className="flex-1 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Your profile must be verified before you can apply. Your documents are under review.
+                    </p>
+                    <Button asChild variant="outline" className="w-full" size="lg">
+                      <Link href="/teacher/setup">
+                        View Verification Status
                       </Link>
                     </Button>
                   </div>

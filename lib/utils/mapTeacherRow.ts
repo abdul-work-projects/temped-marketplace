@@ -16,6 +16,7 @@ export function mapTeacherRow(row: Record<string, unknown>): Teacher {
     distanceRadius: (row.distance_radius as number) || 50,
     dateOfBirth: row.date_of_birth as string | undefined,
     idNumber: row.id_number as string | undefined,
+    phoneNumber: row.phone_number as string | undefined,
     sports: (row.sports as Record<string, string[]>) || {},
     artsCulture: (row.arts_culture as Record<string, string[]>) || {},
     teacherReferences: (row.teacher_references as Teacher['teacherReferences']) || [],

@@ -6,7 +6,7 @@ import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useSchoolById } from '@/lib/hooks/useJobs';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { useTestimonials } from '@/lib/hooks/useTestimonials';
-import { Building2, MapPin, ArrowLeft, GraduationCap, Briefcase, AlertCircle, MessageSquare } from 'lucide-react';
+import { Building2, MapPin, ArrowLeft, AlertCircle, MessageSquare, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -102,9 +102,14 @@ export default function SchoolProfilePage() {
 
               {/* Name and Info */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-2xl font-bold text-foreground mb-1">
-                  {school.name}
-                </h1>
+                <div className="flex items-center gap-3 mb-1 flex-wrap">
+                  <h1 className="text-2xl font-bold text-foreground truncate">
+                    {school.name}
+                  </h1>
+                  {school.verificationStatus === 'approved' && (
+                    <Badge className="bg-green-100 text-green-700 border-green-200"><BadgeCheck size={14} />Verified</Badge>
+                  )}
+                </div>
 
                 {school.address && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">

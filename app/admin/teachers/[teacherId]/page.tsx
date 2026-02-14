@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useAdminTeacherDetail } from '@/lib/hooks/useAdmin';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { isTeacherVerified } from '@/lib/utils/verification';
-import { DocumentType } from '@/types';
+import { DocumentType, TeacherDocument } from '@/types';
+import ImageLightbox from '@/components/shared/ImageLightbox';
 
 const ORDERED_DOCUMENT_TYPES: DocumentType[] = [
   'selfie',
@@ -15,7 +16,6 @@ const ORDERED_DOCUMENT_TYPES: DocumentType[] = [
   'qualification',
   'criminal_record',
 ];
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -29,18 +29,63 @@ import {
   ShieldCheck,
   User,
   FileText,
-  Eye,
   GraduationCap,
   Briefcase,
 } from 'lucide-react';
 
-function SignedDocLink({ fileUrl, children, className }: { fileUrl: string; children: React.ReactNode; className?: string }) {
-  const url = useSignedUrl('documents', fileUrl);
-  if (!url) return <span className={className}>{children}</span>;
+const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.svg'];
+
+function hasImageExtension(fileName?: string, fileUrl?: string): boolean {
+  const name = (fileName || fileUrl || '').toLowerCase();
+  return IMAGE_EXTENSIONS.some(ext => name.endsWith(ext));
+}
+
+function hasPdfExtension(fileName?: string, fileUrl?: string): boolean {
+  return /\.pdf$/i.test((fileName || fileUrl || '').toLowerCase());
+}
+
+function DocThumbnail({ doc, onOpen }: { doc: TeacherDocument; onOpen: (src: string, alt: string, fileName?: string) => void }) {
+  const signedUrl = useSignedUrl('documents', doc.fileUrl);
+
+  if (hasImageExtension(doc.fileName, doc.fileUrl) && signedUrl) {
+    return (
+      <img
+        src={signedUrl}
+        alt={doc.fileName || DOC_LABELS[doc.documentType]}
+        className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+      />
+    );
+  }
+
+  if (hasPdfExtension(doc.fileName, doc.fileUrl) && signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName || 'document.pdf')}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-red-500" />
+        <span className="text-[10px] text-red-600 font-medium">PDF</span>
+      </button>
+    );
+  }
+
+  if (signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-muted-foreground" />
+        <span className="text-[10px] text-muted-foreground truncate max-w-[72px]">{doc.fileName || 'View'}</span>
+      </button>
+    );
+  }
+
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className={className}>
-      {children}
-    </a>
+    <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md border border-border">
+      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+    </div>
   );
 }
 
@@ -57,6 +102,9 @@ export default function AdminTeacherDetail() {
   const { teacher, documents, loading, updateTeacher } = useAdminTeacherDetail(teacherId);
   const profilePicUrl = useSignedUrl('profile-pictures', teacher?.profilePicture);
   const verified = teacher ? isTeacherVerified(documents) : false;
+
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
+  const openLightbox = (src: string, alt: string, fileName?: string) => setLightbox({ src, alt, fileName });
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -363,43 +411,43 @@ export default function AdminTeacherDetail() {
                 <FileText className="w-5 h-5 text-primary" />
                 Documents
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {ORDERED_DOCUMENT_TYPES.map(type => {
                   const docsOfType = documents.filter(d => d.documentType === type);
                   return (
-                    <div key={type}>
-                      <p className="text-sm font-bold text-foreground mb-2">{DOC_LABELS[type]}</p>
+                    <div key={type} className="border border-border rounded-lg p-4">
+                      <h3 className="text-sm font-bold text-foreground mb-3">{DOC_LABELS[type]}</h3>
                       {docsOfType.length === 0 ? (
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
-                          <FileText className="w-5 h-5 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">Not uploaded</p>
-                        </div>
+                        <p className="text-sm text-muted-foreground">Not uploaded yet</p>
                       ) : (
                         <div className="space-y-2">
                           {docsOfType.map(doc => (
-                            <div key={doc.id} className="flex items-center gap-3 p-3 border border-border rounded-lg">
-                              <FileText className="w-5 h-5 text-primary" />
+                            <div key={doc.id} className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
+                              <DocThumbnail doc={doc} onOpen={openLightbox} />
                               <div className="flex-1 min-w-0">
-                                <Badge
-                                  variant="outline"
-                                  className={
-                                    doc.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
-                                    doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
-                                    'bg-red-100 text-red-700 border-red-200'
-                                  }
-                                >
-                                  {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-foreground truncate">
+                                    {doc.fileName || DOC_LABELS[doc.documentType]}
+                                  </span>
+                                  <Badge
+                                    variant="outline"
+                                    className={
+                                      doc.status === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                                      doc.status === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                      'bg-red-100 text-red-700 border-red-200'
+                                    }
+                                  >
+                                    {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  Uploaded {new Date(doc.createdAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                  {doc.reviewedAt && ` · Reviewed ${new Date(doc.reviewedAt).toLocaleDateString('en-ZA')}`}
+                                </p>
                                 {doc.rejectionReason && (
                                   <p className="text-xs text-red-600 mt-1">Reason: {doc.rejectionReason}</p>
                                 )}
                               </div>
-                              <Button variant="outline" size="sm" asChild>
-                                <SignedDocLink fileUrl={doc.fileUrl}>
-                                  <Eye className="w-3 h-3" />
-                                  View
-                                </SignedDocLink>
-                              </Button>
                             </div>
                           ))}
                         </div>
@@ -459,6 +507,16 @@ export default function AdminTeacherDetail() {
           </div>
         </div>
       </div>
+
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          alt={lightbox.alt}
+          fileName={lightbox.fileName}
+          open={true}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 }

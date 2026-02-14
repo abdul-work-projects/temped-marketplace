@@ -1,16 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useJobDetail } from '@/lib/hooks/useJobs';
-import { useUpdateJob } from '@/lib/hooks/useSchool';
+import { useUpdateJob, useSchoolProfile } from '@/lib/hooks/useSchool';
+import { useAuth } from '@/lib/context/AuthContext';
 import { EducationPhase, JobType } from '@/types';
 import { subjectsByPhase } from '@/lib/data/subjects';
 import TagInput from '@/components/shared/TagInput';
+import { useTags } from '@/lib/hooks/useTags';
 import { SELECT_CLASS } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,8 +23,11 @@ export default function EditJobPage() {
   const params = useParams();
   const jobId = params.jobId as string;
   const router = useRouter();
+  const { user } = useAuth();
+  const { school } = useSchoolProfile(user?.id);
   const { job, loading } = useJobDetail(jobId);
   const { updateJob, updating } = useUpdateJob();
+  const { tags: availableTags, loading: tagsLoading } = useTags();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -47,7 +53,7 @@ export default function EditJobPage() {
         educationPhase: job.educationPhase,
         jobType: job.jobType,
         startDate: job.startDate,
-        endDate: job.endDate,
+        endDate: job.endDate || '',
         applicationDeadline: job.applicationDeadline,
         requiredQualifications: job.requiredQualifications,
         tags: job.tags,
@@ -70,7 +76,7 @@ export default function EditJobPage() {
       education_phase: formData.educationPhase,
       job_type: formData.jobType,
       start_date: formData.startDate,
-      end_date: formData.endDate,
+      end_date: formData.endDate || null,
       application_deadline: formData.applicationDeadline,
       required_qualifications: formData.requiredQualifications,
       tags,
@@ -99,6 +105,31 @@ export default function EditJobPage() {
         <div className="p-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-muted-foreground">Job not found</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (school && school.verificationStatus !== 'approved') {
+    return (
+      <DashboardLayout sidebarLinks={schoolSidebarLinks} requiredUserType="school">
+        <div className="p-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center py-16">
+              <ShieldAlert className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-foreground mb-2">Verification Required</h2>
+              <p className="text-muted-foreground mb-4">
+                {school.verificationStatus === 'rejected'
+                  ? `Your verification was rejected${school.rejectionReason ? `: ${school.rejectionReason}` : ''}. Please re-upload your registration certificate.`
+                  : school.verificationStatus === 'pending'
+                  ? "Your school is currently under review. You'll be able to edit jobs once verified."
+                  : 'Please upload your registration certificate in your profile setup to get verified.'}
+              </p>
+              <Button asChild>
+                <Link href="/school/setup">Go to Profile Setup</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -205,7 +236,10 @@ export default function EditJobPage() {
                   <select
                     required
                     value={formData.jobType}
-                    onChange={(e) => setFormData({ ...formData, jobType: e.target.value as JobType })}
+                    onChange={(e) => {
+                      const jt = e.target.value as JobType;
+                      setFormData({ ...formData, jobType: jt, ...(jt === 'Permanent' ? { endDate: '' } : {}) });
+                    }}
                     className={SELECT_CLASS}
                   >
                     <option value="Permanent">Permanent</option>
@@ -215,7 +249,7 @@ export default function EditJobPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className={`grid grid-cols-1 sm:grid-cols-2 ${formData.jobType !== 'Permanent' ? 'lg:grid-cols-3' : ''} gap-4`}>
                   <div>
                     <Label className="mb-2 font-bold">
                       Start Date *
@@ -228,17 +262,19 @@ export default function EditJobPage() {
                     />
                   </div>
 
-                  <div>
-                    <Label className="mb-2 font-bold">
-                      End Date *
-                    </Label>
-                    <Input
-                      type="date"
-                      required
-                      value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    />
-                  </div>
+                  {formData.jobType !== 'Permanent' && (
+                    <div>
+                      <Label className="mb-2 font-bold">
+                        End Date *
+                      </Label>
+                      <Input
+                        type="date"
+                        required
+                        value={formData.endDate}
+                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <Label className="mb-2 font-bold">
@@ -273,7 +309,8 @@ export default function EditJobPage() {
                   <TagInput
                     value={formData.tags}
                     onChange={(tags) => setFormData({ ...formData, tags })}
-                    placeholder="e.g., Urgent, CAPS, Grade 10"
+                    availableTags={availableTags.map(t => t.name)}
+                    loading={tagsLoading}
                   />
                 </div>
 

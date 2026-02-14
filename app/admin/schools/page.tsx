@@ -3,11 +3,25 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAdminSearchSchools } from '@/lib/hooks/useAdmin';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, Search, Eye, School, X as XIcon } from 'lucide-react';
+import { Loader2, Search, Eye, School, Building2, X as XIcon } from 'lucide-react';
+
+function SchoolAvatar({ profilePicture }: { profilePicture?: string }) {
+  const url = useSignedUrl('profile-pictures', profilePicture);
+  return (
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+      {url ? (
+        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+      ) : (
+        <Building2 className="w-4 h-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+}
 
 export default function AdminSchools() {
   const { schools, loading, searchSchools } = useAdminSearchSchools();
@@ -78,11 +92,12 @@ export default function AdminSchools() {
           ) : (
             <div>
               {/* Table Header */}
-              <div className="hidden md:grid md:grid-cols-5 gap-4 px-6 py-3 bg-muted/50 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="hidden md:grid md:grid-cols-6 gap-4 px-6 py-3 bg-muted/50 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 <div className="col-span-1">Name</div>
                 <div className="col-span-1">Email</div>
                 <div className="col-span-1">EMIS Number</div>
                 <div className="col-span-1">Type</div>
+                <div className="col-span-1">Verified</div>
                 <div className="col-span-1">Actions</div>
               </div>
 
@@ -90,10 +105,11 @@ export default function AdminSchools() {
               {schools.map((school) => (
                 <div
                   key={school.id}
-                  className="grid grid-cols-1 md:grid-cols-5 gap-4 px-6 py-4 border-b border-border items-center hover:bg-muted/50 transition-colors"
+                  className="grid grid-cols-1 md:grid-cols-6 gap-4 px-6 py-4 border-b border-border items-center hover:bg-muted/50 transition-colors"
                 >
-                  <div className="col-span-1">
-                    <p className="text-sm font-medium text-foreground">{school.name}</p>
+                  <div className="col-span-1 flex items-center gap-2">
+                    <SchoolAvatar profilePicture={school.profilePicture} />
+                    <p className="text-sm font-medium text-foreground truncate">{school.name}</p>
                   </div>
                   <div className="col-span-1">
                     <p className="text-sm text-muted-foreground truncate">{school.email}</p>
@@ -109,6 +125,18 @@ export default function AdminSchools() {
                     ) : (
                       <span className="text-sm text-muted-foreground">-</span>
                     )}
+                  </div>
+                  <div className="col-span-1">
+                    <Badge className={
+                      school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                      school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                      school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                      'bg-muted text-muted-foreground'
+                    }>
+                      {school.verificationStatus === 'approved' ? 'Approved' :
+                       school.verificationStatus === 'pending' ? 'Pending' :
+                       school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                    </Badge>
                   </div>
                   <div className="col-span-1">
                     <Button variant="outline" size="sm" asChild>

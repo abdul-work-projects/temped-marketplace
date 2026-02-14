@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import DashboardLayout from '@/components/shared/DashboardLayout';
 import { teacherSidebarLinks } from '@/components/shared/Sidebar';
 import { useAuth } from '@/lib/context/AuthContext';
@@ -7,7 +8,8 @@ import { useTeacherProfile, useTeacherDocuments } from '@/lib/hooks/useTeacher';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { useTestimonials } from '@/lib/hooks/useTestimonials';
 import { isTeacherVerified, getVerificationSummary } from '@/lib/utils/verification';
-import { REQUIRED_DOCUMENT_TYPES, DocumentType } from '@/types';
+import { REQUIRED_DOCUMENT_TYPES, DocumentType, TeacherDocument } from '@/types';
+import ImageLightbox from '@/components/shared/ImageLightbox';
 import {
   User,
   MapPin,
@@ -21,11 +23,69 @@ import {
   Shield,
   MessageSquare,
   Pencil,
+  Phone,
+  FileText,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+
+const DOC_LABELS: Record<DocumentType, string> = {
+  cv: 'CV',
+  qualification: 'Qualifications',
+  id_document: 'ID Document',
+  criminal_record: 'Criminal Record Check',
+  selfie: 'Face Verification',
+};
+
+function DocThumbnail({ doc, onOpen }: { doc: TeacherDocument; onOpen: (src: string, alt: string, fileName?: string) => void }) {
+  const signedUrl = useSignedUrl('documents', doc.fileUrl);
+  const name = (doc.fileName || doc.fileUrl || '').toLowerCase();
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(name);
+  const isPdf = /\.pdf$/i.test(name);
+
+  if (isImage && signedUrl) {
+    return (
+      <img
+        src={signedUrl}
+        alt={doc.fileName || DOC_LABELS[doc.documentType]}
+        className="w-14 h-14 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+      />
+    );
+  }
+
+  if (isPdf && signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName || 'document.pdf')}
+        className="w-14 h-14 flex flex-col items-center justify-center gap-0.5 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-5 h-5 text-red-500" />
+        <span className="text-[9px] text-red-600 font-medium">PDF</span>
+      </button>
+    );
+  }
+
+  if (signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, doc.fileName || DOC_LABELS[doc.documentType], doc.fileName)}
+        className="w-14 h-14 flex flex-col items-center justify-center gap-0.5 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-5 h-5 text-muted-foreground" />
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-14 h-14 flex items-center justify-center bg-muted rounded-md border border-border">
+      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
 
 export default function TeacherProfilePage() {
   const { user } = useAuth();
@@ -37,6 +97,8 @@ export default function TeacherProfilePage() {
   const docSummary = getVerificationSummary(documents);
   const hasPendingDocs = documents.some(d => d.status === 'pending');
   const hasRejectedDocs = docSummary.some(s => !s.hasApproved && s.latestRejection);
+  const [lightbox, setLightbox] = useState<{ src: string; alt: string; fileName?: string } | null>(null);
+  const openLightbox = (src: string, alt: string, fileName?: string) => setLightbox({ src, alt, fileName });
 
   if (loading || !teacher) {
     return (
@@ -102,6 +164,12 @@ export default function TeacherProfilePage() {
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
                   <MapPin size={14} />
                   <span>{teacher.address}</span>
+                </div>
+              )}
+              {teacher.phoneNumber && (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
+                  <Phone size={14} />
+                  <span>{teacher.phoneNumber}</span>
                 </div>
               )}
               {teacher.distanceRadius > 0 && (
@@ -313,27 +381,49 @@ export default function TeacherProfilePage() {
               )}
             </div>
 
-            {/* Verification Status */}
+            {/* Documents & Verification */}
             <div>
-              <h2 className="text-lg font-bold text-foreground mb-3">Verification Status</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <h2 className="text-lg font-bold text-foreground mb-3">Documents & Verification</h2>
+              <div className="space-y-4">
                 {docSummary.map(({ type, hasApproved, hasPending, latestRejection }) => {
-                  const labels: Record<DocumentType, string> = {
-                    cv: 'CV',
-                    qualification: 'Qualifications',
-                    id_document: 'ID Document',
-                    criminal_record: 'Criminal Record Check',
-                    selfie: 'Face Verification',
-                  };
+                  const docsOfType = documents.filter(d => d.documentType === type);
                   let dotColor = 'bg-gray-300';
                   if (hasApproved) dotColor = 'bg-green-500';
                   else if (hasPending) dotColor = 'bg-yellow-500';
                   else if (latestRejection) dotColor = 'bg-red-500';
 
                   return (
-                    <div key={type} className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${dotColor}`}></div>
-                      <span className="text-sm text-muted-foreground">{labels[type]}</span>
+                    <div key={type} className="border border-border rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className={`w-3 h-3 rounded-full ${dotColor}`}></div>
+                        <span className="text-sm font-bold text-foreground">{DOC_LABELS[type]}</span>
+                        <Badge
+                          variant="outline"
+                          className={
+                            hasApproved ? 'bg-green-100 text-green-700 border-green-200 ml-auto' :
+                            hasPending ? 'bg-yellow-100 text-yellow-700 border-yellow-200 ml-auto' :
+                            latestRejection ? 'bg-red-100 text-red-700 border-red-200 ml-auto' :
+                            'bg-muted text-muted-foreground border-border ml-auto'
+                          }
+                        >
+                          {hasApproved ? 'Approved' : hasPending ? 'Pending' : latestRejection ? 'Rejected' : 'Not uploaded'}
+                        </Badge>
+                      </div>
+                      {docsOfType.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {docsOfType.map(doc => (
+                            <DocThumbnail key={doc.id} doc={doc} onOpen={openLightbox} />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">
+                          Not uploaded yet.{' '}
+                          <Link href="/teacher/setup" className="text-primary hover:underline">Upload</Link>
+                        </p>
+                      )}
+                      {latestRejection?.rejectionReason && !hasApproved && !hasPending && (
+                        <p className="text-xs text-red-600 mt-2">Reason: {latestRejection.rejectionReason}</p>
+                      )}
                     </div>
                   );
                 })}
@@ -342,6 +432,16 @@ export default function TeacherProfilePage() {
           </div>
         </div>
       </div>
+
+      {lightbox && (
+        <ImageLightbox
+          src={lightbox.src}
+          alt={lightbox.alt}
+          fileName={lightbox.fileName}
+          open={true}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </DashboardLayout>
   );
 }

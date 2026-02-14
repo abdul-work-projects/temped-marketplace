@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useSchoolProfile, useSchoolJobs, useDeleteJob, useUpdateJob } from '@/lib/hooks/useSchool';
 import { createClient } from '@/lib/supabase/client';
 import { format } from 'date-fns';
-import { Plus, Users, Calendar, Clock, Trash2, Loader2, Briefcase, Pencil } from 'lucide-react';
+import { Plus, Users, Calendar, Clock, Trash2, Loader2, Briefcase, Pencil, AlertTriangle, Info, XCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -94,6 +94,44 @@ export default function SchoolDashboard() {
             </Button>
           </div>
 
+          {/* Verification Status Banner */}
+          {school && school.verificationStatus !== 'approved' && (
+            <div className={`mb-6 rounded-lg p-4 flex items-start gap-3 ${
+              school.verificationStatus === 'rejected'
+                ? 'bg-red-50 border border-red-200'
+                : school.verificationStatus === 'pending'
+                ? 'bg-blue-50 border border-blue-200'
+                : 'bg-yellow-50 border border-yellow-200'
+            }`}>
+              {school.verificationStatus === 'rejected' ? (
+                <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              ) : school.verificationStatus === 'pending' ? (
+                <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+              )}
+              <div>
+                <p className={`text-sm font-medium ${
+                  school.verificationStatus === 'rejected' ? 'text-red-700' :
+                  school.verificationStatus === 'pending' ? 'text-blue-700' : 'text-yellow-700'
+                }`}>
+                  {school.verificationStatus === 'rejected'
+                    ? `Verification rejected${school.rejectionReason ? `: ${school.rejectionReason}` : ''}. Please re-upload your registration certificate.`
+                    : school.verificationStatus === 'pending'
+                    ? 'Your verification is under review. You\'ll be able to post jobs once approved.'
+                    : 'Upload your registration certificate to get verified and start posting jobs.'}
+                </p>
+                {school.verificationStatus !== 'pending' && (
+                  <Link href="/school/setup" className={`text-sm font-medium underline mt-1 inline-block ${
+                    school.verificationStatus === 'rejected' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    Go to Profile Setup
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 size={32} className="animate-spin text-muted-foreground" />
@@ -151,8 +189,7 @@ export default function SchoolDashboard() {
                           <div className="flex items-center gap-1">
                             <Calendar size={16} />
                             <span>
-                              {format(new Date(job.startDate), 'MMM d')} -{' '}
-                              {format(new Date(job.endDate), 'MMM d, yyyy')}
+                              {format(new Date(job.startDate), 'MMM d')}{job.endDate ? ` - ${format(new Date(job.endDate), 'MMM d, yyyy')}` : ' - Ongoing'}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">

@@ -7,7 +7,7 @@ import { useTeacherById, useTeacherDocuments } from '@/lib/hooks/useTeacher';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { useTestimonials } from '@/lib/hooks/useTestimonials';
 import { isTeacherVerified } from '@/lib/utils/verification';
-import { User, MapPin, GraduationCap, Briefcase, ArrowLeft, CheckCircle, Shield, Loader2, MessageSquare } from 'lucide-react';
+import { User, MapPin, GraduationCap, Briefcase, ArrowLeft, CheckCircle, Shield, Loader2, MessageSquare, Phone, Users } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
@@ -104,6 +104,12 @@ export default function TeacherProfilePage() {
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
                     <MapPin size={14} />
                     <span>{teacher.address}</span>
+                  </div>
+                )}
+                {teacher.phoneNumber && (
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1.5">
+                    <Phone size={14} />
+                    <span>{teacher.phoneNumber}</span>
                   </div>
                 )}
               </div>
@@ -208,6 +214,26 @@ export default function TeacherProfilePage() {
                         {exp.description && (
                           <p className="mt-2 text-muted-foreground">{exp.description}</p>
                         )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* References */}
+              {teacher.teacherReferences.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+                    <Users size={20} />
+                    References
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {teacher.teacherReferences.map((ref, idx) => (
+                      <div key={idx} className="border border-border p-4 rounded-lg">
+                        <p className="font-bold text-foreground">{ref.name}</p>
+                        <p className="text-sm text-muted-foreground">{ref.relationship}</p>
+                        <p className="text-sm text-muted-foreground">{ref.email}</p>
+                        <p className="text-sm text-muted-foreground">{ref.phone}</p>
                       </div>
                     ))}
                   </div>

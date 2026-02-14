@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
     label: string;
     href: string;
     icon: React.ReactNode;
+    badge?: number;
   }>;
   requiredUserType: 'teacher' | 'school' | 'admin';
 }

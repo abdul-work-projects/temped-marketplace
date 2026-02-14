@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAdminSchoolDetail } from '@/lib/hooks/useAdmin';
 import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
-import { Card, CardContent } from '@/components/ui/card';
+import ImageLightbox from '@/components/shared/ImageLightbox';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -18,56 +18,79 @@ import {
   Save,
   School,
   FileText,
-  Eye,
   MapPin,
+  Check,
+  X as XIcon,
 } from 'lucide-react';
 
-function DocumentLink({ label, url, bucket }: { label: string; url?: string; bucket: string }) {
-  const signedUrl = useSignedUrl(bucket, url);
+function hasImageExtension(path?: string): boolean {
+  return /\.(jpg|jpeg|png|gif|webp)$/i.test(path || '');
+}
 
-  if (!url) {
+function hasPdfExtension(path?: string): boolean {
+  return /\.pdf$/i.test(path || '');
+}
+
+/** Thumbnail-only component — renders just the clickable preview square */
+function CertThumbnail({ url, onOpen }: { url?: string; onOpen: (src: string) => void }) {
+  const signedUrl = useSignedUrl('registration-certificates', url);
+
+  if (!signedUrl) {
     return (
-      <div className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
-        <FileText className="w-5 h-5 text-muted-foreground" />
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="text-xs text-muted-foreground">Not uploaded</p>
-        </div>
+      <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md border border-border">
+        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
+  const isImage = hasImageExtension(url);
+  const isPdf = hasPdfExtension(url);
+
+  if (isImage) {
+    return (
+      <img
+        src={signedUrl}
+        alt="Registration Certificate"
+        className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
+        onClick={() => onOpen(signedUrl)}
+      />
+    );
+  }
+
+  if (isPdf) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl)}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-red-500" />
+        <span className="text-[10px] text-red-600 font-medium">PDF</span>
+      </button>
+    );
+  }
+
   return (
-    <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
-      <FileText className="w-5 h-5 text-primary" />
-      <div className="flex-1">
-        <p className="text-sm font-medium text-foreground">{label}</p>
-      </div>
-      {signedUrl ? (
-        <Button variant="outline" size="sm" asChild>
-          <a
-            href={signedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Eye className="w-3 h-3" />
-            View
-          </a>
-        </Button>
-      ) : (
-        <span className="text-xs text-muted-foreground">Loading...</span>
-      )}
-    </div>
+    <button
+      onClick={() => onOpen(signedUrl)}
+      className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+    >
+      <FileText className="w-6 h-6 text-muted-foreground" />
+      <span className="text-[10px] text-muted-foreground">View</span>
+    </button>
   );
 }
 
 export default function AdminSchoolDetail() {
   const { schoolId } = useParams() as { schoolId: string };
-  const { school, loading, updateSchool } = useAdminSchoolDetail(schoolId);
+  const { school, loading, updateSchool, reviewSchool } = useAdminSchoolDetail(schoolId);
   const profilePicUrl = useSignedUrl('profile-pictures', school?.profilePicture);
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [reviewing, setReviewing] = useState(false);
+  const [showRejectInput, setShowRejectInput] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [editData, setEditData] = useState({
     name: '',
     description: '',
@@ -168,6 +191,16 @@ export default function AdminSchoolDetail() {
                       {school.curriculum}
                     </Badge>
                   )}
+                  <Badge className={
+                    school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                    school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                    school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                    'bg-muted text-muted-foreground'
+                  }>
+                    {school.verificationStatus === 'approved' ? 'Verified' :
+                     school.verificationStatus === 'pending' ? 'Pending Verification' :
+                     school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -336,19 +369,126 @@ export default function AdminSchoolDetail() {
             </div>
           </div>
 
-          {/* Documents */}
+          {/* Documents & Verification */}
           <div>
               <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-primary" />
-                Documents
+                Documents & Verification
               </h2>
-              <div className="space-y-3">
-                <DocumentLink label="Registration Certificate" url={school.registrationCertificate} bucket="registration-certificates" />
+
+              <div className="border border-border rounded-lg p-4">
+                <h3 className="text-sm font-bold text-foreground mb-3">Registration Certificate</h3>
+
+                {!school.registrationCertificate ? (
+                  <p className="text-sm text-muted-foreground">Not uploaded yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Document row — matches teacher pattern */}
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 border border-border rounded-lg">
+                      <CertThumbnail url={school.registrationCertificate} onOpen={setLightboxSrc} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-foreground truncate">Registration Certificate</span>
+                          <Badge variant="outline" className={
+                            school.verificationStatus === 'approved' ? 'bg-green-100 text-green-700 border-green-200' :
+                            school.verificationStatus === 'pending' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                            school.verificationStatus === 'rejected' ? 'bg-red-100 text-red-700 border-red-200' :
+                            'bg-muted text-foreground border-border'
+                          }>
+                            {school.verificationStatus === 'approved' ? 'Approved' :
+                             school.verificationStatus === 'pending' ? 'Pending' :
+                             school.verificationStatus === 'rejected' ? 'Rejected' : 'Unverified'}
+                          </Badge>
+                        </div>
+                        {school.verifiedAt && (
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Reviewed {new Date(school.verifiedAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </p>
+                        )}
+                        {school.verificationStatus === 'rejected' && school.rejectionReason && (
+                          <p className="text-xs text-red-600 mt-1">Reason: {school.rejectionReason}</p>
+                        )}
+                      </div>
+
+                      {/* Inline action buttons — only when pending */}
+                      {school.verificationStatus === 'pending' && (
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              setReviewing(true);
+                              await reviewSchool(school.id, 'approved');
+                              setReviewing(false);
+                            }}
+                            disabled={reviewing}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            {reviewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowRejectInput(!showRejectInput)}
+                            className="text-red-600 border-red-300 hover:bg-red-50"
+                          >
+                            <XIcon className="w-3 h-3" />
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Inline rejection reason input */}
+                    {showRejectInput && school.verificationStatus === 'pending' && (
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          value={rejectionReason}
+                          onChange={(e) => setRejectionReason(e.target.value)}
+                          placeholder="Reason for rejection (optional)..."
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            setReviewing(true);
+                            await reviewSchool(school.id, 'rejected', rejectionReason.trim() || undefined);
+                            setReviewing(false);
+                            setShowRejectInput(false);
+                            setRejectionReason('');
+                          }}
+                          disabled={reviewing}
+                        >
+                          {reviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Reject'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => { setShowRejectInput(false); setRejectionReason(''); }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
           </div>
           </div>
         </div>
       </div>
+
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt="Registration Certificate"
+          fileName={school.registrationCertificate}
+          open={true}
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
     </div>
   );
 }

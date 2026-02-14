@@ -195,7 +195,7 @@ export default function AdminTestimonials() {
               </CardContent>
             </Card>
           ) : (
-            <div className="border border-border rounded-lg divide-y divide-border overflow-hidden">
+            <div className="border border-border rounded-lg divide-y divide-border">
               {testimonials.map((testimonial) => (
                 <div key={testimonial.id} className="p-5">
                   <div className="flex items-start justify-between gap-4">

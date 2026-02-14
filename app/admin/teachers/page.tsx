@@ -3,12 +3,26 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAdminSearchTeachers } from '@/lib/hooks/useAdmin';
+import { useSignedUrl } from '@/lib/hooks/useSignedUrl';
 import { isTeacherVerified } from '@/lib/utils/verification';
-import { Loader2, Search, Eye, GraduationCap, ShieldCheck, X as XIcon } from 'lucide-react';
+import { Loader2, Search, Eye, GraduationCap, ShieldCheck, User, X as XIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+
+function TeacherAvatar({ profilePicture }: { profilePicture?: string }) {
+  const url = useSignedUrl('profile-pictures', profilePicture);
+  return (
+    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+      {url ? (
+        <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+      ) : (
+        <User className="w-4 h-4 text-muted-foreground" />
+      )}
+    </div>
+  );
+}
 
 export default function AdminTeachers() {
   const { teachers, loading, searchTeachers } = useAdminSearchTeachers();
@@ -93,8 +107,9 @@ export default function AdminTeachers() {
                   key={teacher.id}
                   className="grid grid-cols-1 md:grid-cols-5 gap-4 px-6 py-4 border-b border-border items-center hover:bg-muted/50 transition-colors"
                 >
-                  <div className="col-span-1">
-                    <p className="text-sm font-medium text-foreground">
+                  <div className="col-span-1 flex items-center gap-2">
+                    <TeacherAvatar profilePicture={teacher.profilePicture} />
+                    <p className="text-sm font-medium text-foreground truncate">
                       {teacher.firstName} {teacher.surname}
                     </p>
                   </div>
