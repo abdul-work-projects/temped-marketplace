@@ -450,7 +450,7 @@ export default function JobDetailPage() {
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="Tell the school why you're a great fit for this position..."
-                className="w-full flex-1 px-4 py-3 border border-border rounded-lg text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                className="w-full flex-1 px-4 py-3 border border-border rounded-lg text-base md:text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
                 maxLength={1000}
                 autoFocus
               />

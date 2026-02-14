@@ -96,7 +96,7 @@ export default function TagInput({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search tags..."
-              className="w-full px-2 py-1.5 text-sm border border-border rounded focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              className="w-full px-2 py-1.5 text-base md:text-sm border border-border rounded focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               onClick={(e) => e.stopPropagation()}
             />
           </div>

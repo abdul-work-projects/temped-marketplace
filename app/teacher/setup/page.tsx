@@ -738,7 +738,7 @@ export default function TeacherSetupPage() {
                       setFirstName(e.target.value);
                       clearFieldError("firstName");
                     }}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
+                    className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
                       fieldErrors["firstName"]
                         ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
                         : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -765,7 +765,7 @@ export default function TeacherSetupPage() {
                       setSurname(e.target.value);
                       clearFieldError("surname");
                     }}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none ${
+                    className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
                       fieldErrors["surname"]
                         ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
                         : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -783,7 +783,7 @@ export default function TeacherSetupPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   maxLength={3000}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="Tell schools about yourself, your teaching philosophy, and experience..."
                 />
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -800,7 +800,7 @@ export default function TeacherSetupPage() {
                     type="date"
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                    className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   />
                 </div>
                 <div>
@@ -811,7 +811,7 @@ export default function TeacherSetupPage() {
                     type="text"
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value)}
-                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                    className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     placeholder="South African ID number"
                   />
                 </div>
@@ -825,7 +825,7 @@ export default function TeacherSetupPage() {
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                   placeholder="e.g., 071 234 5678"
                 />
               </div>
@@ -1155,7 +1155,7 @@ export default function TeacherSetupPage() {
                           updateExperience(index, "title", e.target.value);
                           clearFieldError(`exp-${index}-title`);
                         }}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
                           fieldErrors[`exp-${index}-title`]
                             ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
                             : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -1183,7 +1183,7 @@ export default function TeacherSetupPage() {
                           updateExperience(index, "company", e.target.value);
                           clearFieldError(`exp-${index}-company`);
                         }}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
                           fieldErrors[`exp-${index}-company`]
                             ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
                             : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -1212,7 +1212,7 @@ export default function TeacherSetupPage() {
                           updateExperience(index, "startDate", e.target.value);
                           clearFieldError(`exp-${index}-startDate`);
                         }}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:outline-none ${
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
                           fieldErrors[`exp-${index}-startDate`]
                             ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
                             : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
@@ -1229,7 +1229,7 @@ export default function TeacherSetupPage() {
                         onChange={(e) =>
                           updateExperience(index, "endDate", e.target.value)
                         }
-                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                   </div>
@@ -1243,7 +1243,7 @@ export default function TeacherSetupPage() {
                       onChange={(e) =>
                         updateExperience(index, "description", e.target.value)
                       }
-                      className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     />
                   </div>
                 </div>
@@ -1310,7 +1310,7 @@ export default function TeacherSetupPage() {
                         onChange={(e) =>
                           updateReference(index, "name", e.target.value)
                         }
-                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
@@ -1323,7 +1323,7 @@ export default function TeacherSetupPage() {
                         onChange={(e) =>
                           updateReference(index, "relationship", e.target.value)
                         }
-                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                         placeholder="e.g., Former Principal"
                       />
                     </div>
@@ -1339,7 +1339,7 @@ export default function TeacherSetupPage() {
                         onChange={(e) =>
                           updateReference(index, "email", e.target.value)
                         }
-                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                     <div>
@@ -1352,7 +1352,7 @@ export default function TeacherSetupPage() {
                         onChange={(e) =>
                           updateReference(index, "phone", e.target.value)
                         }
-                        className="w-full px-3 py-2 text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                       />
                     </div>
                   </div>
