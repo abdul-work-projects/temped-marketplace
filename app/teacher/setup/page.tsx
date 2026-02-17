@@ -478,6 +478,14 @@ export default function TeacherSetupPage() {
       }
     });
 
+    // Validate reference emails
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    references.forEach((ref, i) => {
+      if (ref.email && !emailRegex.test(ref.email)) {
+        errors[`ref-${i}-email`] = true;
+      }
+    });
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       setFormError("Please fix the errors in the form before saving.");
@@ -1250,12 +1258,14 @@ export default function TeacherSetupPage() {
                     </label>
                     <textarea
                       rows={2}
+                      maxLength={500}
                       value={exp.description || ""}
                       onChange={(e) =>
                         updateExperience(index, "description", e.target.value)
                       }
                       className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     />
+                    <p className="text-xs text-muted-foreground text-right mt-1">{(exp.description || "").length}/500</p>
                   </div>
                 </div>
               ))}
@@ -1347,11 +1357,17 @@ export default function TeacherSetupPage() {
                       <input
                         type="email"
                         value={ref.email}
-                        onChange={(e) =>
-                          updateReference(index, "email", e.target.value)
-                        }
-                        className="w-full px-3 py-2 text-base md:text-sm border border-border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        onChange={(e) => {
+                          updateReference(index, "email", e.target.value);
+                          clearFieldError(`ref-${index}-email`);
+                        }}
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] ${
+                          fieldErrors[`ref-${index}-email`] ? "border-red-500" : "border-border"
+                        }`}
                       />
+                      {fieldErrors[`ref-${index}-email`] && (
+                        <p className="text-xs text-red-500 mt-1">Invalid email address</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-muted-foreground mb-1">

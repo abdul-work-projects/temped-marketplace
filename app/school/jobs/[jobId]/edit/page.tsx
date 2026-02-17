@@ -174,10 +174,12 @@ export default function EditJobPage() {
                   <Textarea
                     required
                     rows={5}
+                    maxLength={2000}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe the position, responsibilities, and any additional requirements..."
                   />
+                  <p className="text-xs text-muted-foreground text-right mt-1">{formData.description.length}/2000</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -296,10 +298,12 @@ export default function EditJobPage() {
                   <Textarea
                     required
                     rows={3}
+                    maxLength={1000}
                     value={formData.requiredQualifications}
                     onChange={(e) => setFormData({ ...formData, requiredQualifications: e.target.value })}
                     placeholder="e.g., Bachelor of Education in Mathematics, SACE registered"
                   />
+                  <p className="text-xs text-muted-foreground text-right mt-1">{formData.requiredQualifications.length}/1000</p>
                 </div>
 
                 <div>
