@@ -211,8 +211,8 @@ export default function TeacherSetupPage() {
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
 
   const handleProfilePicSelect = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setFileSizeError("Profile picture must be under 5MB");
+    if (file.size > 10 * 1024 * 1024) {
+      setFileSizeError("Profile picture must be under 10MB");
       return;
     }
     setFileSizeError(null);
@@ -705,7 +705,7 @@ export default function TeacherSetupPage() {
                     {hasPic ? "Change Photo" : "Upload Photo"}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Drag & drop or click to upload. JPG or PNG, max 5MB
+                    Drag & drop or click to upload. JPG or PNG, max 10MB
                   </p>
                 </div>
                 <input

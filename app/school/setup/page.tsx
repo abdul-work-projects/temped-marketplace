@@ -105,8 +105,8 @@ export default function SchoolSetupPage() {
   const [fileSizeError, setFileSizeError] = useState<string | null>(null);
 
   const handleProfilePicSelect = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setFileSizeError("Profile picture must be under 5MB");
+    if (file.size > 10 * 1024 * 1024) {
+      setFileSizeError("Profile picture must be under 10MB");
       return;
     }
     setFileSizeError(null);
@@ -455,7 +455,7 @@ export default function SchoolSetupPage() {
                     {hasPic ? "Change Photo" : "Upload Photo"}
                   </Button>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Drag & drop or click to upload. JPG or PNG, max 5MB
+                    Drag & drop or click to upload. JPG or PNG, max 10MB
                   </p>
                 </div>
                 <input
@@ -768,13 +768,15 @@ export default function SchoolSetupPage() {
                         </button>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleRemoveCert}
-                      className="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors shrink-0"
-                    >
-                      <X size={16} />
-                    </button>
+                    {school?.verificationStatus !== "approved" && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveCert}
+                        className="w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors shrink-0"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4">
