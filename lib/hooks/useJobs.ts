@@ -12,7 +12,7 @@ function mapJobRow(row: Record<string, unknown>): Job {
     description: row.description as string,
     subject: row.subject as string,
     startDate: row.start_date as string,
-    endDate: row.end_date as string,
+    endDate: (row.end_date as string) || undefined,
     applicationDeadline: row.application_deadline as string,
     requiredQualifications: row.required_qualifications as string,
     educationPhase: row.education_phase as Job['educationPhase'],

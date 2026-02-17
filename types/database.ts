@@ -199,7 +199,7 @@ export type Database = {
           description: string;
           subject: string;
           start_date: string;
-          end_date: string;
+          end_date: string | null;
           application_deadline: string;
           required_qualifications: string;
           education_phase: string;
@@ -216,7 +216,7 @@ export type Database = {
           description: string;
           subject: string;
           start_date: string;
-          end_date: string;
+          end_date?: string | null;
           application_deadline: string;
           required_qualifications: string;
           education_phase: string;
