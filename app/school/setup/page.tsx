@@ -102,8 +102,14 @@ export default function SchoolSetupPage() {
     return idx !== -1 ? value.substring(idx + marker.length) : value;
   };
 
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
+
   const handleProfilePicSelect = (file: File) => {
-    if (file.size > 5 * 1024 * 1024) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setFileSizeError("Profile picture must be under 5MB");
+      return;
+    }
+    setFileSizeError(null);
     if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
     setPendingPicFile(file);
     setPendingPicPreview(URL.createObjectURL(file));
@@ -118,7 +124,11 @@ export default function SchoolSetupPage() {
   };
 
   const handleCertSelect = (file: File) => {
-    if (file.size > 10 * 1024 * 1024) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setFileSizeError("Certificate must be under 10MB");
+      return;
+    }
+    setFileSizeError(null);
     if (pendingCertPreview) URL.revokeObjectURL(pendingCertPreview);
     setPendingCertFile(file);
     setPendingCertPreview(URL.createObjectURL(file));
@@ -838,6 +848,16 @@ export default function SchoolSetupPage() {
           open={true}
           onClose={() => setLightbox(null)}
         />
+      )}
+
+      {/* File size error toast */}
+      {fileSizeError && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-sm animate-fadeIn">
+          <p className="text-sm font-medium">{fileSizeError}</p>
+          <button onClick={() => setFileSizeError(null)} className="text-white/70 hover:text-white shrink-0">
+            <X size={16} />
+          </button>
+        </div>
       )}
     </DashboardLayout>
   );
