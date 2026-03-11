@@ -1,7 +1,7 @@
 'use client';
 
 import { useAdminStats } from '@/lib/hooks/useAdmin';
-import { Users, GraduationCap, School, MessageSquare, Loader2, FileCheck } from 'lucide-react';
+import { Users, GraduationCap, School, MessageSquare, Loader2, FileCheck, CreditCard, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -20,6 +20,8 @@ export default function AdminDashboard() {
     { label: 'Total Schools', value: stats.totalSchools, icon: School, href: '/admin/schools' },
     { label: 'Pending Testimonials', value: stats.pendingTestimonials, icon: MessageSquare, href: '/admin/testimonials' },
     { label: 'Pending Documents', value: stats.pendingDocuments, icon: FileCheck, href: '/admin/verify' },
+    { label: 'Active Subscriptions', value: stats.activeSubscriptions, icon: CreditCard, href: '/admin/subscriptions' },
+    { label: 'Total Revenue', value: `R${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, href: '/admin/subscriptions' },
   ];
 
   return (

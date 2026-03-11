@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Teacher, School, Testimonial, TeacherDocument, Qualification, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
+import { Teacher, School, Testimonial, TeacherDocument, Qualification, DocumentType, REQUIRED_DOCUMENT_TYPES, Subscription, Payment } from '@/types';
 import { mapTeacherRow } from '@/lib/utils/mapTeacherRow';
 
 // Fetch user IDs that are admins, so we can exclude them from teacher lists.
@@ -21,6 +21,8 @@ export function useAdminStats() {
     totalSchools: 0,
     pendingTestimonials: 0,
     pendingDocuments: 0,
+    activeSubscriptions: 0,
+    totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
@@ -35,19 +37,25 @@ export function useAdminStats() {
           teacherQuery = teacherQuery.not('user_id', 'in', `(${adminIds.join(',')})`);
         }
 
-        const [teachersRes, schoolsRes, testimonialRes, pendingDocsRes, pendingQualsRes] = await Promise.all([
+        const [teachersRes, schoolsRes, testimonialRes, pendingDocsRes, pendingQualsRes, subsRes, paymentsRes] = await Promise.all([
           teacherQuery,
           supabaseRef.current.from('schools').select('id', { count: 'exact', head: true }),
           supabaseRef.current.from('testimonials').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
           supabaseRef.current.from('teacher_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
           supabaseRef.current.from('teacher_qualifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabaseRef.current.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+          supabaseRef.current.from('payments').select('amount_net').eq('status', 'COMPLETE'),
         ]);
+
+        const totalRevenue = (paymentsRes.data || []).reduce((sum: number, p: { amount_net: number | null }) => sum + (p.amount_net || 0), 0);
 
         setStats({
           totalTeachers: teachersRes.count || 0,
           totalSchools: schoolsRes.count || 0,
           pendingTestimonials: testimonialRes.count || 0,
           pendingDocuments: (pendingDocsRes.count || 0) + (pendingQualsRes.count || 0),
+          activeSubscriptions: subsRes.count || 0,
+          totalRevenue,
         });
       } catch {
         // prevent loading stuck
@@ -698,4 +706,99 @@ export function useAdminSchoolDetail(schoolId: string | undefined) {
   };
 
   return { school, loading, updateSchool, reviewSchool, refetch: fetchSchool };
+}
+
+export interface AdminSubscription extends Subscription {
+  teacherName: string;
+  teacherEmail: string;
+}
+
+export interface AdminPayment extends Payment {
+  teacherName: string;
+  teacherEmail: string;
+}
+
+export function useAdminSubscriptions() {
+  const [subscriptions, setSubscriptions] = useState<AdminSubscription[]>([]);
+  const [payments, setPayments] = useState<AdminPayment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabaseRef = useRef(createClient());
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Build a teacher lookup map
+        const { data: teachers } = await supabaseRef.current
+          .from('teachers')
+          .select('id, first_name, surname, email');
+
+        const teacherMap = new Map<string, { name: string; email: string }>();
+        (teachers || []).forEach((t: Record<string, unknown>) => {
+          teacherMap.set(t.id as string, {
+            name: `${t.first_name} ${t.surname}`,
+            email: t.email as string,
+          });
+        });
+
+        const [subsRes, paymentsRes] = await Promise.all([
+          supabaseRef.current
+            .from('subscriptions')
+            .select('*')
+            .order('created_at', { ascending: false }),
+          supabaseRef.current
+            .from('payments')
+            .select('*')
+            .order('created_at', { ascending: false }),
+        ]);
+
+        if (subsRes.data) {
+          setSubscriptions(subsRes.data.map((row: Record<string, unknown>) => {
+            const teacher = teacherMap.get(row.teacher_id as string);
+            return {
+              id: row.id as string,
+              teacherId: row.teacher_id as string,
+              planType: row.plan_type as Subscription['planType'],
+              status: row.status as Subscription['status'],
+              paymentId: row.payment_id as string | undefined,
+              startsAt: row.starts_at as string,
+              expiresAt: row.expires_at as string | undefined,
+              createdAt: row.created_at as string,
+              teacherName: teacher?.name || 'Unknown',
+              teacherEmail: teacher?.email || '',
+            };
+          }));
+        }
+
+        if (paymentsRes.data) {
+          setPayments(paymentsRes.data.map((row: Record<string, unknown>) => {
+            const teacher = teacherMap.get(row.teacher_id as string);
+            return {
+              id: row.id as string,
+              teacherId: row.teacher_id as string,
+              paymentId: row.payment_id as string,
+              pfPaymentId: row.pf_payment_id as string | undefined,
+              amount: row.amount as number,
+              amountGross: row.amount_gross as number | undefined,
+              amountFee: row.amount_fee as number | undefined,
+              amountNet: row.amount_net as number | undefined,
+              status: row.status as string,
+              itemName: row.item_name as string | undefined,
+              paidAt: row.paid_at as string | undefined,
+              createdAt: row.created_at as string,
+              teacherName: teacher?.name || 'Unknown',
+              teacherEmail: teacher?.email || '',
+            };
+          }));
+        }
+      } catch {
+        // prevent loading stuck
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  return { subscriptions, payments, loading };
 }

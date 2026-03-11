@@ -332,6 +332,11 @@ export const adminSidebarLinks: SidebarLink[] = [
     icon: <Tag size={20} />,
   },
   {
+    label: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: <CreditCard size={20} />,
+  },
+  {
     label: "Announcements",
     href: "/admin/announcements",
     icon: <Megaphone size={20} />,

@@ -136,13 +136,16 @@ export default function JobCard({
               <h3 className="text-lg font-bold text-foreground mb-1">
                 {job.title}
               </h3>
-              <Link
-                href={`${linkPrefix}/schools/${school.id}`}
-                className="text-sm text-muted-foreground hover:text-primary font-medium"
-                onClick={(e) => e.stopPropagation()}
+              <span
+                className="text-sm text-muted-foreground hover:text-primary font-medium cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `${linkPrefix}/schools/${school.id}`;
+                }}
               >
                 {school.name}
-              </Link>
+              </span>
             </div>
             <div className="flex items-center gap-2">
               {applied && (
