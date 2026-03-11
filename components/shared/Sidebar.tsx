@@ -23,6 +23,7 @@ import {
   X,
   Tag,
   Crown,
+  Megaphone,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -323,5 +324,10 @@ export const adminSidebarLinks: SidebarLink[] = [
     label: "Tags",
     href: "/admin/tags",
     icon: <Tag size={20} />,
+  },
+  {
+    label: "Announcements",
+    href: "/admin/announcements",
+    icon: <Megaphone size={20} />,
   },
 ];

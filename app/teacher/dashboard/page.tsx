@@ -14,6 +14,7 @@ import { calculateDistance } from "@/lib/utils/distance";
 import { EducationPhase, JobType } from "@/types";
 import { Filter, X, Loader2, LayoutGrid, List } from "lucide-react";
 import AnnouncementBar from "@/components/shared/AnnouncementBar";
+import { useActiveAnnouncement } from "@/lib/hooks/useAnnouncements";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn, SELECT_CLASS } from "@/lib/utils";
@@ -29,6 +30,7 @@ const JOB_TYPES: JobType[] = ["Permanent", "Temporary", "Invigilator", "Coach"];
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
+  const announcement = useActiveAnnouncement('teacher');
   const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
   const { applications, loading: appsLoading } = useTeacherApplications(
     teacher?.id
@@ -118,10 +120,7 @@ export default function TeacherDashboard() {
       <div className="min-h-screen">
         <div className="p-8">
           <div className="max-w-7xl mx-auto">
-            <AnnouncementBar
-              message="Welcome to TempEd! Complete your profile to start applying for teaching positions across South Africa."
-              storageKey="teacher-announcement-v1"
-            />
+            <AnnouncementBar announcement={announcement} />
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

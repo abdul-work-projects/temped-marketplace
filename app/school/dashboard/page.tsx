@@ -30,9 +30,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import AnnouncementBar from "@/components/shared/AnnouncementBar";
+import { useActiveAnnouncement } from "@/lib/hooks/useAnnouncements";
 
 export default function SchoolDashboard() {
   const { user } = useAuth();
+  const announcement = useActiveAnnouncement('school');
   const { school, loading: schoolLoading } = useSchoolProfile(user?.id);
   const { jobs, loading: jobsLoading, refetch } = useSchoolJobs(school?.id);
   const { deleteJob, deleting } = useDeleteJob();
@@ -106,10 +108,7 @@ export default function SchoolDashboard() {
     >
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
-          <AnnouncementBar
-            message="Welcome to TempEd! Post your teaching vacancies and connect with qualified teachers across South Africa."
-            storageKey="school-announcement-v1"
-          />
+          <AnnouncementBar announcement={announcement} />
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>

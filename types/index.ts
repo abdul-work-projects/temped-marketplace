@@ -26,6 +26,16 @@ export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = ['cv', 'id_document', 'cr
 
 export type TestimonialStatus = 'pending' | 'approved' | 'rejected';
 
+export type AnnouncementTarget = 'teacher' | 'school' | 'all';
+
+export interface Announcement {
+  id: string;
+  message: string;
+  target: AnnouncementTarget;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export interface User {
   id: string;
   email: string;
