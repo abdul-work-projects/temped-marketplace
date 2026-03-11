@@ -355,27 +355,27 @@ export default function TeacherSetupPage() {
 
   const docSummary = getVerificationSummary(documents);
 
+  const completenessFields: { label: string; done: boolean }[] = [
+    { label: "First name", done: !!firstName },
+    { label: "Surname", done: !!surname },
+    { label: "Description", done: !!description },
+    { label: "Education phases", done: selectedPhases.length > 0 },
+    { label: "Subjects", done: Object.values(subjects).some((s) => s.length > 0) },
+    { label: "Address", done: !!address },
+    { label: "ID number", done: !!idNumber },
+    { label: "Phone number", done: !!phoneNumber },
+    { label: "Profile picture", done: hasPic },
+    ...REQUIRED_DOCUMENT_TYPES.map((type) => ({
+      label: `${type.replace(/_/g, " ")} document`,
+      done: documents.some((d) => d.documentType === type) || !!pendingDocs[type],
+    })),
+    { label: "At least one reference", done: references.some((r) => r.name && r.email) },
+    { label: "At least one qualification with certificate", done: qualifications.some((q) => q.name && q.institution && q.dateObtained && q.fileUrl) },
+  ];
+
   const calculateCompleteness = () => {
-    const fields = [
-      firstName,
-      surname,
-      description,
-      selectedPhases.length > 0,
-      Object.values(subjects).some((s) => s.length > 0),
-      address,
-      idNumber,
-      phoneNumber,
-      hasPic,
-      // Check each required doc type has at least one upload (saved or pending)
-      ...REQUIRED_DOCUMENT_TYPES.map(
-        (type) =>
-          documents.some((d) => d.documentType === type) || !!pendingDocs[type]
-      ),
-      references.some((r) => r.name && r.email),
-      qualifications.some((q) => q.name && q.institution && q.dateObtained && q.fileUrl),
-    ];
-    const completed = fields.filter(Boolean).length;
-    return Math.round((completed / fields.length) * 100);
+    const completed = completenessFields.filter((f) => f.done).length;
+    return Math.round((completed / completenessFields.length) * 100);
   };
 
   const completeness = calculateCompleteness();
@@ -768,6 +768,13 @@ export default function TeacherSetupPage() {
                 style={{ width: `${completeness}%` }}
               />
             </div>
+            {completeness < 100 && (
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground">
+                  Missing: {completenessFields.filter((f) => !f.done).map((f) => f.label).join(", ")}
+                </p>
+              </div>
+            )}
           </div>
 
           <form
