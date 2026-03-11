@@ -114,6 +114,21 @@ export interface Subscription {
   createdAt: string;
 }
 
+export interface Payment {
+  id: string;
+  teacherId: string;
+  paymentId: string;
+  pfPaymentId?: string;
+  amount: number;
+  amountGross?: number;
+  amountFee?: number;
+  amountNet?: number;
+  status: string;
+  itemName?: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
 export interface Document {
   id: string;
   name: string;

@@ -14,12 +14,17 @@ export async function POST(request: NextRequest) {
     }
     const token = authHeader.split(' ')[1];
 
-    // Verify user with Supabase
+    // Verify user identity with anon key, then use service role for DB queries (bypasses RLS)
+    const anonClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+    );
+    const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -87,7 +92,8 @@ export async function POST(request: NextRequest) {
       paymentData,
       processUrl: config.processUrl,
     });
-  } catch {
+  } catch (err) {
+    console.error('PayFast checkout error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -24,6 +24,7 @@ import {
   Tag,
   Crown,
   Megaphone,
+  CreditCard,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -261,6 +262,11 @@ export const teacherSidebarLinks: SidebarLink[] = [
     label: "Jobs Applied",
     href: "/teacher/applications",
     icon: <FileText size={20} />,
+  },
+  {
+    label: "Subscription",
+    href: "/teacher/subscription",
+    icon: <CreditCard size={20} />,
   },
 ];
 
