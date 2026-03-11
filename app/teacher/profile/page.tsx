@@ -45,7 +45,6 @@ import { Badge } from "@/components/ui/badge";
 
 const DOC_LABELS: Record<DocumentType, string> = {
   cv: "CV",
-  qualification: "Qualifications",
   id_document: "ID Document",
   criminal_record: "Criminal Record Check",
   selfie: "Face Verification",
@@ -124,19 +123,19 @@ function DocThumbnail({
 
 export default function TeacherProfilePage() {
   const { user } = useAuth();
-  const { teacher, experiences, loading } = useTeacherProfile(user?.id);
+  const { teacher, experiences, qualifications, loading } = useTeacherProfile(user?.id);
   const { documents } = useTeacherDocuments(teacher?.id);
   const profilePicUrl = useSignedUrl(
     "profile-pictures",
     teacher?.profilePicture
   );
   const { testimonials } = useTestimonials(user?.id);
-  const verified = teacher ? isTeacherVerified(documents) : false;
+  const verified = teacher ? isTeacherVerified(documents, qualifications) : false;
   const docSummary = getVerificationSummary(documents);
-  const hasPendingDocs = documents.some((d) => d.status === "pending");
+  const hasPendingDocs = documents.some((d) => d.status === "pending") || qualifications.some((q) => q.status === "pending");
   const hasRejectedDocs = docSummary.some(
     (s) => !s.hasApproved && s.latestRejection
-  );
+  ) || qualifications.some((q) => q.status === "rejected");
   const [lightbox, setLightbox] = useState<{
     src: string;
     alt: string;
@@ -435,6 +434,55 @@ export default function TeacherProfilePage() {
                       {exp.description && (
                         <p className="mt-2 text-muted-foreground">
                           {exp.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Qualifications */}
+            {qualifications.length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+                  <GraduationCap size={20} />
+                  Qualifications
+                </h2>
+                <div className="space-y-4">
+                  {qualifications.map((qual) => (
+                    <div
+                      key={qual.id}
+                      className="border-l-4 border-primary pl-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-foreground">{qual.name}</h3>
+                        <Badge
+                          variant="outline"
+                          className={
+                            qual.status === "approved"
+                              ? "bg-green-100 text-green-700 border-green-200"
+                              : qual.status === "pending"
+                              ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                              : "bg-red-100 text-red-700 border-red-200"
+                          }
+                        >
+                          {qual.status === "approved"
+                            ? "Approved"
+                            : qual.status === "pending"
+                            ? "Pending"
+                            : "Rejected"}
+                        </Badge>
+                      </div>
+                      <p className="text-muted-foreground">{qual.institution}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {qual.dateObtained
+                          ? format(new Date(qual.dateObtained), "MMM yyyy")
+                          : "N/A"}
+                      </p>
+                      {qual.rejectionReason && qual.status === "rejected" && (
+                        <p className="text-xs text-red-600 mt-1">
+                          Reason: {qual.rejectionReason}
                         </p>
                       )}
                     </div>

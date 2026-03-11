@@ -1,9 +1,16 @@
-import { TeacherDocument, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
+import { TeacherDocument, Qualification, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
 
-export function isTeacherVerified(documents: TeacherDocument[]): boolean {
-  return REQUIRED_DOCUMENT_TYPES.every(type =>
+export function isTeacherVerified(documents: TeacherDocument[], qualifications?: Qualification[]): boolean {
+  const docsVerified = REQUIRED_DOCUMENT_TYPES.every(type =>
     documents.some(doc => doc.documentType === type && doc.status === 'approved')
   );
+
+  // Qualifications must exist and all must be approved
+  const qualsVerified = qualifications
+    ? qualifications.length > 0 && qualifications.every(q => q.status === 'approved')
+    : true; // If qualifications not provided, don't block (backwards compat)
+
+  return docsVerified && qualsVerified;
 }
 
 export interface DocumentTypeSummary {
@@ -28,6 +35,26 @@ export function getVerificationSummary(documents: TeacherDocument[]): DocumentTy
   });
 }
 
-export function getPendingCount(documents: TeacherDocument[]): number {
-  return documents.filter(d => d.status === 'pending').length;
+export interface QualificationSummary {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  allApproved: boolean;
+}
+
+export function getQualificationSummary(qualifications: Qualification[]): QualificationSummary {
+  return {
+    total: qualifications.length,
+    approved: qualifications.filter(q => q.status === 'approved').length,
+    pending: qualifications.filter(q => q.status === 'pending').length,
+    rejected: qualifications.filter(q => q.status === 'rejected').length,
+    allApproved: qualifications.length > 0 && qualifications.every(q => q.status === 'approved'),
+  };
+}
+
+export function getPendingCount(documents: TeacherDocument[], qualifications?: Qualification[]): number {
+  const docsPending = documents.filter(d => d.status === 'pending').length;
+  const qualsPending = qualifications ? qualifications.filter(q => q.status === 'pending').length : 0;
+  return docsPending + qualsPending;
 }

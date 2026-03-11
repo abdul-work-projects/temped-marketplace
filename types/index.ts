@@ -18,11 +18,11 @@ export type SportType = 'Tennis' | 'Rugby' | 'Netball' | 'Cricket' | 'Table tenn
 
 export type ArtsCultureType = 'Drama' | 'Debate' | 'Choir' | 'Other';
 
-export type DocumentType = 'cv' | 'qualification' | 'id_document' | 'criminal_record' | 'selfie';
+export type DocumentType = 'cv' | 'id_document' | 'criminal_record' | 'selfie';
 
 export type DocumentStatus = 'pending' | 'approved' | 'rejected';
 
-export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = ['cv', 'qualification', 'id_document', 'criminal_record', 'selfie'];
+export const REQUIRED_DOCUMENT_TYPES: DocumentType[] = ['cv', 'id_document', 'criminal_record', 'selfie'];
 
 export type TestimonialStatus = 'pending' | 'approved' | 'rejected';
 
@@ -75,6 +75,35 @@ export interface Experience {
   description?: string;
 }
 
+export interface Qualification {
+  id: string;
+  name: string;
+  institution: string;
+  dateObtained: string;
+  fileUrl: string;
+  fileName?: string;
+  status: DocumentStatus;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+}
+
+export type SalaryType = 'per_month' | 'per_day';
+
+export type PlanType = 'lifetime' | 'monthly';
+export type SubscriptionStatus = 'active' | 'cancelled' | 'expired' | 'past_due';
+
+export interface Subscription {
+  id: string;
+  teacherId: string;
+  planType: PlanType;
+  status: SubscriptionStatus;
+  paymentId?: string;
+  startsAt: string;
+  expiresAt?: string;
+  createdAt: string;
+}
+
 export interface Document {
   id: string;
   name: string;
@@ -123,6 +152,8 @@ export interface Job {
   jobType: JobType;
   progress: JobProgress;
   tags: string[];
+  salary?: number;
+  salaryType?: SalaryType;
   createdAt: string;
 }
 

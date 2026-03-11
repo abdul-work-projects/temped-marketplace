@@ -28,14 +28,14 @@ import { Button } from "@/components/ui/button";
 export default function TeacherProfilePage() {
   const params = useParams();
   const teacherId = params.teacherId as string;
-  const { teacher, experiences, loading } = useTeacherById(teacherId);
+  const { teacher, experiences, qualifications, loading } = useTeacherById(teacherId);
   const { documents } = useTeacherDocuments(teacherId);
   const profilePicUrl = useSignedUrl(
     "profile-pictures",
     teacher?.profilePicture
   );
   const { testimonials } = useTestimonials(teacher?.userId);
-  const verified = isTeacherVerified(documents);
+  const verified = isTeacherVerified(documents, qualifications);
 
   // Get all subjects as flat array
   const getSubjectsFlat = (subjects: Record<string, string[]>): string[] => {
@@ -279,6 +279,30 @@ export default function TeacherProfilePage() {
                 </div>
               )}
 
+              {/* Qualifications */}
+              {qualifications.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold text-foreground mb-3 flex items-center gap-2">
+                    <GraduationCap size={20} />
+                    Qualifications
+                  </h2>
+                  <div className="space-y-4">
+                    {qualifications.map((qual) => (
+                      <div
+                        key={qual.id}
+                        className="border-l-4 border-primary pl-4"
+                      >
+                        <h3 className="font-bold text-foreground">{qual.name}</h3>
+                        <p className="text-muted-foreground">{qual.institution}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {qual.dateObtained}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* References */}
               {teacher.teacherReferences.length > 0 && (
                 <div>
@@ -359,7 +383,7 @@ export default function TeacherProfilePage() {
                       <CheckCircle size={16} />
                       Fully Verified
                     </Badge>
-                  ) : documents.some((d) => d.status === "pending") ? (
+                  ) : documents.some((d) => d.status === "pending") || qualifications.some((q) => q.status === "pending") ? (
                     <Badge className="bg-yellow-100 text-yellow-700 text-sm px-3 py-1.5">
                       Verification In Progress
                     </Badge>

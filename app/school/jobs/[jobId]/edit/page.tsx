@@ -8,7 +8,7 @@ import { schoolSidebarLinks } from '@/components/shared/Sidebar';
 import { useJobDetail } from '@/lib/hooks/useJobs';
 import { useUpdateJob, useSchoolProfile } from '@/lib/hooks/useSchool';
 import { useAuth } from '@/lib/context/AuthContext';
-import { EducationPhase, JobType } from '@/types';
+import { EducationPhase, JobType, SalaryType } from '@/types';
 import { subjectsByPhase } from '@/lib/data/subjects';
 import TagInput from '@/components/shared/TagInput';
 import { useTags } from '@/lib/hooks/useTags';
@@ -40,6 +40,8 @@ export default function EditJobPage() {
     applicationDeadline: '',
     requiredQualifications: '',
     tags: [] as string[],
+    salary: '',
+    salaryType: 'per_month' as SalaryType,
   });
 
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +59,8 @@ export default function EditJobPage() {
         applicationDeadline: job.applicationDeadline,
         requiredQualifications: job.requiredQualifications,
         tags: job.tags,
+        salary: job.salary ? String(job.salary) : '',
+        salaryType: job.salaryType || 'per_month',
       });
     }
   }, [job]);
@@ -80,6 +84,8 @@ export default function EditJobPage() {
       application_deadline: formData.applicationDeadline,
       required_qualifications: formData.requiredQualifications,
       tags,
+      salary: formData.salary ? Number(formData.salary) : null,
+      salary_type: formData.salary ? formData.salaryType : null,
     });
 
     if (success) {
@@ -304,6 +310,37 @@ export default function EditJobPage() {
                     placeholder="e.g., Bachelor of Education in Mathematics, SACE registered"
                   />
                   <p className="text-xs text-muted-foreground text-right mt-1">{formData.requiredQualifications.length}/1000</p>
+                </div>
+
+                <div>
+                  <Label className="mb-2 font-bold">
+                    Salary (Optional)
+                  </Label>
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        min={0}
+                        value={formData.salary}
+                        onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                        placeholder="e.g., 25000"
+                      />
+                    </div>
+                    <select
+                      value={formData.salaryType}
+                      onChange={(e) => setFormData({ ...formData, salaryType: e.target.value as SalaryType })}
+                      className={SELECT_CLASS}
+                      style={{ width: 'auto' }}
+                    >
+                      <option value="per_month">R/month</option>
+                      <option value="per_day">R/day</option>
+                    </select>
+                  </div>
+                  {formData.salary && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      R{Number(formData.salary).toLocaleString()}{formData.salaryType === 'per_month' ? '/month' : '/day'}
+                    </p>
+                  )}
                 </div>
 
                 <div>

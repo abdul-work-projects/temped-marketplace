@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Teacher, School, Testimonial, TeacherDocument, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
+import { Teacher, School, Testimonial, TeacherDocument, Qualification, DocumentType, REQUIRED_DOCUMENT_TYPES } from '@/types';
 import { mapTeacherRow } from '@/lib/utils/mapTeacherRow';
 
 // Fetch user IDs that are admins, so we can exclude them from teacher lists.
@@ -35,18 +35,19 @@ export function useAdminStats() {
           teacherQuery = teacherQuery.not('user_id', 'in', `(${adminIds.join(',')})`);
         }
 
-        const [teachersRes, schoolsRes, testimonialRes, pendingDocsRes] = await Promise.all([
+        const [teachersRes, schoolsRes, testimonialRes, pendingDocsRes, pendingQualsRes] = await Promise.all([
           teacherQuery,
           supabaseRef.current.from('schools').select('id', { count: 'exact', head: true }),
           supabaseRef.current.from('testimonials').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
           supabaseRef.current.from('teacher_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabaseRef.current.from('teacher_qualifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         ]);
 
         setStats({
           totalTeachers: teachersRes.count || 0,
           totalSchools: schoolsRes.count || 0,
           pendingTestimonials: testimonialRes.count || 0,
-          pendingDocuments: pendingDocsRes.count || 0,
+          pendingDocuments: (pendingDocsRes.count || 0) + (pendingQualsRes.count || 0),
         });
       } catch {
         // prevent loading stuck
@@ -69,11 +70,12 @@ export function useAdminPendingCounts() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [docsRes, schoolsRes] = await Promise.all([
+        const [docsRes, qualsRes, schoolsRes] = await Promise.all([
           supabaseRef.current.from('teacher_documents').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabaseRef.current.from('teacher_qualifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
           supabaseRef.current.from('schools').select('id', { count: 'exact', head: true }).eq('verification_status', 'pending'),
         ]);
-        setPendingTeachers(docsRes.count || 0);
+        setPendingTeachers((docsRes.count || 0) + (qualsRes.count || 0));
         setPendingSchools(schoolsRes.count || 0);
       } catch {
         // prevent loading stuck
@@ -270,7 +272,7 @@ function mapDocumentRow(row: Record<string, unknown>): TeacherDocument {
 }
 
 export function useUnverifiedTeachers() {
-  const [teachers, setTeachers] = useState<Array<Teacher & { documents: TeacherDocument[] }>>([]);
+  const [teachers, setTeachers] = useState<Array<Teacher & { documents: TeacherDocument[]; qualifications: Qualification[] }>>([]);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
@@ -281,7 +283,7 @@ export function useUnverifiedTeachers() {
 
       let query = supabaseRef.current
         .from('teachers')
-        .select('*, teacher_documents(*)')
+        .select('*, teacher_documents(*), teacher_qualifications(*)')
         .order('created_at', { ascending: false });
 
       if (adminIds.length > 0) {
@@ -293,17 +295,21 @@ export function useUnverifiedTeachers() {
       if (data) {
         const mapped = data.map((row: Record<string, unknown>) => {
           const docs = (row.teacher_documents as Record<string, unknown>[]) || [];
+          const quals = (row.teacher_qualifications as Record<string, unknown>[]) || [];
           return {
             ...mapTeacherRow(row),
             documents: docs.map(mapDocumentRow),
+            qualifications: quals.map(mapQualificationRow),
           };
         });
-        // Filter to teachers missing any required approved doc type
-        const unverified = mapped.filter((t: { documents: TeacherDocument[] }) =>
-          REQUIRED_DOCUMENT_TYPES.some((type: DocumentType) =>
+        // Filter to teachers missing any required approved doc type OR with unapproved qualifications
+        const unverified = mapped.filter((t: { documents: TeacherDocument[]; qualifications: Qualification[] }) => {
+          const docsMissing = REQUIRED_DOCUMENT_TYPES.some((type: DocumentType) =>
             !t.documents.some((d: TeacherDocument) => d.documentType === type && d.status === 'approved')
-          )
-        );
+          );
+          const qualsMissing = t.qualifications.length === 0 || t.qualifications.some((q: Qualification) => q.status !== 'approved');
+          return docsMissing || qualsMissing;
+        });
         setTeachers(unverified);
       }
     } catch {
@@ -320,9 +326,25 @@ export function useUnverifiedTeachers() {
   return { teachers, loading, refetch: fetchTeachers };
 }
 
+function mapQualificationRow(row: Record<string, unknown>): Qualification {
+  return {
+    id: row.id as string,
+    name: row.name as string,
+    institution: row.institution as string,
+    dateObtained: row.date_obtained as string,
+    fileUrl: row.file_url as string,
+    fileName: (row.file_name as string) || undefined,
+    status: (row.status as Qualification['status']) || 'pending',
+    reviewedBy: row.reviewed_by as string | undefined,
+    reviewedAt: row.reviewed_at as string | undefined,
+    rejectionReason: row.rejection_reason as string | undefined,
+  };
+}
+
 export function useAdminTeacherDetail(teacherId: string | undefined) {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [documents, setDocuments] = useState<TeacherDocument[]>([]);
+  const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
@@ -332,16 +354,18 @@ export function useAdminTeacherDetail(teacherId: string | undefined) {
     try {
       const { data } = await supabaseRef.current
         .from('teachers')
-        .select('*, teacher_documents(*)')
+        .select('*, teacher_documents(*), teacher_qualifications(*)')
         .eq('id', teacherId)
         .single();
 
       if (data) {
         const docs = (data.teacher_documents as Record<string, unknown>[]) || [];
+        const quals = (data.teacher_qualifications as Record<string, unknown>[]) || [];
         setTeacher(mapTeacherRow(data as Record<string, unknown>));
         setDocuments(docs.map(mapDocumentRow).sort((a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         ));
+        setQualifications(quals.map(mapQualificationRow));
       }
     } catch {
       // prevent loading stuck
@@ -376,6 +400,28 @@ export function useAdminTeacherDetail(teacherId: string | undefined) {
     }
   };
 
+  const reviewQualification = async (qualId: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
+    try {
+      const { data: { user } } = await supabaseRef.current.auth.getUser();
+      const { error } = await supabaseRef.current
+        .from('teacher_qualifications')
+        .update({
+          status,
+          reviewed_by: user?.id || null,
+          reviewed_at: new Date().toISOString(),
+          rejection_reason: rejectionReason || null,
+        })
+        .eq('id', qualId);
+
+      if (!error) {
+        await fetchTeacher();
+      }
+      return { success: !error };
+    } catch {
+      return { success: false };
+    }
+  };
+
   const updateTeacher = async (id: string, updates: Record<string, unknown>) => {
     try {
       const { error } = await supabaseRef.current
@@ -392,20 +438,22 @@ export function useAdminTeacherDetail(teacherId: string | undefined) {
     }
   };
 
-  return { teacher, documents, loading, reviewDocument, updateTeacher, refetch: fetchTeacher };
+  return { teacher, documents, qualifications, loading, reviewDocument, reviewQualification, updateTeacher, refetch: fetchTeacher };
 }
 
 export function useAdminSearchTeachers() {
-  const [teachers, setTeachers] = useState<Array<Teacher & { documents: TeacherDocument[] }>>([]);
+  const [teachers, setTeachers] = useState<Array<Teacher & { documents: TeacherDocument[]; qualifications: Qualification[] }>>([]);
   const [loading, setLoading] = useState(false);
   const supabaseRef = useRef(createClient());
 
   const mapWithDocs = (data: Record<string, unknown>[]) =>
     data.map((row: Record<string, unknown>) => {
       const docs = (row.teacher_documents as Record<string, unknown>[]) || [];
+      const quals = (row.teacher_qualifications as Record<string, unknown>[]) || [];
       return {
         ...mapTeacherRow(row),
         documents: docs.map(mapDocumentRow),
+        qualifications: quals.map(mapQualificationRow),
       };
     });
 
@@ -416,7 +464,7 @@ export function useAdminSearchTeachers() {
 
       let q = supabaseRef.current
         .from('teachers')
-        .select('*, teacher_documents(*)')
+        .select('*, teacher_documents(*), teacher_qualifications(*)')
         .order('created_at', { ascending: false });
 
       if (adminIds.length > 0) {
@@ -445,7 +493,7 @@ export function useAdminSearchTeachers() {
 
       let q = supabaseRef.current
         .from('teachers')
-        .select('*, teacher_documents(*)')
+        .select('*, teacher_documents(*), teacher_qualifications(*)')
         .order('created_at', { ascending: false });
 
       if (adminIds.length > 0) {

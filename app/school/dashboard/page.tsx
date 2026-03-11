@@ -29,6 +29,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import AnnouncementBar from "@/components/shared/AnnouncementBar";
 
 export default function SchoolDashboard() {
   const { user } = useAuth();
@@ -105,6 +106,11 @@ export default function SchoolDashboard() {
     >
       <div className="p-8">
         <div className="max-w-6xl mx-auto">
+          <AnnouncementBar
+            message="Welcome to TempEd! Post your teaching vacancies and connect with qualified teachers across South Africa."
+            storageKey="school-announcement-v1"
+          />
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
@@ -287,6 +293,13 @@ export default function SchoolDashboard() {
                               {count} applicant{count !== 1 ? "s" : ""}
                             </span>
                           </div>
+                          {job.salary && (
+                            <div className="flex items-center gap-1 text-green-600 font-medium">
+                              <span>
+                                R{job.salary.toLocaleString()}{job.salaryType === 'per_day' ? '/day' : '/mo'}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

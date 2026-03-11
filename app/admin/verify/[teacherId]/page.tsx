@@ -8,8 +8,9 @@ import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
 import {
   isTeacherVerified,
   getVerificationSummary,
+  getQualificationSummary,
 } from "@/lib/utils/verification";
-import { DocumentType, TeacherDocument } from "@/types";
+import { DocumentType, Qualification, TeacherDocument } from "@/types";
 import dynamic from "next/dynamic";
 const ImageLightbox = dynamic(
   () => import("@/components/shared/ImageLightbox"),
@@ -36,13 +37,11 @@ const ORDERED_DOCUMENT_TYPES: DocumentType[] = [
   "selfie",
   "id_document",
   "cv",
-  "qualification",
   "criminal_record",
 ];
 
 const DOC_LABELS: Record<DocumentType, string> = {
   cv: "CV / Resume",
-  qualification: "Qualifications",
   id_document: "ID / Passport / Driver's License",
   criminal_record: "Criminal Record Check",
   selfie: "Face Verification Selfie",
@@ -212,9 +211,73 @@ function CompareImage({
   );
 }
 
+/** Thumbnail for qualification document */
+function QualDocThumbnail({
+  qual,
+  onOpenLightbox,
+}: {
+  qual: Qualification;
+  onOpenLightbox: (src: string, alt: string, fileName?: string) => void;
+}) {
+  const signedUrl = useSignedUrl("documents", qual.fileUrl);
+
+  if (hasImageExtension(qual.fileName, qual.fileUrl) && signedUrl) {
+    return (
+      <img
+        src={signedUrl}
+        alt={qual.fileName || qual.name}
+        className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
+        onClick={() =>
+          onOpenLightbox(signedUrl, qual.fileName || qual.name, qual.fileName)
+        }
+      />
+    );
+  }
+
+  if (hasPdfExtension(qual.fileName, qual.fileUrl) && signedUrl) {
+    return (
+      <button
+        onClick={() =>
+          onOpenLightbox(
+            signedUrl,
+            qual.fileName || qual.name,
+            qual.fileName || "document.pdf"
+          )
+        }
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-red-500" />
+        <span className="text-[10px] text-red-600 font-medium">PDF</span>
+      </button>
+    );
+  }
+
+  if (signedUrl) {
+    return (
+      <button
+        onClick={() =>
+          onOpenLightbox(signedUrl, qual.fileName || qual.name, qual.fileName)
+        }
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-muted-foreground" />
+        <span className="text-[10px] text-muted-foreground truncate max-w-[72px]">
+          {qual.fileName || "View"}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md border border-border">
+      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function AdminVerifyTeacherDetail() {
   const { teacherId } = useParams() as { teacherId: string };
-  const { teacher, documents, loading, reviewDocument } =
+  const { teacher, documents, qualifications, loading, reviewDocument, reviewQualification } =
     useAdminTeacherDetail(teacherId);
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -231,8 +294,9 @@ export default function AdminVerifyTeacherDetail() {
     "profile-pictures",
     teacher?.profilePicture
   );
-  const verified = teacher ? isTeacherVerified(documents) : false;
+  const verified = teacher ? isTeacherVerified(documents, qualifications) : false;
   const summary = getVerificationSummary(documents);
+  const qualSummary = getQualificationSummary(qualifications);
 
   // Find best doc for comparison: prefer latest pending, fall back to latest of any status
   const selfieDoc =
@@ -471,6 +535,22 @@ export default function AdminVerifyTeacherDetail() {
                     </span>
                   </div>
                 ))}
+                <div className="flex items-center gap-2 p-2 border border-border rounded-lg">
+                  <div
+                    className={`w-3 h-3 rounded-full shrink-0 ${
+                      qualSummary.allApproved
+                        ? "bg-green-500"
+                        : qualSummary.pending > 0
+                        ? "bg-yellow-500"
+                        : qualSummary.total === 0
+                        ? "bg-gray-300"
+                        : "bg-red-500"
+                    }`}
+                  />
+                  <span className="text-xs font-medium text-muted-foreground truncate">
+                    Qualifications ({qualSummary.approved}/{qualSummary.total})
+                  </span>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -626,6 +706,141 @@ export default function AdminVerifyTeacherDetail() {
                   );
                 })}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Qualification Documents */}
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2 mb-4">
+                <GraduationCap className="w-5 h-5 text-primary" />
+                Qualification Documents
+              </h2>
+
+              {qualifications.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No qualifications uploaded yet
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {qualifications.map((qual) => (
+                    <div
+                      key={qual.id}
+                      className="border border-border rounded-lg p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <QualDocThumbnail
+                          qual={qual}
+                          onOpenLightbox={openLightbox}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground">
+                              {qual.name}
+                            </span>
+                            <DocStatusBadge status={qual.status} />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {qual.institution} · {new Date(qual.dateObtained).toLocaleDateString("en-ZA", { year: "numeric", month: "short" })}
+                          </p>
+                          {qual.fileName && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {qual.fileName}
+                            </p>
+                          )}
+                          {qual.reviewedAt && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Reviewed {new Date(qual.reviewedAt).toLocaleDateString("en-ZA")}
+                            </p>
+                          )}
+                          {qual.rejectionReason && (
+                            <p className="text-xs text-red-600 mt-1">
+                              Reason: {qual.rejectionReason}
+                            </p>
+                          )}
+                        </div>
+                        {qual.status === "pending" && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                setActionLoading(true);
+                                setReviewingId(qual.id);
+                                await reviewQualification(qual.id, "approved");
+                                setReviewingId(null);
+                                setActionLoading(false);
+                              }}
+                              disabled={actionLoading && reviewingId === qual.id}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {actionLoading && reviewingId === qual.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Check className="w-3 h-3" />
+                              )}
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setShowRejectInput(
+                                  showRejectInput === qual.id ? null : qual.id
+                                )
+                              }
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              <X className="w-3 h-3" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      {showRejectInput === qual.id && (
+                        <div className="flex gap-2 mt-3">
+                          <Input
+                            type="text"
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Reason for rejection (optional)..."
+                            className="flex-1"
+                          />
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={async () => {
+                              setActionLoading(true);
+                              setReviewingId(qual.id);
+                              await reviewQualification(qual.id, "rejected", rejectionReason || undefined);
+                              setReviewingId(null);
+                              setShowRejectInput(null);
+                              setRejectionReason("");
+                              setActionLoading(false);
+                            }}
+                            disabled={actionLoading}
+                          >
+                            {actionLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Confirm Reject"
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowRejectInput(null);
+                              setRejectionReason("");
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 

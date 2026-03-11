@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAdminTeacherDetail } from "@/lib/hooks/useAdmin";
 import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
 import { isTeacherVerified } from "@/lib/utils/verification";
-import { DocumentType, TeacherDocument } from "@/types";
+import { DocumentType, Qualification, TeacherDocument } from "@/types";
 import dynamic from "next/dynamic";
 const ImageLightbox = dynamic(
   () => import("@/components/shared/ImageLightbox"),
@@ -17,7 +17,6 @@ const ORDERED_DOCUMENT_TYPES: DocumentType[] = [
   "selfie",
   "id_document",
   "cv",
-  "qualification",
   "criminal_record",
 ];
 import { Button } from "@/components/ui/button";
@@ -129,21 +128,73 @@ function DocThumbnail({
 
 const DOC_LABELS: Record<DocumentType, string> = {
   cv: "CV / Resume",
-  qualification: "Qualifications",
   id_document: "ID / Passport / Driver's License",
   criminal_record: "Criminal Record Check",
   selfie: "Face Verification Selfie",
 };
 
+function QualDocThumbnail({
+  qual,
+  onOpen,
+}: {
+  qual: Qualification;
+  onOpen: (src: string, alt: string, fileName?: string) => void;
+}) {
+  const signedUrl = useSignedUrl("documents", qual.fileUrl);
+
+  if (hasImageExtension(qual.fileName, qual.fileUrl) && signedUrl) {
+    return (
+      <img
+        src={signedUrl}
+        alt={qual.fileName || qual.name}
+        className="w-20 h-20 object-cover rounded-md cursor-pointer border border-border hover:border-primary transition-colors"
+        onClick={() => onOpen(signedUrl, qual.fileName || qual.name, qual.fileName)}
+      />
+    );
+  }
+
+  if (hasPdfExtension(qual.fileName, qual.fileUrl) && signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, qual.fileName || qual.name, qual.fileName || "document.pdf")}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-red-50 rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-red-500" />
+        <span className="text-[10px] text-red-600 font-medium">PDF</span>
+      </button>
+    );
+  }
+
+  if (signedUrl) {
+    return (
+      <button
+        onClick={() => onOpen(signedUrl, qual.fileName || qual.name, qual.fileName)}
+        className="w-20 h-20 flex flex-col items-center justify-center gap-1 bg-muted rounded-md border border-border hover:border-primary cursor-pointer transition-colors"
+      >
+        <FileText className="w-6 h-6 text-muted-foreground" />
+        <span className="text-[10px] text-muted-foreground truncate max-w-[72px]">
+          {qual.fileName || "View"}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="w-20 h-20 flex items-center justify-center bg-muted rounded-md border border-border">
+      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+    </div>
+  );
+}
+
 export default function AdminTeacherDetail() {
   const { teacherId } = useParams() as { teacherId: string };
-  const { teacher, documents, loading, updateTeacher } =
+  const { teacher, documents, qualifications, loading, updateTeacher } =
     useAdminTeacherDetail(teacherId);
   const profilePicUrl = useSignedUrl(
     "profile-pictures",
     teacher?.profilePicture
   );
-  const verified = teacher ? isTeacherVerified(documents) : false;
+  const verified = teacher ? isTeacherVerified(documents, qualifications) : false;
 
   const [lightbox, setLightbox] = useState<{
     src: string;
@@ -599,6 +650,53 @@ export default function AdminTeacherDetail() {
                 })}
               </div>
             </div>
+
+            {/* Qualifications */}
+            {qualifications.length > 0 && (
+              <div>
+                <h2 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-primary" />
+                  Qualifications
+                </h2>
+                <div className="space-y-3">
+                  {qualifications.map((qual) => (
+                    <div
+                      key={qual.id}
+                      className="flex items-center gap-3 p-3 border border-border rounded-lg"
+                    >
+                      <QualDocThumbnail qual={qual} onOpen={openLightbox} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-foreground">
+                            {qual.name}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={
+                              qual.status === "approved"
+                                ? "bg-green-100 text-green-700 border-green-200"
+                                : qual.status === "pending"
+                                ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+                                : "bg-red-100 text-red-700 border-red-200"
+                            }
+                          >
+                            {qual.status.charAt(0).toUpperCase() + qual.status.slice(1)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {qual.institution} · {new Date(qual.dateObtained).toLocaleDateString("en-ZA", { year: "numeric", month: "short" })}
+                        </p>
+                        {qual.rejectionReason && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Reason: {qual.rejectionReason}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Experience */}
             {teacher.experience && teacher.experience.length > 0 && (

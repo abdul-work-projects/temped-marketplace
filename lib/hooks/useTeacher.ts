@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Teacher, Experience, TeacherDocument, DocumentType } from '@/types';
+import { Teacher, Experience, Qualification, TeacherDocument, DocumentType } from '@/types';
 import { mapTeacherRow } from '@/lib/utils/mapTeacherRow';
 
 function mapDocumentRow(row: Record<string, unknown>): TeacherDocument {
@@ -23,6 +23,7 @@ function mapDocumentRow(row: Record<string, unknown>): TeacherDocument {
 export function useTeacherProfile(userId: string | undefined) {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const supabaseRef = useRef(createClient());
@@ -65,6 +66,28 @@ export function useTeacherProfile(userId: string | undefined) {
             description: (e.description as string) || undefined,
           })));
         }
+
+        // Fetch qualifications
+        const { data: qualData } = await supabaseRef.current
+          .from('teacher_qualifications')
+          .select('*')
+          .eq('teacher_id', data.id)
+          .order('date_obtained', { ascending: false });
+
+        if (qualData) {
+          setQualifications(qualData.map((q: Record<string, unknown>) => ({
+            id: q.id as string,
+            name: q.name as string,
+            institution: q.institution as string,
+            dateObtained: q.date_obtained as string,
+            fileUrl: q.file_url as string,
+            fileName: (q.file_name as string) || undefined,
+            status: (q.status as Qualification['status']) || 'pending',
+            reviewedBy: q.reviewed_by as string | undefined,
+            reviewedAt: q.reviewed_at as string | undefined,
+            rejectionReason: q.rejection_reason as string | undefined,
+          })));
+        }
       }
     } catch {
       // Supabase client threw — prevent loading from getting stuck
@@ -78,12 +101,13 @@ export function useTeacherProfile(userId: string | undefined) {
     fetchTeacher();
   }, [fetchTeacher]);
 
-  return { teacher, experiences, loading, error, refetch: fetchTeacher };
+  return { teacher, experiences, qualifications, loading, error, refetch: fetchTeacher };
 }
 
 export function useTeacherById(teacherId: string | undefined) {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [loading, setLoading] = useState(true);
   const supabaseRef = useRef(createClient());
 
@@ -118,6 +142,27 @@ export function useTeacherById(teacherId: string | undefined) {
               description: (e.description as string) || undefined,
             })));
           }
+
+          const { data: qualData } = await supabaseRef.current
+            .from('teacher_qualifications')
+            .select('*')
+            .eq('teacher_id', data.id)
+            .order('date_obtained', { ascending: false });
+
+          if (qualData) {
+            setQualifications(qualData.map((q: Record<string, unknown>) => ({
+              id: q.id as string,
+              name: q.name as string,
+              institution: q.institution as string,
+              dateObtained: q.date_obtained as string,
+              fileUrl: q.file_url as string,
+              fileName: (q.file_name as string) || undefined,
+              status: (q.status as Qualification['status']) || 'pending',
+              reviewedBy: q.reviewed_by as string | undefined,
+              reviewedAt: q.reviewed_at as string | undefined,
+              rejectionReason: q.rejection_reason as string | undefined,
+            })));
+          }
         }
       } catch {
         // prevent loading stuck
@@ -129,7 +174,7 @@ export function useTeacherById(teacherId: string | undefined) {
     fetch();
   }, [teacherId]);
 
-  return { teacher, experiences, loading };
+  return { teacher, experiences, qualifications, loading };
 }
 
 export function useUpdateTeacher() {
@@ -140,7 +185,8 @@ export function useUpdateTeacher() {
   const updateTeacher = async (
     teacherId: string,
     updates: Record<string, unknown>,
-    experiences?: Experience[]
+    experiences?: Experience[],
+    qualifications?: Qualification[]
   ) => {
     setSaving(true);
     setError(null);
@@ -181,6 +227,34 @@ export function useUpdateTeacher() {
 
           if (expError) {
             setError(expError.message);
+            return false;
+          }
+        }
+      }
+
+      // Handle qualifications if provided
+      if (qualifications) {
+        await supabaseRef.current
+          .from('teacher_qualifications')
+          .delete()
+          .eq('teacher_id', teacherId);
+
+        if (qualifications.length > 0) {
+          const qualRows = qualifications.map(q => ({
+            teacher_id: teacherId,
+            name: q.name,
+            institution: q.institution,
+            date_obtained: q.dateObtained,
+            file_url: q.fileUrl || null,
+            file_name: q.fileName || null,
+          }));
+
+          const { error: qualError } = await supabaseRef.current
+            .from('teacher_qualifications')
+            .insert(qualRows);
+
+          if (qualError) {
+            setError(qualError.message);
             return false;
           }
         }

@@ -16,6 +16,7 @@ import {
   SportType,
   ArtsCultureType,
   Experience,
+  Qualification,
   Reference,
   DocumentType,
   REQUIRED_DOCUMENT_TYPES,
@@ -139,6 +140,7 @@ export default function TeacherSetupPage() {
   const {
     teacher,
     experiences: existingExperiences,
+    qualifications: existingQualifications,
     loading,
     refetch: refetchTeacher,
   } = useTeacherProfile(user?.id);
@@ -165,6 +167,7 @@ export default function TeacherSetupPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [profilePicture, setProfilePicture] = useState<string[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [references, setReferences] = useState<Reference[]>([]);
   const [saved, setSaved] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -191,6 +194,7 @@ export default function TeacherSetupPage() {
   } | null>(null);
   const [selfieModalOpen, setSelfieModalOpen] = useState(false);
   const [draggingDocType, setDraggingDocType] = useState<string | null>(null);
+  const [draggingQualIndex, setDraggingQualIndex] = useState<number | null>(null);
 
   // Extract storage path from a full URL or return as-is if already a path
   const extractPath = (value: string, bucket: string) => {
@@ -279,7 +283,10 @@ export default function TeacherSetupPage() {
     if (existingExperiences.length > 0) {
       setExperiences(existingExperiences);
     }
-  }, [teacher, existingExperiences]);
+    if (existingQualifications.length > 0) {
+      setQualifications(existingQualifications);
+    }
+  }, [teacher, existingExperiences, existingQualifications]);
 
   // Track unsaved changes
   useEffect(() => {
@@ -304,11 +311,13 @@ export default function TeacherSetupPage() {
       Object.keys(pendingDocs).length > 0 ||
       JSON.stringify(references) !==
         JSON.stringify(teacher.teacherReferences || []) ||
-      JSON.stringify(experiences) !== JSON.stringify(existingExperiences);
+      JSON.stringify(experiences) !== JSON.stringify(existingExperiences) ||
+      JSON.stringify(qualifications) !== JSON.stringify(existingQualifications);
     setHasChanges(changed);
   }, [
     teacher,
     existingExperiences,
+    existingQualifications,
     firstName,
     surname,
     description,
@@ -326,6 +335,7 @@ export default function TeacherSetupPage() {
     pendingDocs,
     references,
     experiences,
+    qualifications,
   ]);
 
   const docSummary = getVerificationSummary(documents);
@@ -432,6 +442,53 @@ export default function TeacherSetupPage() {
     );
   };
 
+  const handleQualFileUpload = async (index: number, file: File) => {
+    if (!user) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setFileSizeError("File must be under 10MB");
+      return;
+    }
+    setFileSizeError(null);
+    const ext = file.name.split(".").pop();
+    const fileName = `qual-${Date.now()}.${ext}`;
+    const filePath = `${user.id}/${fileName}`;
+    const { error: uploadErr } = await supabaseRef.current.storage
+      .from("documents")
+      .upload(filePath, file);
+    if (!uploadErr) {
+      updateQualification(index, "fileUrl", filePath);
+      updateQualification(index, "fileName", file.name);
+    }
+  };
+
+  const addQualification = () => {
+    setQualifications((prev) => [
+      ...prev,
+      {
+        id: `qual-${Date.now()}`,
+        name: "",
+        institution: "",
+        dateObtained: "",
+        fileUrl: "",
+        status: "pending" as const,
+      },
+    ]);
+  };
+
+  const removeQualification = (index: number) => {
+    setQualifications((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateQualification = (
+    index: number,
+    field: keyof Qualification,
+    value: string
+  ) => {
+    setQualifications((prev) =>
+      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
+    );
+  };
+
   const updateReference = (
     index: number,
     field: keyof Reference,
@@ -475,6 +532,17 @@ export default function TeacherSetupPage() {
         if (!exp.title) errors[`exp-${i}-title`] = true;
         if (!exp.company) errors[`exp-${i}-company`] = true;
         if (!exp.startDate) errors[`exp-${i}-startDate`] = true;
+      }
+    });
+
+    // For qualifications: if any field is filled, all fields including certificate are required
+    qualifications.forEach((qual, i) => {
+      const hasAnyField = qual.name || qual.institution || qual.dateObtained || qual.fileUrl;
+      if (hasAnyField) {
+        if (!qual.name) errors[`qual-${i}-name`] = true;
+        if (!qual.institution) errors[`qual-${i}-institution`] = true;
+        if (!qual.dateObtained) errors[`qual-${i}-dateObtained`] = true;
+        if (!qual.fileUrl) errors[`qual-${i}-fileUrl`] = true;
       }
     });
 
@@ -548,7 +616,8 @@ export default function TeacherSetupPage() {
       const success = await updateTeacher(
         teacher.id,
         updates,
-        experiences.filter((e) => e.title && e.company && e.startDate)
+        experiences.filter((e) => e.title && e.company && e.startDate),
+        qualifications.filter((q) => q.name && q.institution && q.dateObtained)
       );
       if (!success) {
         setSaving(false);
@@ -573,9 +642,12 @@ export default function TeacherSetupPage() {
         }
       }
 
-      // Drop empty experience rows so local state matches what was saved
+      // Drop empty rows so local state matches what was saved
       setExperiences((prev) =>
         prev.filter((e) => e.title || e.company || e.startDate)
+      );
+      setQualifications((prev) =>
+        prev.filter((q) => q.name || q.institution || q.dateObtained)
       );
 
       // Clean up pending state
@@ -1277,6 +1349,215 @@ export default function TeacherSetupPage() {
               )}
             </div>
 
+            {/* Section 5: Qualifications */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-foreground">
+                  Qualifications
+                </h2>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addQualification}
+                >
+                  <Plus size={16} />
+                  Add
+                </Button>
+              </div>
+
+              {qualifications.map((qual, index) => (
+                <div
+                  key={qual.id}
+                  className="border border-border rounded-lg p-4 space-y-3"
+                >
+                  <div className="flex justify-between items-start">
+                    <span className="text-sm font-bold text-muted-foreground">
+                      Qualification #{index + 1}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeQualification(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label
+                        className={`block text-xs font-bold mb-1 ${
+                          fieldErrors[`qual-${index}-name`]
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        Qualification Name{" "}
+                        {fieldErrors[`qual-${index}-name`] && (
+                          <span className="font-normal">— required</span>
+                        )}
+                      </label>
+                      <input
+                        type="text"
+                        value={qual.name}
+                        onChange={(e) => {
+                          updateQualification(index, "name", e.target.value);
+                          clearFieldError(`qual-${index}-name`);
+                        }}
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
+                          fieldErrors[`qual-${index}-name`]
+                            ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                            : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        }`}
+                        placeholder="e.g., Bachelor of Education"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className={`block text-xs font-bold mb-1 ${
+                          fieldErrors[`qual-${index}-institution`]
+                            ? "text-red-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        Institution{" "}
+                        {fieldErrors[`qual-${index}-institution`] && (
+                          <span className="font-normal">— required</span>
+                        )}
+                      </label>
+                      <input
+                        type="text"
+                        value={qual.institution}
+                        onChange={(e) => {
+                          updateQualification(index, "institution", e.target.value);
+                          clearFieldError(`qual-${index}-institution`);
+                        }}
+                        className={`w-full px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
+                          fieldErrors[`qual-${index}-institution`]
+                            ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                            : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                        }`}
+                        placeholder="e.g., University of Cape Town"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label
+                      className={`block text-xs font-bold mb-1 ${
+                        fieldErrors[`qual-${index}-dateObtained`]
+                          ? "text-red-600"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      Date Obtained{" "}
+                      {fieldErrors[`qual-${index}-dateObtained`] && (
+                        <span className="font-normal">— required</span>
+                      )}
+                    </label>
+                    <input
+                      type="date"
+                      value={qual.dateObtained}
+                      onChange={(e) => {
+                        updateQualification(index, "dateObtained", e.target.value);
+                        clearFieldError(`qual-${index}-dateObtained`);
+                      }}
+                      className={`w-full sm:w-auto px-3 py-2 text-base md:text-sm border rounded-md focus:outline-none ${
+                        fieldErrors[`qual-${index}-dateObtained`]
+                          ? "border-red-400 bg-red-50 focus-visible:border-red-500 focus-visible:ring-red-500/50 focus-visible:ring-[3px]"
+                          : "border-border focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-muted-foreground mb-1">
+                      Upload Certificate *
+                    </label>
+                    {qual.fileUrl ? (
+                      <div className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
+                        <SignedDocPreview
+                          fileUrl={qual.fileUrl}
+                          fileName={qual.fileName}
+                          onExpand={(url, fn) =>
+                            setLightbox({ src: url, fileName: fn })
+                          }
+                        />
+                        <span className="truncate flex-1 text-muted-foreground text-xs">
+                          {qual.fileName || "Uploaded"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            updateQualification(index, "fileUrl", "");
+                            updateQualification(index, "fileName", "");
+                          }}
+                          className="text-red-500 hover:text-red-700 shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label
+                        className={`flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg transition-colors cursor-pointer w-full justify-center ${
+                          draggingQualIndex === index
+                            ? "border-primary bg-primary/10"
+                            : fieldErrors[`qual-${index}-fileUrl`]
+                            ? "border-red-400 bg-red-50"
+                            : "border-border hover:border-muted-foreground"
+                        }`}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDraggingQualIndex(index);
+                        }}
+                        onDragLeave={() => setDraggingQualIndex(null)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDraggingQualIndex(null);
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) handleQualFileUpload(index, file);
+                        }}
+                      >
+                        <Plus
+                          size={16}
+                          className={
+                            draggingQualIndex === index
+                              ? "text-primary"
+                              : "text-muted-foreground"
+                          }
+                        />
+                        <span
+                          className={`text-sm ${
+                            draggingQualIndex === index
+                              ? "text-primary font-medium"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {draggingQualIndex === index
+                            ? "Drop file here"
+                            : "Drag & drop or click to choose file"}
+                        </span>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleQualFileUpload(index, file);
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {qualifications.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No qualifications added yet
+                </p>
+              )}
+            </div>
+
             {/* Section 8: References */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1566,11 +1847,6 @@ export default function TeacherSetupPage() {
                         label: "CV",
                         accept: ".pdf,.doc,.docx",
                         description: "Your curriculum vitae",
-                      },
-                      qualification: {
-                        label: "Qualifications",
-                        accept: ".pdf,.doc,.docx,.jpg,.jpeg,.png",
-                        description: "Degrees, diplomas, certificates",
                       },
                       id_document: {
                         label: "ID / Passport / Driver's License",
@@ -1876,6 +2152,11 @@ export default function TeacherSetupPage() {
                       setExperiences(existingExperiences);
                     } else {
                       setExperiences([]);
+                    }
+                    if (existingQualifications.length > 0) {
+                      setQualifications(existingQualifications);
+                    } else {
+                      setQualifications([]);
                     }
                     if (pendingPicPreview)
                       URL.revokeObjectURL(pendingPicPreview);

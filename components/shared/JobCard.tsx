@@ -6,6 +6,7 @@ import {
   Clock,
   AlertCircle,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import { calculateDistance, formatDistance } from "@/lib/utils/distance";
 import { format } from "date-fns";
@@ -93,7 +94,7 @@ export default function JobCard({
               </Badge>
             )}
           </div>
-          {/* Bottom row: school · distance · dates */}
+          {/* Bottom row: school · distance · dates · salary */}
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
             <span>{school.name}</span>
             {distance !== null && (
@@ -111,6 +112,14 @@ export default function JobCard({
               {startDate}
               {endDate ? ` – ${endDate}` : " – Ongoing"}
             </span>
+            {job.salary && (
+              <>
+                <span className="text-muted-foreground/50">&middot;</span>
+                <span className="inline-flex items-center gap-0.5 text-green-600 font-medium">
+                  R{job.salary.toLocaleString()}{job.salaryType === 'per_day' ? '/day' : '/mo'}
+                </span>
+              </>
+            )}
           </div>
         </div>
       </Link>
@@ -186,6 +195,12 @@ export default function JobCard({
               <Clock size={14} />
               <span>Apply by {deadline}</span>
             </div>
+            {job.salary && (
+              <div className="flex items-center gap-2 text-green-600 font-medium">
+                <DollarSign size={14} />
+                <span>R{job.salary.toLocaleString()}{job.salaryType === 'per_day' ? '/day' : '/month'}</span>
+              </div>
+            )}
           </div>
 
           {/* Tags */}

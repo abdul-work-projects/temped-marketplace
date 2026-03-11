@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
+import { useHasAccess } from "@/lib/hooks/useSubscription";
 import { createClient } from "@/lib/supabase/client";
 import {
   User,
@@ -21,6 +22,7 @@ import {
   PlusCircle,
   X,
   Tag,
+  Crown,
 } from "lucide-react";
 
 interface SidebarLink {
@@ -103,9 +105,11 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user: authUser } = useAuth();
   const profilePicPath = useProfilePicturePath();
   const profilePicUrl = useSignedUrl("profile-pictures", profilePicPath);
+  const hasAccess = useHasAccess(authUser?.id, authUser?.type);
+  const showUpgrade = authUser?.type === 'teacher' && !hasAccess;
 
   // Auto-close mobile drawer on route change
   useEffect(() => {
@@ -162,6 +166,19 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* Upgrade Button — only for teachers without lifetime access */}
+      {showUpgrade && (
+        <div className="px-3 pb-2">
+          <Link
+            href="/upgrade"
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold rounded-lg bg-yellow-50 text-yellow-800 hover:bg-yellow-100 border border-yellow-200 transition-colors"
+          >
+            <Crown size={18} className="text-yellow-600" />
+            <span>Upgrade</span>
+          </Link>
+        </div>
+      )}
 
       {/* User Section — always at bottom */}
       <div className="border-t border-border mt-auto">

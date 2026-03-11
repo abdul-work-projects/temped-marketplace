@@ -45,6 +45,8 @@ function mapJobRow(row: Record<string, unknown>): Job {
     jobType: (row.job_type as Job['jobType']) || 'Temporary',
     progress: (row.progress as Job['progress']) || 'Open',
     tags: (row.tags as string[]) || [],
+    salary: row.salary as number | undefined,
+    salaryType: row.salary_type as Job['salaryType'],
     createdAt: row.created_at as string,
   };
 }

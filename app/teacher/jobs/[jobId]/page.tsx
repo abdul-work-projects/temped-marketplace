@@ -54,7 +54,7 @@ export default function JobDetailPage() {
   const jobId = params.jobId as string;
   const { user } = useAuth();
 
-  const { teacher, loading: teacherLoading } = useTeacherProfile(user?.id);
+  const { teacher, qualifications, loading: teacherLoading } = useTeacherProfile(user?.id);
   const { documents } = useTeacherDocuments(teacher?.id);
   const { job, school, loading: jobLoading } = useJobDetail(jobId);
   const {
@@ -65,7 +65,7 @@ export default function JobDetailPage() {
   } = useCheckApplication(jobId, teacher?.id);
   const { apply, applying } = useApplyToJob();
   const { withdraw, withdrawing } = useWithdrawApplication();
-  const verified = isTeacherVerified(documents);
+  const verified = isTeacherVerified(documents, qualifications);
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -244,6 +244,11 @@ export default function JobDetailPage() {
                   <Clock size={16} />
                   <span>Apply by {deadline}</span>
                 </div>
+                {job.salary && (
+                  <div className="flex items-center gap-1.5 text-green-600 font-medium">
+                    <span>R{job.salary.toLocaleString()}{job.salaryType === 'per_day' ? '/day' : '/month'}</span>
+                  </div>
+                )}
               </div>
 
               {/* Tags */}

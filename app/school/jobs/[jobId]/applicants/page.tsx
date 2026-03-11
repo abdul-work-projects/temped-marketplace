@@ -132,6 +132,7 @@ export default function JobApplicantsPage() {
     name: string;
     email: string;
     phone?: string;
+    subjects?: string[];
   } | null>(null);
   const [showShortlistedOnly, setShowShortlistedOnly] = useState(false);
   const [hireConfirm, setHireConfirm] = useState<{
@@ -647,6 +648,7 @@ export default function JobApplicantsPage() {
                                 name: `${teacher.firstName} ${teacher.surname}`,
                                 email: teacher.email,
                                 phone: teacher.phoneNumber,
+                                subjects: Object.values(teacher.subjects || {}).flat(),
                               })
                             }
                           >
@@ -677,6 +679,7 @@ export default function JobApplicantsPage() {
           name={contactTeacher.name}
           email={contactTeacher.email}
           phone={contactTeacher.phone}
+          subjects={contactTeacher.subjects}
         />
       )}
 

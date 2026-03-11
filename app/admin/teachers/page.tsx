@@ -140,7 +140,7 @@ export default function AdminTeachers() {
                     </p>
                   </div>
                   <div className="col-span-1">
-                    {isTeacherVerified(teacher.documents) ? (
+                    {isTeacherVerified(teacher.documents, teacher.qualifications) ? (
                       <Badge className="bg-green-100 text-green-700">
                         <ShieldCheck className="w-3 h-3" />
                         Verified

@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Mail, Phone } from 'lucide-react';
+import { X, Mail, Phone, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -10,9 +10,10 @@ interface ContactModalProps {
   name: string;
   email: string;
   phone?: string;
+  subjects?: string[];
 }
 
-export default function ContactModal({ isOpen, onClose, name, email, phone }: ContactModalProps) {
+export default function ContactModal({ isOpen, onClose, name, email, phone, subjects }: ContactModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -50,6 +51,25 @@ export default function ContactModal({ isOpen, onClose, name, email, phone }: Co
                   <p className="text-sm text-muted-foreground">{phone}</p>
                 </div>
               </a>
+            )}
+
+            {subjects && subjects.length > 0 && (
+              <div className="p-3 border border-border rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <BookOpen size={20} className="text-primary" />
+                  <p className="text-sm font-bold text-foreground">Subjects</p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {subjects.map((subject) => (
+                    <span
+                      key={subject}
+                      className="px-2 py-0.5 text-xs font-medium bg-muted text-muted-foreground rounded-full"
+                    >
+                      {subject}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 
