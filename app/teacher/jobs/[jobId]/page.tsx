@@ -407,7 +407,7 @@ export default function JobDetailPage() {
                   <p className="text-sm text-muted-foreground mb-2">
                     You need an active subscription to apply for jobs.
                   </p>
-                  <Button asChild className="w-full" size="lg">
+                  <Button asChild size="lg">
                     <Link href="/upgrade">
                       <Crown size={16} />
                       Get Lifetime Access
