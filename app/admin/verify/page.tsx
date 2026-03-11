@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useUnverifiedTeachers } from "@/lib/hooks/useAdmin";
 import { useSignedUrl } from "@/lib/hooks/useSignedUrl";
-import { getPendingCount } from "@/lib/utils/verification";
+import { getPendingCount, isTeacherVerified } from "@/lib/utils/verification";
 import { Loader2, ShieldCheck, Eye, FileText, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,7 +73,7 @@ export default function AdminVerifyTeachers() {
 
               {/* Table Rows */}
               {teachers.map((teacher) => {
-                const pendingDocs = getPendingCount(teacher.documents);
+                const pendingDocs = getPendingCount(teacher.documents, teacher.qualifications);
                 const totalDocs = teacher.documents.length;
 
                 return (
@@ -98,7 +98,9 @@ export default function AdminVerifyTeachers() {
                       </p>
                     </div>
                     <div className="col-span-1">
-                      {pendingDocs > 0 ? (
+                      {isTeacherVerified(teacher.documents, teacher.qualifications) ? (
+                        <Badge className="bg-green-100 text-green-700">Verified</Badge>
+                      ) : pendingDocs > 0 ? (
                         <Badge className="bg-yellow-100 text-yellow-700">
                           {pendingDocs} pending
                         </Badge>

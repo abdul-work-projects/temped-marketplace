@@ -15,29 +15,54 @@ function mapRow(row: Record<string, unknown>): Announcement {
 }
 
 /**
- * Fetch the latest active announcement for a given user type.
+ * Fetch the latest active announcement for a given user type,
+ * excluding announcements the user has already dismissed.
  */
-export function useActiveAnnouncement(userType: 'teacher' | 'school') {
+export function useActiveAnnouncement(userType: 'teacher' | 'school', userId?: string) {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data } = await supabaseRef.current
+    if (!userId) return;
+
+    const fetchAnnouncement = async () => {
+      // Get IDs of announcements this user has already dismissed
+      const { data: reads } = await supabaseRef.current
+        .from('announcement_reads')
+        .select('announcement_id')
+        .eq('user_id', userId);
+
+      const readIds = (reads || []).map((r: { announcement_id: string }) => r.announcement_id);
+
+      // Fetch latest active announcement for this user type, excluding read ones
+      let query = supabaseRef.current
         .from('announcements')
         .select('*')
         .eq('is_active', true)
         .in('target', [userType, 'all'])
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
 
+      if (readIds.length > 0) {
+        query = query.not('id', 'in', `(${readIds.join(',')})`);
+      }
+
+      const { data } = await query.maybeSingle();
       if (data) setAnnouncement(mapRow(data));
     };
-    fetch();
-  }, [userType]);
 
-  return announcement;
+    fetchAnnouncement();
+  }, [userType, userId]);
+
+  const dismiss = useCallback(async (announcementId: string) => {
+    if (!userId) return;
+    setAnnouncement(null);
+    await supabaseRef.current
+      .from('announcement_reads')
+      .insert({ announcement_id: announcementId, user_id: userId });
+  }, [userId]);
+
+  return { announcement, dismiss };
 }
 
 /**

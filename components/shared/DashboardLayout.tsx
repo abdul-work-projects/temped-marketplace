@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
+import AnnouncementBar from './AnnouncementBar';
+import { useActiveAnnouncement } from '@/lib/hooks/useAnnouncements';
 import { Briefcase, Menu } from 'lucide-react';
 import Link from 'next/link';
 
@@ -27,6 +29,10 @@ export default function DashboardLayout({
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { announcement, dismiss } = useActiveAnnouncement(
+    requiredUserType === 'admin' ? 'teacher' : requiredUserType,
+    user?.id
+  );
 
   useEffect(() => {
     if (!isLoading) {
@@ -77,6 +83,11 @@ export default function DashboardLayout({
           </Link>
         </div>
         <main className="flex-1">
+          {requiredUserType !== 'admin' && (
+            <div className="px-4 sm:px-6 lg:px-8 pt-4">
+              <AnnouncementBar announcement={announcement} onDismiss={dismiss} />
+            </div>
+          )}
           {children}
         </main>
         <Footer />

@@ -357,6 +357,7 @@ export default function TeacherSetupPage() {
           documents.some((d) => d.documentType === type) || !!pendingDocs[type]
       ),
       references.some((r) => r.name && r.email),
+      qualifications.some((q) => q.name && q.institution && q.dateObtained && q.fileUrl),
     ];
     const completed = fields.filter(Boolean).length;
     return Math.round((completed / fields.length) * 100);
