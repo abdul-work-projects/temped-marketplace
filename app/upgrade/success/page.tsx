@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { CheckCircle, Crown, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -7,6 +8,11 @@ import { useAuth } from '@/lib/context/AuthContext';
 
 export default function PaymentSuccessPage() {
   const { user } = useAuth();
+
+  // Clear cached access state so sidebar re-checks subscription
+  useEffect(() => {
+    sessionStorage.removeItem('temped-has-access');
+  }, []);
   const dashboardUrl =
     user?.type === 'school' ? '/school/dashboard' : '/teacher/dashboard';
 

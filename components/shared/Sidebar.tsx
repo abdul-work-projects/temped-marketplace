@@ -110,8 +110,8 @@ export default function Sidebar({
   const { logout, user: authUser } = useAuth();
   const profilePicPath = useProfilePicturePath();
   const profilePicUrl = useSignedUrl("profile-pictures", profilePicPath);
-  const hasAccess = useHasAccess(authUser?.id, authUser?.type);
-  const showUpgrade = authUser?.type === 'teacher' && !hasAccess;
+  const { hasAccess, loading: accessLoading } = useHasAccess(authUser?.id, authUser?.type);
+  const showUpgrade = authUser?.type === 'teacher' && !accessLoading && !hasAccess;
 
   // Auto-close mobile drawer on route change
   useEffect(() => {

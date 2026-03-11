@@ -117,12 +117,38 @@ export function usePayments(teacherId: string | undefined) {
  * Lightweight check for sidebar — just returns whether teacher has active access.
  * Uses teacher_id looked up from user_id. Re-checks when userId changes.
  */
+const ACCESS_CACHE_KEY = 'temped-has-access';
+
+function getCachedAccess(userId: string): boolean | undefined {
+  try {
+    const raw = sessionStorage.getItem(ACCESS_CACHE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (parsed.userId === userId) return parsed.hasAccess as boolean;
+  } catch { /* ignore */ }
+  return undefined;
+}
+
+function setCachedAccess(userId: string, hasAccess: boolean) {
+  try {
+    sessionStorage.setItem(ACCESS_CACHE_KEY, JSON.stringify({ userId, hasAccess }));
+  } catch { /* ignore */ }
+}
+
 export function useHasAccess(userId: string | undefined, userType: string | undefined) {
-  const [hasAccess, setHasAccess] = useState(false);
+  const cached = userId ? getCachedAccess(userId) : undefined;
+  const [hasAccess, setHasAccess] = useState(cached ?? false);
+  const [loading, setLoading] = useState(cached === undefined);
   const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    if (!userId || userType !== 'teacher') return;
+    if (!userId || userType !== 'teacher') {
+      setLoading(false);
+      return;
+    }
+
+    // Already have cached result — skip query
+    if (cached !== undefined) return;
 
     const check = async () => {
       try {
@@ -132,7 +158,7 @@ export function useHasAccess(userId: string | undefined, userType: string | unde
           .eq('user_id', userId)
           .single();
 
-        if (!teacher) return;
+        if (!teacher) { setLoading(false); return; }
 
         const { data: sub } = await supabaseRef.current
           .from('subscriptions')
@@ -142,19 +168,21 @@ export function useHasAccess(userId: string | undefined, userType: string | unde
           .limit(1)
           .maybeSingle();
 
+        let isActive = false;
         if (sub) {
-          const isActive = !sub.expires_at || new Date(sub.expires_at as string) > new Date();
-          setHasAccess(isActive);
-        } else {
-          setHasAccess(false);
+          isActive = !sub.expires_at || new Date(sub.expires_at as string) > new Date();
         }
+        setHasAccess(isActive);
+        setCachedAccess(userId, isActive);
       } catch {
         // no subscription
+      } finally {
+        setLoading(false);
       }
     };
 
     check();
-  }, [userId, userType]);
+  }, [userId, userType, cached]);
 
-  return hasAccess;
+  return { hasAccess, loading };
 }
