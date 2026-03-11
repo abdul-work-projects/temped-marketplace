@@ -195,6 +195,9 @@ export default function TeacherSetupPage() {
   const [selfieModalOpen, setSelfieModalOpen] = useState(false);
   const [draggingDocType, setDraggingDocType] = useState<string | null>(null);
   const [draggingQualIndex, setDraggingQualIndex] = useState<number | null>(null);
+  const [pendingQualFiles, setPendingQualFiles] = useState<
+    Record<number, { file: File; preview: string; fileName: string }>
+  >({});
 
   // Extract storage path from a full URL or return as-is if already a path
   const extractPath = (value: string, bucket: string) => {
@@ -285,6 +288,16 @@ export default function TeacherSetupPage() {
     }
     if (existingQualifications.length > 0) {
       setQualifications(existingQualifications);
+    } else {
+      // Default empty qualification so the section is visible for new profiles
+      setQualifications([{
+        id: crypto.randomUUID(),
+        name: '',
+        institution: '',
+        dateObtained: '',
+        fileUrl: '',
+        status: 'pending' as const,
+      }]);
     }
   }, [teacher, existingExperiences, existingQualifications]);
 
@@ -309,6 +322,7 @@ export default function TeacherSetupPage() {
       pendingPicFile !== null ||
       removedPic ||
       Object.keys(pendingDocs).length > 0 ||
+      Object.keys(pendingQualFiles).length > 0 ||
       JSON.stringify(references) !==
         JSON.stringify(teacher.teacherReferences || []) ||
       JSON.stringify(experiences) !== JSON.stringify(existingExperiences) ||
@@ -333,6 +347,7 @@ export default function TeacherSetupPage() {
     pendingPicFile,
     removedPic,
     pendingDocs,
+    pendingQualFiles,
     references,
     experiences,
     qualifications,
@@ -443,23 +458,34 @@ export default function TeacherSetupPage() {
     );
   };
 
-  const handleQualFileUpload = async (index: number, file: File) => {
-    if (!user) return;
+  const handleQualFileSelect = (index: number, file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       setFileSizeError("File must be under 10MB");
       return;
     }
     setFileSizeError(null);
-    const ext = file.name.split(".").pop();
-    const fileName = `qual-${Date.now()}.${ext}`;
-    const filePath = `${user.id}/${fileName}`;
-    const { error: uploadErr } = await supabaseRef.current.storage
-      .from("documents")
-      .upload(filePath, file);
-    if (!uploadErr) {
-      updateQualification(index, "fileUrl", filePath);
-      updateQualification(index, "fileName", file.name);
-    }
+    // Revoke old preview if replacing
+    const old = pendingQualFiles[index];
+    if (old) URL.revokeObjectURL(old.preview);
+    setPendingQualFiles((prev) => ({
+      ...prev,
+      [index]: { file, preview: URL.createObjectURL(file), fileName: file.name },
+    }));
+    // Mark as having a file so completeness calculation works
+    updateQualification(index, "fileUrl", `pending-${index}`);
+    updateQualification(index, "fileName", file.name);
+  };
+
+  const handleQualFileRemove = (index: number) => {
+    const old = pendingQualFiles[index];
+    if (old) URL.revokeObjectURL(old.preview);
+    setPendingQualFiles((prev) => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
+    updateQualification(index, "fileUrl", "");
+    updateQualification(index, "fileName", "");
   };
 
   const addQualification = () => {
@@ -477,6 +503,18 @@ export default function TeacherSetupPage() {
   };
 
   const removeQualification = (index: number) => {
+    const old = pendingQualFiles[index];
+    if (old) URL.revokeObjectURL(old.preview);
+    setPendingQualFiles((prev) => {
+      const next: Record<number, { file: File; preview: string; fileName: string }> = {};
+      // Re-index remaining entries after removal
+      Object.entries(prev).forEach(([k, v]) => {
+        const i = parseInt(k, 10);
+        if (i < index) next[i] = v;
+        else if (i > index) next[i - 1] = v;
+      });
+      return next;
+    });
     setQualifications((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -595,6 +633,21 @@ export default function TeacherSetupPage() {
         }
       }
 
+      // Upload pending qualification files before saving to DB
+      const updatedQualifications = [...qualifications];
+      for (const [indexStr, pending] of Object.entries(pendingQualFiles)) {
+        const idx = parseInt(indexStr, 10);
+        const ext = pending.file.name.split(".").pop();
+        const fileName = `qual-${Date.now()}-${idx}.${ext}`;
+        const filePath = `${user?.id}/${fileName}`;
+        const { error: uploadErr } = await supabaseRef.current.storage
+          .from("documents")
+          .upload(filePath, pending.file);
+        if (!uploadErr) {
+          updatedQualifications[idx] = { ...updatedQualifications[idx], fileUrl: filePath };
+        }
+      }
+
       const updates = {
         first_name: firstName,
         surname: surname,
@@ -618,7 +671,7 @@ export default function TeacherSetupPage() {
         teacher.id,
         updates,
         experiences.filter((e) => e.title && e.company && e.startDate),
-        qualifications.filter((q) => q.name && q.institution && q.dateObtained)
+        updatedQualifications.filter((q) => q.name && q.institution && q.dateObtained)
       );
       if (!success) {
         setSaving(false);
@@ -654,10 +707,12 @@ export default function TeacherSetupPage() {
       // Clean up pending state
       if (pendingPicPreview) URL.revokeObjectURL(pendingPicPreview);
       Object.values(pendingDocs).forEach((p) => URL.revokeObjectURL(p.preview));
+      Object.values(pendingQualFiles).forEach((p) => URL.revokeObjectURL(p.preview));
       setPendingPicFile(null);
       setPendingPicPreview(null);
       setRemovedPic(false);
       setPendingDocs({});
+      setPendingQualFiles({});
       setSaved(true);
       setHasChanges(false);
       refetchTeacher();
@@ -1473,7 +1528,32 @@ export default function TeacherSetupPage() {
                     <label className="block text-xs font-bold text-muted-foreground mb-1">
                       Upload Certificate *
                     </label>
-                    {qual.fileUrl ? (
+                    {pendingQualFiles[index] ? (
+                      <div className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
+                        {pendingQualFiles[index].file.type.startsWith("image/") ? (
+                          <img
+                            src={pendingQualFiles[index].preview}
+                            alt=""
+                            className="w-8 h-8 object-cover rounded cursor-pointer"
+                            onClick={() =>
+                              setLightbox({ src: pendingQualFiles[index].preview, fileName: pendingQualFiles[index].fileName })
+                            }
+                          />
+                        ) : (
+                          <FileText size={16} className="text-muted-foreground shrink-0" />
+                        )}
+                        <span className="truncate flex-1 text-muted-foreground text-xs">
+                          {pendingQualFiles[index].fileName}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleQualFileRemove(index)}
+                          className="text-red-500 hover:text-red-700 shrink-0"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : qual.fileUrl && !qual.fileUrl.startsWith("pending-") ? (
                       <div className="flex items-center gap-3 p-2 bg-muted/50 rounded border border-border text-sm">
                         <SignedDocPreview
                           fileUrl={qual.fileUrl}
@@ -1514,7 +1594,7 @@ export default function TeacherSetupPage() {
                           e.preventDefault();
                           setDraggingQualIndex(null);
                           const file = e.dataTransfer.files?.[0];
-                          if (file) handleQualFileUpload(index, file);
+                          if (file) handleQualFileSelect(index, file);
                         }}
                       >
                         <Plus
@@ -1542,7 +1622,7 @@ export default function TeacherSetupPage() {
                           className="hidden"
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
-                            if (file) handleQualFileUpload(index, file);
+                            if (file) handleQualFileSelect(index, file);
                             e.target.value = "";
                           }}
                         />

@@ -12,6 +12,7 @@ import {
   useWithdrawApplication,
 } from "@/lib/hooks/useJobs";
 import { isTeacherVerified } from "@/lib/utils/verification";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 import { calculateDistance, formatDistance } from "@/lib/utils/distance";
 import {
   MapPin,
@@ -26,6 +27,7 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Crown,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -66,6 +68,7 @@ export default function JobDetailPage() {
   const { apply, applying } = useApplyToJob();
   const { withdraw, withdrawing } = useWithdrawApplication();
   const verified = isTeacherVerified(documents, qualifications);
+  const { hasAccess } = useSubscription(teacher?.id);
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [panelVisible, setPanelVisible] = useState(false);
@@ -397,6 +400,18 @@ export default function JobDetailPage() {
                     size="lg"
                   >
                     <Link href="/teacher/setup">View Verification Status</Link>
+                  </Button>
+                </div>
+              ) : !hasAccess ? (
+                <div className="flex-1 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    You need an active subscription to apply for jobs.
+                  </p>
+                  <Button asChild className="w-full" size="lg">
+                    <Link href="/upgrade">
+                      <Crown size={16} />
+                      Get Lifetime Access
+                    </Link>
                   </Button>
                 </div>
               ) : (
