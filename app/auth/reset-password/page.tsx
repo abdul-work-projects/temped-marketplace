@@ -21,23 +21,15 @@ export default function ResetPasswordPage() {
   const { updatePassword } = useAuth();
   const router = useRouter();
 
-  // Supabase handles the token exchange automatically when the user clicks
-  // the reset link. We just need to wait for the session to be available.
+  // The auth callback route already exchanged the code and established a session.
+  // Just verify we have an active session before showing the form.
   useEffect(() => {
     const supabase = createClient();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
+      if (data.session) {
         setIsReady(true);
       }
     });
-
-    // Also check if we already have a session (e.g. page refreshed after token exchange)
-    supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
-      if (data.session) setIsReady(true);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

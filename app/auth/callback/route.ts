@@ -6,12 +6,19 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const requestedType = searchParams.get('user_type') as 'teacher' | 'school' | null;
   const next = searchParams.get('next') ?? '/';
+  const hasExplicitNext = searchParams.has('next');
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // If an explicit next path was provided (e.g. password reset), redirect there
+      // immediately after exchanging the code — skip the type/profile logic.
+      if (hasExplicitNext) {
+        return NextResponse.redirect(`${origin}${next}`);
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         // Check if user_type was already set (email/password signup or previous Google login)
