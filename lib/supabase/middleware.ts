@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = ['/', '/teacher-home', '/school-home', '/auth/login', '/auth/signup', '/auth/callback'];
   const isPublicRoute = publicRoutes.some(
     route => pathname === route || pathname.startsWith('/auth/')
-  );
+  ) || pathname.startsWith('/api/');
 
   // If not authenticated and trying to access protected route
   if (!claims && !isPublicRoute) {
