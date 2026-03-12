@@ -162,6 +162,35 @@ export default function UpgradePage() {
             unlock lifetime access to the platform that connects teachers with
             short-term and substitute teaching jobs.
           </p>
+
+          {/* CTA Button */}
+          <div className="mt-8">
+            <Button
+              onClick={handlePayment}
+              disabled={loading}
+              className="h-12 text-base font-bold px-8"
+              size="lg"
+            >
+              {loading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Crown size={20} />
+                  Get Lifetime Access — R{LIFETIME_PRICE}
+                </>
+              )}
+            </Button>
+            {error && (
+              <p className="text-sm text-red-600 mt-3">{error}</p>
+            )}
+            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+              <Shield size={14} />
+              <span>Secure payment via Payfast</span>
+            </div>
+          </div>
         </div>
 
         {/* Why This Exists */}
